@@ -1,52 +1,57 @@
-use btleplug::api::{Central, Manager as _, Peripheral as _, ScanFilter};
+use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, Peripheral};
+use futures::stream::StreamExt;
 use std::error::Error;
 use std::time::Duration;
-use tokio::time;
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn get_central() -> Result<Adapter, Box<dyn Error>> {
     let manager = Manager::new().await?;
-
-    let central = get_central(&manager).await;
-
-    println!("Starting scan on {}...", central.adapter_info().await?);
-
-    central
-        .start_scan(ScanFilter::default())
-        .await
-        .expect("Can't scan BLE adapter for connected devices!");
-
-    // TODO: Use events to detect new device.
-    time::sleep(Duration::from_secs(5)).await;
-
-    let trainer = find_trainer(&central, "KICKR CORE AF30").await.expect("No trainer found");
-
-    trainer.connect().await?;
-
-    trainer.discover_services().await?;
-
-    let characteristics = trainer.characteristics();
-
-    for cmd_char in characteristics.iter() {
-        println!("{:?}", cmd_char);
-    }
-
-    // TODO: Implement main loop.
-    // TODO: Remove sleep time.
-    time::sleep(Duration::from_secs(30)).await;
-
-    Ok(())
-}
-
-async fn get_central(manager: &Manager) -> Adapter {
     let adapters = manager.adapters().await.unwrap();
 
     if adapters.is_empty() {
         eprintln!("No Bluetooth adapters found!");
     }
 
-    adapters.into_iter().nth(0).unwrap()
+    let central = adapters.into_iter().nth(0).unwrap();
+
+    Ok(central)
+}
+
+async fn list_devices() -> Result<(), Box<dyn Error>> {
+    let central = get_central().await?;
+    let mut events = central.events().await?;
+
+    // TODO: Filter out unnecessary devices
+    central.start_scan(ScanFilter::default()).await?;
+
+    println!("BLE Devices:");
+
+    while let Some(event) = events.next().await {
+        match event {
+            CentralEvent::DeviceDiscovered(id) => {
+                let peripheral = central.peripheral(&id).await?;
+
+                let properties = peripheral.properties().await?.unwrap();
+                let is_connected = peripheral.is_connected().await?;
+                let address = properties.address;
+                let local_name = properties
+                    .local_name
+                    .unwrap_or(String::from("Unknown BLE Device"));
+
+                if is_connected {
+                    print!("* ");
+                } else {
+                    print!("  ");
+                }
+
+                print!("{:?} : {:?}", address, local_name);
+                println!("");
+            }
+            _ => {}
+        }
+    }
+
+    Ok(())
 }
 
 async fn find_trainer(central: &Adapter, trainer_name: &str) -> Option<Peripheral> {
@@ -60,4 +65,21 @@ async fn find_trainer(central: &Adapter, trainer_name: &str) -> Option<Periphera
     }
 
     None
+}
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn Error>> {
+    let central = get_central().await?;
+    central.start_scan(ScanFilter::default()).await?;
+
+    tokio::time::sleep(Duration::from_secs(5)).await;
+
+    let trainer_name = "KICKR CORE AF30";
+    let trainer = find_trainer(&central, &trainer_name).await;
+
+    println!("Peripheral for {}: {:?}", trainer_name, trainer);
+
+    list_devices().await?;
+
+    Ok(())
 }
