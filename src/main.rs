@@ -20,7 +20,17 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // TODO: Use events to detect new device.
     time::sleep(Duration::from_secs(5)).await;
 
-    find_trainer(&central, "KICKR CORE AF30").await;
+    let trainer = find_trainer(&central, "KICKR CORE AF30").await.expect("No trainer found");
+
+    trainer.connect().await?;
+
+    trainer.discover_services().await?;
+
+    let characteristics = trainer.characteristics();
+
+    for cmd_char in characteristics.iter() {
+        println!("{:?}", cmd_char);
+    }
 
     // TODO: Implement main loop.
     // TODO: Remove sleep time.
