@@ -2,6 +2,7 @@ use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFi
 use btleplug::platform::{Adapter, Manager, Peripheral};
 use futures::stream::StreamExt;
 use std::error::Error;
+use std::time::Duration;
 
 async fn get_central() -> Result<Adapter, Box<dyn Error>> {
     let manager = Manager::new().await?;
@@ -77,11 +78,17 @@ impl Bluetooth {
         Ok(())
     }
 
-    pub async fn find_trainer(&self, trainer_name: &str) -> Option<Peripheral> {
+    pub async fn find_device(&self, device_name: &str) -> Option<Peripheral> {
+        println!("Searching for {}...", device_name);
+
         if let Some(central) = self.central.as_ref() {
+            central.start_scan(ScanFilter::default()).await.unwrap();
+
+            tokio::time::sleep(Duration::from_secs(5)).await;
+
             for p in central.peripherals().await.unwrap() {
                 if let Some(local_name) = p.properties().await.unwrap().unwrap().local_name {
-                    if local_name == trainer_name {
+                    if local_name == device_name {
                         println!("Device {} found!", local_name);
                         return Some(p);
                     }
