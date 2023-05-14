@@ -51,6 +51,7 @@ impl Bluetooth {
 
             while let Some(event) = events.next().await {
                 match event {
+                    // TODO: Spawn a different thread for this event
                     CentralEvent::DeviceDiscovered(id) => {
                         let peripheral = central.peripheral(&id).await?;
 
