@@ -5,7 +5,7 @@
 </style>
 
 <script lang="ts">
-import Greet from './lib/Greet.svelte'
+import FindDevice from './lib/FindDevice.svelte'
 </script>
 
 <main class="container">
@@ -18,6 +18,6 @@ import Greet from './lib/Greet.svelte'
   </div>
 
   <div class="row">
-    <Greet />
+    <FindDevice />
   </div>
 </main>
