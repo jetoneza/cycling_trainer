@@ -5,17 +5,6 @@ mod ble;
 
 use ble::bluetooth::Bluetooth;
 
-#[tauri::command]
-async fn find_device(query: &str) -> Result<String, ()> {
-    let mut bluetooth = Bluetooth::new().await;
-
-    bluetooth.start();
-
-    let device = bluetooth.find_device(query).await;
-
-    Ok(format!("Peripheral for {}: {:?}", query, device))
-}
-
 // Pseudo code
 // const connect_to_device = async (deviceID: string) => {
 //   const bluetooth = Bluetooth.getInstance()
@@ -39,7 +28,7 @@ async fn list_devices() -> Result<String, ()> {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![find_device, list_devices])
+        .invoke_handler(tauri::generate_handler![list_devices])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -6,7 +6,6 @@
 
 <script lang="ts">
 import Bluetooth from './lib/Bluetooth.svelte'
-import FindDevice from './lib/FindDevice.svelte'
 </script>
 
 <main class="container">
