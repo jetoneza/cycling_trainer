@@ -5,6 +5,7 @@
 </style>
 
 <script lang="ts">
+import Bluetooth from './lib/Bluetooth.svelte'
 import FindDevice from './lib/FindDevice.svelte'
 </script>
 
@@ -18,6 +19,6 @@ import FindDevice from './lib/FindDevice.svelte'
   </div>
 
   <div class="row">
-    <FindDevice />
+    <Bluetooth />
   </div>
 </main>
