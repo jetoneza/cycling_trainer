@@ -19,6 +19,7 @@ async fn get_central() -> Result<Adapter, Box<dyn Error>> {
 
 pub struct Bluetooth {
     central: Option<Adapter>,
+    event_thread: Option<JoinHandler<()>>,
 }
 
 impl Bluetooth {
@@ -35,6 +36,12 @@ impl Bluetooth {
 
         Bluetooth { central }
     }
+
+    pub fn start(&mut self) {
+        let handler = tokio::spawn(self.list_devices())
+
+        self.event_thread = Some(handler)
+    } 
 
     pub async fn get_central(&self) -> Option<&Adapter> {
         self.central.as_ref()
