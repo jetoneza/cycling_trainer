@@ -1,7 +1,9 @@
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, Peripheral};
 use futures::stream::StreamExt;
+use tokio::task::JoinHandle;
 use std::error::Error;
+use std::println;
 use std::time::Duration;
 
 async fn get_central() -> Result<Adapter, Box<dyn Error>> {
@@ -17,9 +19,50 @@ async fn get_central() -> Result<Adapter, Box<dyn Error>> {
     Ok(central)
 }
 
+async fn list_devices(central: &Adapter) -> Result<(), Box<dyn Error>> {
+    let mut events = central.events().await?;
+
+    // TODO: Filter out unnecessary devices
+    central.start_scan(ScanFilter::default()).await?;
+
+    println!("BLE Devices:");
+
+    while let Some(event) = events.next().await {
+        match event {
+            // TODO: Spawn a different thread for this event
+            CentralEvent::DeviceDiscovered(id) => {
+                let peripheral = central.peripheral(&id).await?;
+
+                let properties = peripheral.properties().await?.unwrap();
+                let is_connected = peripheral.is_connected().await?;
+                let address = properties.address;
+                let local_name = properties
+                    .local_name
+                    .unwrap_or(String::from("Unknown BLE Device"));
+
+                if is_connected {
+                    print!("* ");
+                } else {
+                    print!("  ");
+                }
+
+                print!("{:?} : {:?}", address, local_name);
+                println!("");
+            }
+            _ => {}
+        }
+    }
+
+    Ok(())
+}
+
+async fn sample_async() {
+    println!("This is a test.")
+}
+
 pub struct Bluetooth {
     central: Option<Adapter>,
-    event_thread: Option<JoinHandler<()>>,
+    event_thread: Option<JoinHandle<()>>
 }
 
 impl Bluetooth {
@@ -34,56 +77,13 @@ impl Bluetooth {
             }
         };
 
-        Bluetooth { central }
+        Bluetooth { central, event_thread: None }
     }
 
-    pub fn start(&mut self) {
-        let handler = tokio::spawn(self.list_devices())
+    pub fn start (&mut self) {
+        let handler = tokio::spawn(sample_async());
 
         self.event_thread = Some(handler)
-    } 
-
-    pub async fn get_central(&self) -> Option<&Adapter> {
-        self.central.as_ref()
-    }
-
-    pub async fn list_devices(&self) -> Result<(), Box<dyn Error>> {
-        if let Some(central) = self.central.as_ref() {
-            let mut events = central.events().await?;
-
-            // TODO: Filter out unnecessary devices
-            central.start_scan(ScanFilter::default()).await?;
-
-            println!("BLE Devices:");
-
-            while let Some(event) = events.next().await {
-                match event {
-                    // TODO: Spawn a different thread for this event
-                    CentralEvent::DeviceDiscovered(id) => {
-                        let peripheral = central.peripheral(&id).await?;
-
-                        let properties = peripheral.properties().await?.unwrap();
-                        let is_connected = peripheral.is_connected().await?;
-                        let address = properties.address;
-                        let local_name = properties
-                            .local_name
-                            .unwrap_or(String::from("Unknown BLE Device"));
-
-                        if is_connected {
-                            print!("* ");
-                        } else {
-                            print!("  ");
-                        }
-
-                        print!("{:?} : {:?}", address, local_name);
-                        println!("");
-                    }
-                    _ => {}
-                }
-            }
-        }
-
-        Ok(())
     }
 
     pub async fn find_device(&self, device_name: &str) -> Option<Peripheral> {

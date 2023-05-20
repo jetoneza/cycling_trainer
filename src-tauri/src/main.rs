@@ -7,7 +7,9 @@ use ble::bluetooth::Bluetooth;
 
 #[tauri::command]
 async fn find_device(query: &str) -> Result<String, ()> {
-    let bluetooth = Bluetooth::new().await;
+    let mut bluetooth = Bluetooth::new().await;
+
+    bluetooth.start();
 
     let device = bluetooth.find_device(query).await;
 
