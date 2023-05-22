@@ -1,10 +1,10 @@
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, Peripheral};
 use futures::stream::StreamExt;
-use tokio::task::JoinHandle;
 use std::error::Error;
 use std::println;
 use std::time::Duration;
+use tokio::task::JoinHandle;
 
 async fn get_central() -> Result<Adapter, Box<dyn Error>> {
     let manager = Manager::new().await?;
@@ -56,13 +56,10 @@ async fn list_devices(central: &Adapter) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-async fn sample_async() {
-    println!("This is a test.")
-}
-
 pub struct Bluetooth {
     central: Option<Adapter>,
-    event_thread: Option<JoinHandle<()>>
+    // Connected devices
+    devices: Vec<Peripheral>,
 }
 
 impl Bluetooth {
@@ -77,13 +74,10 @@ impl Bluetooth {
             }
         };
 
-        Bluetooth { central, event_thread: None }
-    }
-
-    pub fn start (&mut self) {
-        let handler = tokio::spawn(sample_async());
-
-        self.event_thread = Some(handler)
+        Bluetooth {
+            central,
+            devices: vec![],
+        }
     }
 
     pub async fn find_device(&self, device_name: &str) -> Option<Peripheral> {
