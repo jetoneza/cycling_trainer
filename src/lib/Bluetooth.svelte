@@ -12,17 +12,10 @@ async function scanDevices() {
   await invoke('scan_devices')
 
   scanning = false
-  stopping = false
 }
 
-async function stopScanning() {
-  stopping = true
-
-  await invoke('stop_scanning')
-}
-
-listen('devices-discovered', (appEvent: TauriEvent<any>) => {
-  const { payload } = appEvent
+listen('devices-discovered', (event: TauriEvent<any>) => {
+  const { payload } = event
 
   devices = payload
 })

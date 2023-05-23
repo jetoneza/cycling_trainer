@@ -6,10 +6,10 @@ use std::pin::Pin;
 use tokio::sync::Mutex;
 
 lazy_static! {
-    static ref BLUETOOTH: Mutex<Option<Bluetooth>> = Default::default();
+    pub static ref BLUETOOTH: Mutex<Option<Bluetooth>> = Default::default();
 }
 
-enum BluetoothStatus {
+pub enum BluetoothStatus {
     Error,
     Ready,
 }
@@ -84,7 +84,7 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                         "Device found: {} {}",
                         properties.local_name.as_ref().unwrap(),
                         &id
-                    )
+                    );
                 }
             }
             _ => {}
@@ -118,11 +118,11 @@ async fn listen_to_events() {
 }
 
 pub struct Bluetooth {
-    manager: Mutex<Option<Manager>>,
-    central: Mutex<Option<Adapter>>,
-    status: Mutex<BluetoothStatus>,
-    is_scanning: Mutex<bool>,
-    device_ids: Mutex<Vec<PeripheralId>>,
+    pub manager: Mutex<Option<Manager>>,
+    pub status: Mutex<BluetoothStatus>,
+    pub device_ids: Mutex<Vec<PeripheralId>>,
+    pub central: Mutex<Option<Adapter>>,
+    pub is_scanning: Mutex<bool>,
 }
 
 impl Bluetooth {
