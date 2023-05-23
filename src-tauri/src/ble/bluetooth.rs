@@ -1,6 +1,5 @@
-use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
+use btleplug::api::{Central, Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, Peripheral};
-use futures::stream::StreamExt;
 use serde::Serialize;
 use std::error::Error;
 use std::println;
@@ -17,43 +16,6 @@ async fn get_central() -> Result<Adapter, Box<dyn Error>> {
     let central = adapters.into_iter().nth(0).unwrap();
 
     Ok(central)
-}
-
-async fn list_devices(central: &Adapter) -> Result<(), Box<dyn Error>> {
-    let mut events = central.events().await?;
-
-    // TODO: Filter out unnecessary devices
-    central.start_scan(ScanFilter::default()).await?;
-
-    println!("BLE Devices:");
-
-    while let Some(event) = events.next().await {
-        match event {
-            // TODO: Spawn a different thread for this event
-            CentralEvent::DeviceDiscovered(id) => {
-                let peripheral = central.peripheral(&id).await?;
-
-                let properties = peripheral.properties().await?.unwrap();
-                let is_connected = peripheral.is_connected().await?;
-                let address = properties.address;
-                let local_name = properties
-                    .local_name
-                    .unwrap_or(String::from("Unknown BLE Device"));
-
-                if is_connected {
-                    print!("* ");
-                } else {
-                    print!("  ");
-                }
-
-                print!("{:?} : {:?}", address, local_name);
-                println!("");
-            }
-            _ => {}
-        }
-    }
-
-    Ok(())
 }
 
 pub struct Bluetooth {
@@ -103,26 +65,5 @@ impl Bluetooth {
         }
 
         data
-    }
-
-    pub async fn find_device(&self, device_name: &str) -> Option<Peripheral> {
-        println!("Searching for {}...", device_name);
-
-        if let Some(central) = self.central.as_ref() {
-            central.start_scan(ScanFilter::default()).await.unwrap();
-
-            tokio::time::sleep(Duration::from_secs(5)).await;
-
-            for p in central.peripherals().await.unwrap() {
-                if let Some(local_name) = p.properties().await.unwrap().unwrap().local_name {
-                    if local_name == device_name {
-                        println!("Device {} found!", local_name);
-                        return Some(p);
-                    }
-                };
-            }
-        }
-
-        None
     }
 }
