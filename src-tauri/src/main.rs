@@ -3,10 +3,10 @@
 
 mod ble;
 
-use std::time::Duration;
+use std::{println, sync::Mutex, time::Duration};
 
 use ble::bluetooth::Bluetooth;
-use tauri::Manager;
+use tauri::{Manager, State};
 
 // Pseudo code
 // const connect_to_device = async (deviceID: string) => {
@@ -15,24 +15,56 @@ use tauri::Manager;
 //   bluetooth.connect(deviceID)
 // }
 
+struct AppState(Mutex<App>);
+
+struct App {
+    is_scanning: bool,
+}
+
+impl App {
+    fn new() -> Self {
+        Self { is_scanning: false }
+    }
+
+    fn set_scanning(&mut self, is_scanning: bool) {
+        self.is_scanning = is_scanning;
+    }
+
+    fn is_scanning(&self) -> bool {
+        self.is_scanning
+    }
+}
+
 #[tauri::command]
-async fn list_devices(app_handle: tauri::AppHandle) -> Result<(), ()> {
+async fn stop_scanning(state: State<'_, AppState>) -> Result<(), ()> {
+    if let Ok(mut app) = state.0.lock() {
+        app.set_scanning(false);
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn scan_devices(app_handle: tauri::AppHandle, state: State<'_, AppState>) -> Result<(), ()> {
     let bluetooth = Bluetooth::new().await;
 
-    let mut counter = 0;
+    if let Ok(mut app) = state.0.lock() {
+        app.set_scanning(true);
+    }
 
     loop {
-        if counter > 30 {
-            break;
-        } 
+        if let Ok(app) = state.0.lock() {
+            if !app.is_scanning() {
+                println!("Scanning stopped!");
+                break;
+            }
+        }
+
+        println!("Scanning...");
 
         let devices = bluetooth.list_devices().await;
 
         app_handle.emit_all("devices-discovered", devices).ok();
-
-        tokio::time::sleep(Duration::from_secs(5)).await;
-
-        counter += 1;
     }
 
     Ok(())
@@ -40,7 +72,8 @@ async fn list_devices(app_handle: tauri::AppHandle) -> Result<(), ()> {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![list_devices])
+        .manage(AppState(Mutex::new(App::new())))
+        .invoke_handler(tauri::generate_handler![scan_devices, stop_scanning])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

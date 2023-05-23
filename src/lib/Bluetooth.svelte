@@ -2,21 +2,23 @@
 import { invoke } from '@tauri-apps/api/tauri'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
-let result = ''
-let searching = false
+let scanning = false
+let stopping = false
 let devices = []
 
-const resetState = () => {
-  searching = true
-  result = ''
+async function scanDevices() {
+  scanning = true
+
+  await invoke('scan_devices')
+
+  scanning = false
+  stopping = false
 }
 
-async function listDevices() {
-  resetState()
+async function stopScanning() {
+  stopping = true
 
-  await invoke('list_devices')
-
-  searching = false
+  await invoke('stop_scanning')
 }
 
 listen('devices-discovered', (appEvent: TauriEvent<any>) => {
@@ -28,10 +30,14 @@ listen('devices-discovered', (appEvent: TauriEvent<any>) => {
 
 <div>
   <div class="row">
-    <button on:click="{listDevices}">Scan devices</button>
+    {#if !scanning}
+      <button on:click="{scanDevices}">Scan devices</button>
+    {:else}
+      <button on:click="{stopScanning}" disabled={stopping}>{stopping ? 'Stopping Scan...' : 'Stop Scan'}</button>
+    {/if}
   </div>
 
-  {#if searching}
+  {#if scanning}
     <p>Searching via Bluetooth...</p>
   {/if}
 
