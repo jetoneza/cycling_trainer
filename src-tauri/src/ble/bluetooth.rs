@@ -10,7 +10,6 @@ lazy_static! {
 }
 
 enum BluetoothStatus {
-    New,
     Error,
     Ready,
 }
