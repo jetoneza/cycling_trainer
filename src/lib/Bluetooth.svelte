@@ -3,7 +3,6 @@ import { invoke } from '@tauri-apps/api/tauri'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
 let scanning = false
-let stopping = false
 let devices = []
 
 async function scanDevices() {
@@ -25,8 +24,6 @@ listen('devices-discovered', (event: TauriEvent<any>) => {
   <div class="row">
     {#if !scanning}
       <button on:click="{scanDevices}">Scan devices</button>
-    {:else}
-      <button on:click="{stopScanning}" disabled={stopping}>{stopping ? 'Stopping Scan...' : 'Stop Scan'}</button>
     {/if}
   </div>
 
