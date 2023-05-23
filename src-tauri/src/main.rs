@@ -1,5 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#[macro_use]
+extern crate lazy_static;
 
 mod ble;
 
@@ -46,8 +48,6 @@ async fn stop_scanning(state: State<'_, AppState>) -> Result<(), ()> {
 
 #[tauri::command]
 async fn scan_devices(app_handle: tauri::AppHandle, state: State<'_, AppState>) -> Result<(), ()> {
-    let bluetooth = Bluetooth::new().await;
-
     if let Ok(mut app) = state.0.lock() {
         app.set_scanning(true);
     }
@@ -61,10 +61,6 @@ async fn scan_devices(app_handle: tauri::AppHandle, state: State<'_, AppState>) 
         }
 
         println!("Scanning...");
-
-        let devices = bluetooth.list_devices().await;
-
-        app_handle.emit_all("devices-discovered", devices).ok();
     }
 
     Ok(())

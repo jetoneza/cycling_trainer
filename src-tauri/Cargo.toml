@@ -20,6 +20,7 @@ tokio = { version = "1.28.1", features = ["full"] }
 btleplug = "0.10.5"
 futures = "0.3.28"
 lazy_static = "1.4.0"
+log = "0.4.17"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem
