@@ -1,8 +1,10 @@
 <script lang="ts">
 import { invoke } from '@tauri-apps/api/tauri'
+import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
 let result = ''
 let searching = false
+let devices = []
 
 const resetState = () => {
   searching = true
@@ -12,20 +14,35 @@ const resetState = () => {
 async function listDevices() {
   resetState()
 
-  result = result = await invoke('list_devices')
+  await invoke('list_devices')
 
   searching = false
 }
+
+listen('devices-discovered', (appEvent: TauriEvent<any>) => {
+  const { payload } = appEvent
+
+  devices = payload
+})
 </script>
 
 <div>
   <div class="row">
-    <button on:click="{listDevices}">Bluetooth</button>
+    <button on:click="{listDevices}">Scan devices</button>
   </div>
 
   {#if searching}
     <p>Searching via Bluetooth...</p>
   {/if}
 
-  <p>{result}</p>
+  {#if devices.length > 0}
+    <p>Devices found:</p>
+    <ul>
+      {#each devices as device}
+        <li>
+          {device.name}
+        </li>
+      {/each}
+    </ul>
+  {/if}
 </div>

@@ -3,7 +3,10 @@
 
 mod ble;
 
+use std::time::Duration;
+
 use ble::bluetooth::Bluetooth;
+use tauri::Manager;
 
 // Pseudo code
 // const connect_to_device = async (deviceID: string) => {
@@ -13,17 +16,26 @@ use ble::bluetooth::Bluetooth;
 // }
 
 #[tauri::command]
-async fn list_devices() -> Result<String, ()> {
+async fn list_devices(app_handle: tauri::AppHandle) -> Result<(), ()> {
     let bluetooth = Bluetooth::new().await;
 
-    // Pseudo code
-    // const devices_thread = bluetooth.list_devices()
-    //
-    // devices_thread.subscribe((data) => {
-    //      ui.send(data, 'bluetooth-component')
-    // })
+    let mut counter = 0;
 
-    Ok(format!("Devices:"))
+    loop {
+        if counter > 30 {
+            break;
+        } 
+
+        let devices = bluetooth.list_devices().await;
+
+        app_handle.emit_all("devices-discovered", devices).ok();
+
+        tokio::time::sleep(Duration::from_secs(5)).await;
+
+        counter += 1;
+    }
+
+    Ok(())
 }
 
 fn main() {
