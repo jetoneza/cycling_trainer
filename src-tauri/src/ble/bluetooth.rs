@@ -1,10 +1,10 @@
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, Peripheral};
 use futures::stream::StreamExt;
+use serde::Serialize;
 use std::error::Error;
 use std::println;
 use std::time::Duration;
-use tokio::task::JoinHandle;
 
 async fn get_central() -> Result<Adapter, Box<dyn Error>> {
     let manager = Manager::new().await?;
@@ -62,6 +62,11 @@ pub struct Bluetooth {
     devices: Vec<Peripheral>,
 }
 
+#[derive(Debug, Serialize, Clone)]
+pub struct PeripheralData {
+    pub name: String,
+}
+
 impl Bluetooth {
     pub async fn new() -> Bluetooth {
         let central = get_central().await;
@@ -78,6 +83,26 @@ impl Bluetooth {
             central,
             devices: vec![],
         }
+    }
+
+    pub async fn list_devices(&self) -> Vec<PeripheralData> {
+        let mut data: Vec<PeripheralData> = Vec::new();
+
+        if let Some(central) = self.central.as_ref() {
+            central.start_scan(ScanFilter::default()).await.unwrap();
+
+            tokio::time::sleep(Duration::from_secs(2)).await;
+
+            let peripherals = central.peripherals().await.unwrap();
+
+            for p in peripherals {
+                if let Some(local_name) = p.properties().await.unwrap().unwrap().local_name {
+                    data.push(PeripheralData { name: local_name });
+                }
+            }
+        }
+
+        data
     }
 
     pub async fn find_device(&self, device_name: &str) -> Option<Peripheral> {
