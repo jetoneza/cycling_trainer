@@ -75,10 +75,13 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                     continue;
                 }
 
-                let mut device_ids = bluetooth.device_ids.lock().await;
+                let mut devices = bluetooth.devices.lock().await;
 
-                if !device_ids.contains(&id) {
-                    device_ids.push(id.clone());
+                if !devices.iter().any(|device| device.id == id) {
+                    devices.push(BTDevice {
+                        id: id.clone(),
+                        local_name: properties.local_name.as_ref().unwrap().clone(),
+                    });
 
                     info!(
                         "Device found: {} {}",
@@ -117,10 +120,15 @@ async fn listen_to_events() {
     tokio::spawn(handle_events(events));
 }
 
+pub struct BTDevice {
+    pub id: PeripheralId,
+    pub local_name: String,
+}
+
 pub struct Bluetooth {
     pub manager: Mutex<Option<Manager>>,
     pub status: Mutex<BluetoothStatus>,
-    pub device_ids: Mutex<Vec<PeripheralId>>,
+    pub devices: Mutex<Vec<BTDevice>>,
     pub central: Mutex<Option<Adapter>>,
     pub is_scanning: Mutex<bool>,
 }
@@ -140,7 +148,7 @@ impl Bluetooth {
             central: Mutex::new(central),
             status: Mutex::new(status),
             is_scanning: Mutex::new(false),
-            device_ids: Mutex::new(Vec::new()),
+            devices: Mutex::new(Vec::new()),
         };
 
         *BLUETOOTH.lock().await = Some(bluetooth);

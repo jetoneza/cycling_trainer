@@ -3,6 +3,7 @@ import { invoke } from '@tauri-apps/api/tauri'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
 let scanning = false
+let connecting = false
 let devices = []
 
 async function scanDevices() {
@@ -11,6 +12,14 @@ async function scanDevices() {
   await invoke('scan_devices')
 
   scanning = false
+}
+
+async function connectToDevice(deviceId: string) {
+  connecting = true
+
+  await invoke('connect_to_device', { deviceId })
+
+  connecting = false
 }
 
 listen('devices-discovered', (event: TauriEvent<any>) => {
@@ -31,12 +40,17 @@ listen('devices-discovered', (event: TauriEvent<any>) => {
     <p>Searching via Bluetooth...</p>
   {/if}
 
+  {#if connecting}
+    <p>Connecting...</p>
+  {/if}
+
   {#if devices.length > 0}
     <p>Devices found:</p>
     <ul>
-      {#each devices as device}
+      {#each devices as [deviceID, name]}
         <li>
-          {device.name}
+          {name} [{deviceID}]
+          <button on:click="{() => connectToDevice(deviceID)}">Connect</button>
         </li>
       {/each}
     </ul>

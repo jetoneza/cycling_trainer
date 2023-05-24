@@ -6,10 +6,10 @@ extern crate lazy_static;
 
 mod ble;
 
-use std::time::Duration;
+use std::{time::Duration, println};
 
 use ble::bluetooth::Bluetooth;
-use btleplug::{api::{Central, ScanFilter}, platform::PeripheralId};
+use btleplug::api::{Central, ScanFilter};
 use log::{error, info};
 use tauri::Manager;
 use tokio::sync::Mutex;
@@ -59,7 +59,24 @@ async fn scan_devices() -> Result<(), String> {
 
     *bluetooth.is_scanning.lock().await = false;
 
-    // TODO: Broadcast data
+    if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
+        let devices: Vec<(String, String)> = bluetooth
+            .devices
+            .lock()
+            .await
+            .iter()
+            .map(|device| (device.id.clone().to_string(), device.local_name.to_string()))
+            .collect();
+
+        app_handle.emit_all("devices-discovered", devices).ok();
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn connect_to_device(device_id: String) -> Result<(), String> {
+    println!("{}", device_id);
 
     Ok(())
 }
@@ -83,7 +100,7 @@ fn main() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![scan_devices])
+        .invoke_handler(tauri::generate_handler![scan_devices, connect_to_device])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
