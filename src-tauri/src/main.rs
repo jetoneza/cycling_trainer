@@ -10,7 +10,7 @@ use std::{println, time::Duration};
 
 use ble::bluetooth::Bluetooth;
 use btleplug::api::{Central, ScanFilter};
-use log::{error, info};
+use log::{error, info, warn};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
@@ -24,22 +24,22 @@ lazy_static! {
 async fn scan_devices() -> Result<(), String> {
     let bluetooth_guard = BLUETOOTH.lock().await;
     let Some(bluetooth) = bluetooth_guard.as_ref() else {
+        warn!("Bluetooth not found.");
         return Ok(());
     };
 
     if *bluetooth.is_scanning.lock().await {
+        info!("Blue tooth is already scanning.");
         return Ok(());
     }
 
     let central_guard = bluetooth.central.lock().await;
     let Some(central) = central_guard.as_ref() else {
-        error!("No adapter found.");
         return Err("No Adapter found".into());
     };
 
     if let Err(e) = central.start_scan(ScanFilter::default()).await {
-        error!("Bluetooth is unable to scan: {}", e);
-
+        error!("Error: {}", e);
         return Err("Bluetooth is unable to scan".into());
     }
 
@@ -50,7 +50,10 @@ async fn scan_devices() -> Result<(), String> {
     // Scan for 10 seconds
     tokio::time::sleep(Duration::from_secs(10)).await;
 
-    central.stop_scan().await.unwrap();
+    if let Err(e) = central.stop_scan().await {
+        error!("Error: {}", e);
+        return Err("Unable to stop scanning.".into());
+    }
 
     info!("Scan finished");
 

@@ -15,21 +15,17 @@ pub enum BluetoothStatus {
 }
 
 async fn get_central(manager: &Option<Manager>) -> Option<Adapter> {
-    let adapters = match manager.as_ref().unwrap().adapters().await {
-        Ok(adapters) => adapters,
-        Err(e) => {
-            error!("No bluetooth adapters found: {}", e);
-            return None;
-        }
+    let Some(manager) = manager.as_ref() else {
+        warn!("No manager found.");
+        return None;
     };
 
-    if adapters.is_empty() {
-        warn!("No adapters empty.");
-    }
+    let Ok(adapters) = manager.adapters().await else {
+        warn!("No bluetooth adapters found");
+        return None;
+    };
 
-    let central = adapters.into_iter().next().unwrap();
-
-    Some(central)
+    adapters.into_iter().next()
 }
 
 async fn get_manager() -> Option<Manager> {
@@ -60,10 +56,7 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                     continue;
                 };
 
-                let Ok(properties) = peripheral.properties().await else {
-                    continue;
-                };
-                let Some(properties) = properties else {
+                let Ok(Some(properties)) = peripheral.properties().await else {
                     continue;
                 };
 
@@ -74,16 +67,17 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                 let mut devices = bluetooth.devices.lock().await;
 
                 if !devices.iter().any(|device| device.id == id) {
+                    let local_name = match properties.local_name.as_ref() {
+                        Some(local_name) => local_name.clone(),
+                        None => "".into(),
+                    };
+
+                    info!("Device found: {} {}", id, local_name);
+
                     devices.push(BTDevice {
                         id: id.clone(),
-                        local_name: properties.local_name.as_ref().unwrap().clone(),
+                        local_name,
                     });
-
-                    info!(
-                        "Device found: {} {}",
-                        properties.local_name.as_ref().unwrap(),
-                        &id
-                    );
                 }
             }
             _ => {}
@@ -93,10 +87,16 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
 
 async fn listen_to_events() {
     let bluetooth_guard = BLUETOOTH.lock().await;
-    let bluetooth = bluetooth_guard.as_ref().unwrap();
+    let Some(bluetooth) = bluetooth_guard.as_ref() else {
+        error!("Can't find bluetooth.");
+        return;
+    };
 
     let central_guard = bluetooth.central.lock().await;
-    let central = central_guard.as_ref().unwrap();
+    let Some(central) = central_guard.as_ref() else {
+        error!("Can't find adapter.");
+        return;
+    };
 
     let events = match central.events().await {
         Ok(events) => events,
