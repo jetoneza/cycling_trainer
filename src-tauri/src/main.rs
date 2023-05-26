@@ -6,7 +6,7 @@ extern crate lazy_static;
 
 mod ble;
 
-use std::{time::Duration, println};
+use std::{println, time::Duration};
 
 use ble::bluetooth::Bluetooth;
 use btleplug::api::{Central, ScanFilter};
@@ -23,39 +23,36 @@ lazy_static! {
 #[tauri::command]
 async fn scan_devices() -> Result<(), String> {
     let bluetooth_guard = BLUETOOTH.lock().await;
-    let bluetooth = match bluetooth_guard.as_ref() {
-        Some(bluetooth) => bluetooth,
-        None => {
-            return Ok(());
-        }
+    let Some(bluetooth) = bluetooth_guard.as_ref() else {
+        return Ok(());
     };
 
     if *bluetooth.is_scanning.lock().await {
         return Ok(());
     }
 
-    if let Some(central) = bluetooth.central.lock().await.as_ref() {
-        if let Err(e) = central.start_scan(ScanFilter::default()).await {
-            error!("Bluetooth is unable to scan: {}", e);
-
-            return Err("Bluetooth is unable to scan".into());
-        }
-
-        *bluetooth.is_scanning.lock().await = true;
-
-        info!("Scanning for devices...");
-    } else {
+    let central_guard = bluetooth.central.lock().await;
+    let Some(central) = central_guard.as_ref() else {
         error!("No adapter found.");
         return Err("No Adapter found".into());
+    };
+
+    if let Err(e) = central.start_scan(ScanFilter::default()).await {
+        error!("Bluetooth is unable to scan: {}", e);
+
+        return Err("Bluetooth is unable to scan".into());
     }
+
+    *bluetooth.is_scanning.lock().await = true;
+
+    info!("Scanning for devices...");
 
     // Scan for 10 seconds
     tokio::time::sleep(Duration::from_secs(10)).await;
 
-    if let Some(central) = bluetooth.central.lock().await.as_ref() {
-        central.stop_scan().await.unwrap();
-        info!("Scan finished");
-    }
+    central.stop_scan().await.unwrap();
+
+    info!("Scan finished");
 
     *bluetooth.is_scanning.lock().await = false;
 

@@ -47,28 +47,24 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
         match event {
             CentralEvent::DeviceDiscovered(id) => {
                 let bluetooth_guard = BLUETOOTH.lock().await;
-                let bluetooth = match bluetooth_guard.as_ref() {
-                    Some(bluetooth) => bluetooth,
-                    None => continue,
+                let Some(bluetooth) = bluetooth_guard.as_ref() else {
+                    continue;
                 };
 
                 let central_guard = bluetooth.central.lock().await;
-                let central = match central_guard.as_ref() {
-                    Some(central) => central,
-                    None => continue,
+                let Some(central) = central_guard.as_ref() else {
+                    continue;
                 };
 
-                let peripheral = match central.peripheral(&id).await {
-                    Ok(peripheral) => peripheral,
-                    Err(_) => continue,
+                let Ok(peripheral) = central.peripheral(&id).await else {
+                    continue;
                 };
 
-                let properties = match peripheral.properties().await {
-                    Ok(properties) => match properties {
-                        Some(properties) => properties,
-                        None => continue,
-                    },
-                    Err(_) => continue,
+                let Ok(properties) = peripheral.properties().await else {
+                    continue;
+                };
+                let Some(properties) = properties else {
+                    continue;
                 };
 
                 if let None = properties.local_name.as_ref() {
