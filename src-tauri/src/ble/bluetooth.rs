@@ -3,10 +3,11 @@ use btleplug::platform::{Adapter, Manager, PeripheralId};
 use futures::{Stream, StreamExt};
 use log::{error, info, warn};
 use std::pin::Pin;
+use std::sync::Arc;
 use tokio::sync::Mutex;
 
 lazy_static! {
-    pub static ref BLUETOOTH: Mutex<Option<Bluetooth>> = Default::default();
+    pub static ref BLUETOOTH: Arc<Mutex<Option<Bluetooth>>> = Default::default();
 }
 
 pub enum BluetoothStatus {

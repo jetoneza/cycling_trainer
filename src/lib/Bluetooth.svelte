@@ -6,10 +6,11 @@ let scanning = false
 let connecting = false
 let devices = []
 
-async function scanDevices() {
+async function startScan() {
+  console.log('scanning')
   scanning = true
 
-  await invoke('scan_devices')
+  await invoke('start_scan')
 
   scanning = false
 }
@@ -32,7 +33,7 @@ listen('devices-discovered', (event: TauriEvent<any>) => {
 <div>
   <div class="row">
     {#if !scanning}
-      <button on:click="{scanDevices}">Scan devices</button>
+      <button on:click="{startScan}">Scan devices</button>
     {/if}
   </div>
 
