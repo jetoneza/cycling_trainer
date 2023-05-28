@@ -64,7 +64,7 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                     continue;
                 }
 
-                let mut devices = bt.devices.lock().await;
+                let mut devices = bt.devices.write().await;
 
                 if !devices.iter().any(|device| device.id == id) {
                     let local_name = match properties.local_name.as_ref() {
@@ -126,7 +126,7 @@ pub struct Bluetooth {
     status: Mutex<BluetoothStatus>,
     is_scanning: RwLock<bool>,
 
-    pub devices: Mutex<Vec<BTDevice>>,
+    pub devices: RwLock<Vec<BTDevice>>,
     pub central: RwLock<Option<Adapter>>,
 }
 
@@ -142,10 +142,10 @@ impl Bluetooth {
 
         let bluetooth = Self {
             manager: Mutex::new(manager),
-            central: RwLock::new(central),
             status: Mutex::new(status),
             is_scanning: RwLock::new(false),
-            devices: Mutex::new(Vec::new()),
+            central: RwLock::new(central),
+            devices: RwLock::new(Vec::new()),
         };
 
         *BLUETOOTH.write().await = Some(bluetooth);
@@ -189,7 +189,7 @@ impl Bluetooth {
 
         *self.is_scanning.write().await = false;
 
-        let mut devices = self.devices.lock().await;
+        let mut devices = self.devices.write().await;
 
         unsafe {
             devices.set_len(0);
@@ -200,7 +200,7 @@ impl Bluetooth {
 
     pub async fn get_scanned_devices(&self) -> Vec<(String, String)> {
         self.devices
-            .lock()
+            .read()
             .await
             .iter()
             .map(|device| (device.id.clone().to_string(), device.local_name.to_string()))
