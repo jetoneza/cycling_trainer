@@ -7,12 +7,15 @@ let connecting = false
 let devices = []
 
 async function startScan() {
-  console.log('scanning')
   scanning = true
 
   await invoke('start_scan')
 
   scanning = false
+}
+
+async function stopScan() {
+  await invoke('stop_scan')
 }
 
 async function connectToDevice(deviceId: string) {
@@ -39,6 +42,7 @@ listen('devices-discovered', (event: TauriEvent<any>) => {
 
   {#if scanning}
     <p>Searching via Bluetooth...</p>
+    <button on:click="{stopScan}">Stop Scan</button>
   {/if}
 
   {#if connecting}
