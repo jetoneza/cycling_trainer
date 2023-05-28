@@ -6,7 +6,7 @@ extern crate lazy_static;
 
 mod ble;
 
-use std::{println, sync::Arc, time::Duration};
+use std::{borrow::Borrow, println, time::Duration};
 
 use ble::bluetooth::Bluetooth;
 use btleplug::api::{Central, ScanFilter};
@@ -22,8 +22,7 @@ lazy_static! {
 
 #[tauri::command]
 async fn start_scan() -> Result<(), String> {
-    let bl = Arc::clone(&BLUETOOTH);
-    let bluetooth_guard = bl.lock().await;
+    let bluetooth_guard = &BLUETOOTH.lock().await;
     let Some(bluetooth) = bluetooth_guard.as_ref() else {
         warn!("Bluetooth not found.");
         return Ok(());
