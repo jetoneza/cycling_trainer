@@ -3,10 +3,10 @@ use btleplug::platform::{Adapter, Manager, PeripheralId};
 use futures::{Stream, StreamExt};
 use log::{error, info, warn};
 use std::pin::Pin;
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, RwLock};
 
 lazy_static! {
-    pub static ref BLUETOOTH: Mutex<Option<Bluetooth>> = Default::default();
+    pub static ref BLUETOOTH: RwLock<Option<Bluetooth>> = Default::default();
 }
 
 pub enum BluetoothStatus {
@@ -42,12 +42,12 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
     while let Some(event) = events.next().await {
         match event {
             CentralEvent::DeviceDiscovered(id) => {
-                let bluetooth_guard = BLUETOOTH.lock().await;
+                let bluetooth_guard = BLUETOOTH.read().await;
                 let Some(bluetooth) = bluetooth_guard.as_ref() else {
                     continue;
                 };
 
-                let central_guard = bluetooth.central.lock().await;
+                let central_guard = bluetooth.central.read().await;
                 let Some(central) = central_guard.as_ref() else {
                     continue;
                 };
@@ -86,13 +86,13 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
 }
 
 async fn listen_to_events() {
-    let bluetooth_guard = BLUETOOTH.lock().await;
+    let bluetooth_guard = BLUETOOTH.read().await;
     let Some(bluetooth) = bluetooth_guard.as_ref() else {
         error!("Can't find bluetooth.");
         return;
     };
 
-    let central_guard = bluetooth.central.lock().await;
+    let central_guard = bluetooth.central.read().await;
     let Some(central) = central_guard.as_ref() else {
         error!("Can't find adapter.");
         return;
@@ -104,7 +104,7 @@ async fn listen_to_events() {
             error!("Could not detect adapter events: {}", e);
 
             *bluetooth.manager.lock().await = None;
-            *bluetooth.central.lock().await = None;
+            *bluetooth.central.write().await = None;
             *bluetooth.status.lock().await = BluetoothStatus::Error;
 
             return;
@@ -125,8 +125,8 @@ pub struct Bluetooth {
     pub manager: Mutex<Option<Manager>>,
     pub status: Mutex<BluetoothStatus>,
     pub devices: Mutex<Vec<BTDevice>>,
-    pub central: Mutex<Option<Adapter>>,
-    pub is_scanning: Mutex<bool>,
+    pub central: RwLock<Option<Adapter>>,
+    pub is_scanning: RwLock<bool>,
 }
 
 impl Bluetooth {
@@ -141,13 +141,13 @@ impl Bluetooth {
 
         let bluetooth = Self {
             manager: Mutex::new(manager),
-            central: Mutex::new(central),
+            central: RwLock::new(central),
             status: Mutex::new(status),
-            is_scanning: Mutex::new(false),
+            is_scanning: RwLock::new(false),
             devices: Mutex::new(Vec::new()),
         };
 
-        *BLUETOOTH.lock().await = Some(bluetooth);
+        *BLUETOOTH.write().await = Some(bluetooth);
 
         listen_to_events().await;
     }
