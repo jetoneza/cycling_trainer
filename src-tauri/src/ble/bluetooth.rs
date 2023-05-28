@@ -184,7 +184,7 @@ impl Bluetooth {
 
         if let Err(e) = central.stop_scan().await {
             error!("Error: {}", e);
-            return Err("Bluetooth is unable to scan".into());
+            return Err("Bluetooth is unable to stop scan".into());
         }
 
         *self.is_scanning.write().await = false;
