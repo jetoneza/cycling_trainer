@@ -7,7 +7,6 @@ extern crate lazy_static;
 mod ble;
 
 use ble::bluetooth::Bluetooth;
-use btleplug::api::{Central, ScanFilter};
 use log::{error, info, warn};
 use tauri::Manager;
 use tokio::sync::Mutex;
@@ -20,24 +19,15 @@ lazy_static! {
 
 async fn scan_devices(bt: &Bluetooth) {
     loop {
-        if !*bt.is_scanning.read().await {
+        if !bt.is_scanning().await {
             info!("Stopping bluetooth scanning");
-
-            *bt.is_scanning.write().await = false;
-
             break;
         }
 
         if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
-            let devices: Vec<(String, String)> = bt
-                .devices
-                .lock()
-                .await
-                .iter()
-                .map(|device| (device.id.clone().to_string(), device.local_name.to_string()))
-                .collect();
-
-            app_handle.emit_all("devices-discovered", devices).ok();
+            app_handle
+                .emit_all("devices-discovered", bt.get_scanned_devices().await)
+                .ok();
         }
     }
 }
@@ -50,17 +40,7 @@ async fn stop_scan() -> Result<(), String> {
         return Ok(());
     };
 
-    let central_guard = bt.central.read().await;
-    let Some(central) = central_guard.as_ref() else {
-        return Err("No Adapter found".into());
-    };
-
-    if let Err(e) = central.stop_scan().await {
-        error!("Error: {}", e);
-        return Err("Bluetooth is unable to scan".into());
-    }
-
-    *bt.is_scanning.write().await = false;
+    bt.stop_scan().await?;
 
     Ok(())
 }
@@ -73,24 +53,7 @@ async fn start_scan() -> Result<(), String> {
         return Ok(());
     };
 
-    if *bt.is_scanning.read().await {
-        info!("Bluetooth is already scanning.");
-        return Ok(());
-    }
-
-    let central_guard = bt.central.read().await;
-    let Some(central) = central_guard.as_ref() else {
-        return Err("No Adapter found".into());
-    };
-
-    if let Err(e) = central.start_scan(ScanFilter::default()).await {
-        error!("Error: {}", e);
-        return Err("Bluetooth is unable to scan".into());
-    }
-
-    *bt.is_scanning.write().await = true;
-
-    info!("Scanning for devices...");
+    bt.start_scan().await?;
 
     scan_devices(&bt).await;
 
@@ -105,6 +68,7 @@ async fn connect_to_device(device_id: String) -> Result<(), String> {
 async fn initialize_app(app_handle: tauri::AppHandle) {
     *TAURI_APP_HANDLE.lock().await = Some(app_handle.clone());
 
+    // TODO: Pass instance to tauri
     Bluetooth::init().await;
 }
 

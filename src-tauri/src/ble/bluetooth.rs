@@ -1,4 +1,4 @@
-use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _};
+use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, PeripheralId};
 use futures::{Stream, StreamExt};
 use log::{error, info, warn};
@@ -43,11 +43,11 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
         match event {
             CentralEvent::DeviceDiscovered(id) => {
                 let bluetooth_guard = BLUETOOTH.read().await;
-                let Some(bluetooth) = bluetooth_guard.as_ref() else {
+                let Some(bt) = bluetooth_guard.as_ref() else {
                     continue;
                 };
 
-                let central_guard = bluetooth.central.read().await;
+                let central_guard = bt.central.read().await;
                 let Some(central) = central_guard.as_ref() else {
                     continue;
                 };
@@ -64,7 +64,7 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                     continue;
                 }
 
-                let mut devices = bluetooth.devices.lock().await;
+                let mut devices = bt.devices.lock().await;
 
                 if !devices.iter().any(|device| device.id == id) {
                     let local_name = match properties.local_name.as_ref() {
@@ -122,11 +122,12 @@ pub struct BTDevice {
 }
 
 pub struct Bluetooth {
-    pub manager: Mutex<Option<Manager>>,
-    pub status: Mutex<BluetoothStatus>,
+    manager: Mutex<Option<Manager>>,
+    status: Mutex<BluetoothStatus>,
+    is_scanning: RwLock<bool>,
+
     pub devices: Mutex<Vec<BTDevice>>,
     pub central: RwLock<Option<Adapter>>,
-    pub is_scanning: RwLock<bool>,
 }
 
 impl Bluetooth {
@@ -150,5 +151,63 @@ impl Bluetooth {
         *BLUETOOTH.write().await = Some(bluetooth);
 
         listen_to_events().await;
+    }
+
+    pub async fn start_scan(&self) -> Result<(), String> {
+        if *self.is_scanning.read().await {
+            info!("Bluetooth is already scanning.");
+            return Ok(());
+        }
+
+        let central_guard = self.central.read().await;
+        let Some(central) = central_guard.as_ref() else {
+            return Err("No Adapter found".into());
+        };
+
+        if let Err(e) = central.start_scan(ScanFilter::default()).await {
+            error!("Error: {}", e);
+            return Err("Bluetooth is unable to scan".into());
+        }
+
+        *self.is_scanning.write().await = true;
+
+        info!("Scanning for devices...");
+
+        Ok(())
+    }
+
+    pub async fn stop_scan(&self) -> Result<(), String> {
+        let central_guard = self.central.read().await;
+        let Some(central) = central_guard.as_ref() else {
+            return Err("No Adapter found".into());
+        };
+
+        if let Err(e) = central.stop_scan().await {
+            error!("Error: {}", e);
+            return Err("Bluetooth is unable to scan".into());
+        }
+
+        *self.is_scanning.write().await = false;
+
+        let mut devices = self.devices.lock().await;
+
+        unsafe {
+            devices.set_len(0);
+        }
+
+        Ok(())
+    }
+
+    pub async fn get_scanned_devices(&self) -> Vec<(String, String)> {
+        self.devices
+            .lock()
+            .await
+            .iter()
+            .map(|device| (device.id.clone().to_string(), device.local_name.to_string()))
+            .collect()
+    }
+
+    pub async fn is_scanning(&self) -> bool {
+        *self.is_scanning.read().await
     }
 }
