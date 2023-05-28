@@ -74,7 +74,7 @@ async fn start_scan() -> Result<(), String> {
     };
 
     if *bt.is_scanning.read().await {
-        info!("Blue tooth is already scanning.");
+        info!("Bluetooth is already scanning.");
         return Ok(());
     }
 
