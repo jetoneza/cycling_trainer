@@ -10,12 +10,13 @@ async function startScan() {
   scanning = true
 
   await invoke('start_scan')
-
-  scanning = false
 }
 
 async function stopScan() {
   await invoke('stop_scan')
+
+  scanning = false
+  devices = []
 }
 
 async function connectToDevice(deviceId: string) {
@@ -26,10 +27,28 @@ async function connectToDevice(deviceId: string) {
   connecting = false
 }
 
-listen('devices-discovered', (event: TauriEvent<any>) => {
+listen('device-discovered', (event: TauriEvent<any>) => {
   const { payload } = event
 
-  devices = payload
+  const [id, name] = payload
+
+  console.log('devices', devices)
+
+  const exising = devices.find((d) => d.id == id)
+
+  if (exising) {
+    return
+  }
+
+  devices = [
+    ...devices,
+    {
+      id,
+      name,
+    },
+  ]
+
+  console.log('Updated devices:', devices)
 })
 </script>
 
@@ -52,10 +71,10 @@ listen('devices-discovered', (event: TauriEvent<any>) => {
   {#if devices.length > 0}
     <p>Devices found:</p>
     <ul>
-      {#each devices as [deviceID, name]}
+      {#each devices as device}
         <li>
-          {name} [{deviceID}]
-          <button on:click="{() => connectToDevice(deviceID)}">Connect</button>
+          {device.name} [{device.id}]
+          <button on:click="{() => connectToDevice(device.id)}">Connect</button>
         </li>
       {/each}
     </ul>

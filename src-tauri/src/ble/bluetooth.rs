@@ -3,6 +3,7 @@ use btleplug::platform::{Adapter, Manager, PeripheralId};
 use futures::{Stream, StreamExt};
 use log::{error, info, warn};
 use std::pin::Pin;
+use tokio::sync::broadcast::{self, Sender};
 use tokio::sync::{Mutex, RwLock};
 
 lazy_static! {
@@ -64,20 +65,23 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                     continue;
                 }
 
-                let mut devices = bt.devices.write().await;
+                let local_name = match properties.local_name.as_ref() {
+                    Some(local_name) => local_name.clone(),
+                    None => "".into(),
+                };
 
-                if !devices.iter().any(|device| device.id == id) {
-                    let local_name = match properties.local_name.as_ref() {
-                        Some(local_name) => local_name.clone(),
-                        None => "".into(),
-                    };
+                info!("Device found: {} {}", id, local_name);
 
-                    info!("Device found: {} {}", id, local_name);
+                let Some(sender) = &*bt.scan_broadcast_sender.read().await else {
+                    continue;
+                };
 
-                    devices.push(BTDevice {
-                        id: id.clone(),
-                        local_name,
-                    });
+                if let Err(err) = sender.send(BTDevice {
+                    id: id.clone(),
+                    local_name,
+                }) {
+                    warn!("Error broadcasting device: {}", err);
+                    continue;
                 }
             }
             _ => {}
@@ -116,6 +120,7 @@ async fn listen_to_events() {
     tokio::spawn(handle_events(events));
 }
 
+#[derive(Clone)]
 pub struct BTDevice {
     pub id: PeripheralId,
     pub local_name: String,
@@ -125,8 +130,8 @@ pub struct Bluetooth {
     manager: Mutex<Option<Manager>>,
     status: Mutex<BluetoothStatus>,
     is_scanning: RwLock<bool>,
+    scan_broadcast_sender: RwLock<Option<Sender<BTDevice>>>,
 
-    pub devices: RwLock<Vec<BTDevice>>,
     pub central: RwLock<Option<Adapter>>,
 }
 
@@ -144,8 +149,8 @@ impl Bluetooth {
             manager: Mutex::new(manager),
             status: Mutex::new(status),
             is_scanning: RwLock::new(false),
+            scan_broadcast_sender: RwLock::new(None),
             central: RwLock::new(central),
-            devices: RwLock::new(Vec::new()),
         };
 
         *BLUETOOTH.write().await = Some(bluetooth);
@@ -173,6 +178,10 @@ impl Bluetooth {
 
         info!("Scanning for devices...");
 
+        let (tx, _) = broadcast::channel(1);
+
+        *self.scan_broadcast_sender.write().await = Some(tx);
+
         Ok(())
     }
 
@@ -189,25 +198,24 @@ impl Bluetooth {
 
         *self.is_scanning.write().await = false;
 
-        let mut devices = self.devices.write().await;
+        drop(&*self.scan_broadcast_sender.read().await);
 
-        unsafe {
-            devices.set_len(0);
-        }
+        *self.scan_broadcast_sender.write().await = None;
 
         Ok(())
     }
 
-    pub async fn get_scanned_devices(&self) -> Vec<(String, String)> {
-        self.devices
-            .read()
-            .await
-            .iter()
-            .map(|device| (device.id.clone().to_string(), device.local_name.to_string()))
-            .collect()
-    }
+    pub async fn get_scan_recv(&self) -> Option<BTDevice> {
+        let Some(tx) = &*self.scan_broadcast_sender.read().await else {
+            return None;
+        };
 
-    pub async fn is_scanning(&self) -> bool {
-        *self.is_scanning.read().await
+        let mut receiver = tx.subscribe();
+
+        let Ok(device) = receiver.recv().await else {
+            return None;
+        };
+
+        Some(device)
     }
 }

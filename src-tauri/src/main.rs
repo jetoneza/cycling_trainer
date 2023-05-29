@@ -7,7 +7,7 @@ extern crate lazy_static;
 mod ble;
 
 use ble::bluetooth::Bluetooth;
-use log::{error, info, warn};
+use log::{error, warn};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
@@ -17,18 +17,24 @@ lazy_static! {
     pub static ref TAURI_APP_HANDLE: Mutex<Option<tauri::AppHandle>> = Default::default();
 }
 
-async fn scan_devices(bt: &Bluetooth) {
-    loop {
-        if !bt.is_scanning().await {
-            info!("Stopping bluetooth scanning");
-            break;
-        }
+async fn receive_scanned_devices() {
+    let bluetooth_guard = &BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        warn!("Bluetooth not found.");
+        return;
+    };
 
-        if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
-            app_handle
-                .emit_all("devices-discovered", bt.get_scanned_devices().await)
-                .ok();
-        }
+    let Some(device) = bt.get_scan_recv().await else {
+        return;
+    };
+
+    if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
+        app_handle
+            .emit_all(
+                "device-discovered",
+                (device.id.to_string(), device.local_name.to_string()),
+            )
+            .ok();
     }
 }
 
@@ -55,7 +61,7 @@ async fn start_scan() -> Result<(), String> {
 
     bt.start_scan().await?;
 
-    scan_devices(&bt).await;
+    tokio::spawn(receive_scanned_devices());
 
     Ok(())
 }
