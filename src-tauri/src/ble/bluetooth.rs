@@ -3,7 +3,7 @@ use btleplug::platform::{Adapter, Manager, PeripheralId};
 use futures::{Stream, StreamExt};
 use log::{error, info, warn};
 use std::pin::Pin;
-use tokio::sync::broadcast::{self, Sender};
+use tokio::sync::broadcast::{self, Receiver, Sender};
 use tokio::sync::{Mutex, RwLock};
 
 lazy_static! {
@@ -205,17 +205,13 @@ impl Bluetooth {
         Ok(())
     }
 
-    pub async fn get_scan_recv(&self) -> Option<BTDevice> {
+    pub async fn get_scan_receiver(&self) -> Option<Receiver<BTDevice>> {
         let Some(tx) = &*self.scan_broadcast_sender.read().await else {
             return None;
         };
 
-        let mut receiver = tx.subscribe();
+        let receiver = tx.subscribe();
 
-        let Ok(device) = receiver.recv().await else {
-            return None;
-        };
-
-        Some(device)
+        Some(receiver)
     }
 }

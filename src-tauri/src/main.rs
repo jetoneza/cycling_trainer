@@ -9,7 +9,7 @@ mod ble;
 use ble::bluetooth::Bluetooth;
 use log::{error, warn};
 use tauri::Manager;
-use tokio::sync::Mutex;
+use tokio::sync::{broadcast::error::RecvError, Mutex};
 
 use ble::bluetooth::BLUETOOTH;
 
@@ -24,17 +24,29 @@ async fn receive_scanned_devices() {
         return;
     };
 
-    let Some(device) = bt.get_scan_recv().await else {
+    let Some(mut receiver) = bt.get_scan_receiver().await else {
         return;
     };
 
-    if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
-        app_handle
-            .emit_all(
-                "device-discovered",
-                (device.id.to_string(), device.local_name.to_string()),
-            )
-            .ok();
+    loop {
+        let device = match receiver.recv().await {
+            Ok(device) => device,
+            Err(RecvError::Closed) => {
+                break;
+            }
+            _ => {
+                continue;
+            }
+        };
+
+        if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
+            app_handle
+                .emit_all(
+                    "device-discovered",
+                    (device.id.to_string(), device.local_name.to_string()),
+                )
+                .ok();
+        }
     }
 }
 
