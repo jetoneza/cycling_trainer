@@ -32,8 +32,6 @@ listen('device-discovered', (event: TauriEvent<any>) => {
 
   const [id, name] = payload
 
-  console.log('devices', devices)
-
   const exising = devices.find((d) => d.id == id)
 
   if (exising) {
@@ -47,8 +45,6 @@ listen('device-discovered', (event: TauriEvent<any>) => {
       name,
     },
   ]
-
-  console.log('Updated devices:', devices)
 })
 </script>
 
