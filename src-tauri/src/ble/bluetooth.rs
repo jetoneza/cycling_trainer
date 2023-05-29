@@ -198,8 +198,6 @@ impl Bluetooth {
 
         *self.is_scanning.write().await = false;
 
-        drop(&*self.scan_broadcast_sender.read().await);
-
         *self.scan_broadcast_sender.write().await = None;
 
         Ok(())
