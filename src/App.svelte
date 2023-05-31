@@ -1,5 +1,5 @@
 <style>
-.logo.rust:hover {
+.logo.rust {
   filter: drop-shadow(0 0 2em #ff3e00);
 }
 </style>
