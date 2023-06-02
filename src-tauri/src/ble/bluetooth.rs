@@ -212,4 +212,26 @@ impl Bluetooth {
 
         Some(receiver)
     }
+
+    pub async fn connect_to_device(&self, id: String) -> Result<(), String> {
+        let central_guard = self.central.read().await;
+        let Some(central) = central_guard.as_ref() else {
+            return Err("Adapter not found".into());
+        };
+
+        let peripheral_id = PeripheralId(id);
+
+        // TODO: Fix, not working...
+
+        let Ok(peripheral) = central.peripheral(&peripheral_id).await else {
+            return Err("Device not found.".into());
+        };
+
+        match peripheral.connect().await {
+            Err(_) => {
+                return Err("Can't connect to device".into());
+            }
+            _ => Ok(()),
+        }
+    }
 }

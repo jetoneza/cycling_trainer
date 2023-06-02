@@ -1,6 +1,7 @@
 <script lang="ts">
 import Splash from './components/Splash.svelte'
 import Nav from './components/Nav.svelte'
+import Bluetooth from './lib/Bluetooth.svelte'
 
 // States
 let appStarted = false
@@ -18,5 +19,6 @@ function initApp() {
     <Splash on:initApp="{initApp}" />
   {:else}
     <Nav />
+    <Bluetooth />
   {/if}
 </main>

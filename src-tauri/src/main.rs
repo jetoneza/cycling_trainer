@@ -80,7 +80,15 @@ async fn start_scan() -> Result<(), String> {
 
 #[tauri::command]
 async fn connect_to_device(device_id: String) -> Result<(), String> {
-    todo!();
+    let bluetooth_guard = &BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        warn!("Bluetooth not found.");
+        return Ok(());
+    };
+
+    bt.connect_to_device(device_id).await?;
+
+    Ok(())
 }
 
 async fn initialize_app(app_handle: tauri::AppHandle) {
