@@ -51,6 +51,23 @@ async fn receive_scanned_devices() {
 }
 
 #[tauri::command]
+async fn get_connected_devices() -> Result<Vec<(String, String)>, String> {
+    let bluetooth_guard = &BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        return Err("Bluetooth not found when getting connected devices".into());
+    };
+
+    let devices: Vec<(String, String)> = bt
+        .get_connected_devices()
+        .await
+        .iter()
+        .map(|device| (device.id.to_string(), device.local_name.to_string()))
+        .collect();
+
+    Ok(devices)
+}
+
+#[tauri::command]
 async fn stop_scan() -> Result<(), String> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
@@ -114,7 +131,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             start_scan,
             stop_scan,
-            connect_to_device
+            connect_to_device,
+            get_connected_devices,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -61,13 +61,8 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                     continue;
                 };
 
-                if let None = properties.local_name.as_ref() {
+                let Some(local_name) = properties.local_name.as_ref() else {
                     continue;
-                }
-
-                let local_name = match properties.local_name.as_ref() {
-                    Some(local_name) => local_name.clone(),
-                    None => "".into(),
                 };
 
                 info!("Device found: {} {}", id, local_name);
@@ -78,7 +73,7 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
 
                 if let Err(err) = sender.send(BTDevice {
                     id: id.clone(),
-                    local_name,
+                    local_name: local_name.clone(),
                 }) {
                     warn!("Error broadcasting device: {}", err);
                     continue;
@@ -236,5 +231,37 @@ impl Bluetooth {
             }
             _ => Ok(()),
         }
+    }
+
+    pub async fn get_connected_devices(&self) -> Vec<BTDevice> {
+        let mut devices: Vec<BTDevice> = vec![];
+
+        let central_guard = self.central.read().await;
+        let Some(central) = central_guard.as_ref() else {
+            warn!("Adapter not found when getting connected devices.");
+            return devices;
+        };
+
+        let Ok(peripherals) = central.peripherals().await else {
+            warn!("Peripherals not found when getting connected devices.");
+            return devices;
+        };
+
+        for peripheral in peripherals.iter() {
+            let Ok(Some(properties)) = peripheral.properties().await else {
+                continue;
+            };
+
+            let Some(local_name) = properties.local_name.as_ref() else {
+                continue;
+            };
+
+            devices.push(BTDevice {
+                id: peripheral.id().clone(),
+                local_name: local_name.clone(),
+            });
+        }
+
+        devices
     }
 }
