@@ -16,7 +16,9 @@
 
 .container {
   margin: 0;
-  padding-top: 10vh;
+  padding-top: 1rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
 }
 
 .logo {

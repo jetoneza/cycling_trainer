@@ -1,24 +1,7 @@
 <script lang="ts">
-import Splash from './components/Splash.svelte'
-import Nav from './components/Nav.svelte'
-import Bluetooth from './lib/Bluetooth.svelte'
-
-// States
-let appStarted = false
-
-// Functions
-function initApp() {
-  // TODO: Add initializations here
-
-  appStarted = true
-}
+import PairedDevices from './components/PairedDevices.svelte'
 </script>
 
 <main class="container">
-  {#if !appStarted}
-    <Splash on:initApp="{initApp}" />
-  {:else}
-    <Nav />
-    <Bluetooth />
-  {/if}
+  <PairedDevices />
 </main>
