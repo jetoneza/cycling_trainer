@@ -84,6 +84,9 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                     continue;
                 }
             }
+            CentralEvent::DeviceConnected(id) => {
+                todo!()
+            }
             _ => {}
         }
     }
@@ -219,11 +222,11 @@ impl Bluetooth {
             return Err("Adapter not found".into());
         };
 
-        let peripheral_id = PeripheralId(id);
+        let Ok(peripherals) = central.peripherals().await else {
+            return Err("No peripherals found.".into());
+        };
 
-        // TODO: Fix, not working...
-
-        let Ok(peripheral) = central.peripheral(&peripheral_id).await else {
+        let Some(peripheral) = peripherals.iter().find(|p| p.id().to_string() == id) else {
             return Err("Device not found.".into());
         };
 

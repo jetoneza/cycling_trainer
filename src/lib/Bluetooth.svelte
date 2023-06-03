@@ -25,6 +25,8 @@ async function connectToDevice(deviceId: string) {
   await invoke('connect_to_device', { deviceId })
 
   connecting = false
+
+  stopScan()
 }
 
 listen('device-discovered', (event: TauriEvent<any>) => {
