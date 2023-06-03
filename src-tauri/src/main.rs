@@ -57,12 +57,7 @@ async fn get_connected_devices() -> Result<Vec<(String, String)>, String> {
         return Err("Bluetooth not found when getting connected devices".into());
     };
 
-    let devices: Vec<(String, String)> = bt
-        .get_connected_devices()
-        .await
-        .iter()
-        .map(|device| (device.id.to_string(), device.local_name.to_string()))
-        .collect();
+    let devices = bt.get_connected_devices().await;
 
     Ok(devices)
 }

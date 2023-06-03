@@ -79,8 +79,8 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                     continue;
                 }
             }
-            CentralEvent::DeviceConnected(id) => {
-                todo!()
+            CentralEvent::DeviceConnected(_) => {
+                // TODO: Handle device connected
             }
             _ => {}
         }
@@ -233,8 +233,8 @@ impl Bluetooth {
         }
     }
 
-    pub async fn get_connected_devices(&self) -> Vec<BTDevice> {
-        let mut devices: Vec<BTDevice> = vec![];
+    pub async fn get_connected_devices(&self) -> Vec<(String, String)> {
+        let mut devices: Vec<(String, String)> = vec![];
 
         let central_guard = self.central.read().await;
         let Some(central) = central_guard.as_ref() else {
@@ -256,10 +256,7 @@ impl Bluetooth {
                 continue;
             };
 
-            devices.push(BTDevice {
-                id: peripheral.id().clone(),
-                local_name: local_name.clone(),
-            });
+            devices.push((peripheral.id().clone().to_string(), local_name.clone()));
         }
 
         devices
