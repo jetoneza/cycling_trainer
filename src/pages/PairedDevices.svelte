@@ -67,7 +67,9 @@
 </style>
 
 <script lang="ts">
+import { invoke } from '@tauri-apps/api/tauri'
 import clickOutside from '../utils/clickOutside'
+import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
 interface Device {
   id: string
@@ -77,6 +79,7 @@ interface Device {
 }
 
 let isScanning = false
+let scannedDevices = []
 
 let devices: Array<Device> = [
   {
@@ -91,6 +94,26 @@ let devices: Array<Device> = [
   },
 ]
 
+listen('device-discovered', (event: TauriEvent<any>) => {
+  const { payload } = event
+
+  const [id, name] = payload
+
+  const existing = scannedDevices.find((device) => device.id == id)
+
+  if (existing) {
+    return
+  }
+
+  scannedDevices = [
+    ...scannedDevices,
+    {
+      id,
+      name,
+    },
+  ]
+})
+
 async function handleAction(device: Device) {
   if (device.isConnected) {
     disconnectDevice(device.id)
@@ -98,7 +121,10 @@ async function handleAction(device: Device) {
     return
   }
 
+  // Start scanning
   isScanning = true
+
+  await invoke('start_scan')
 }
 
 async function handleConnect(deviceID: string) {
@@ -129,7 +155,10 @@ async function changeConnectionState(deviceID: string, isConnected: boolean) {
 }
 
 async function handleCloseScan() {
+  await invoke('stop_scan')
+
   isScanning = false
+  scannedDevices = []
 }
 </script>
 
@@ -156,10 +185,11 @@ async function handleCloseScan() {
     <div class="scanned-devices-list" use:clickOutside>
       <h3 class="title">Scanning...</h3>
       <div class="list-container">
-        <div class="device" on:click="{() => handleConnect('sc')}">
-          Wahoo Kickr
-        </div>
-        <div class="device" on:click="{() => handleConnect('hrm')}">Venu 2</div>
+        {#each scannedDevices as device}
+          <div class="device" on:click="{() => handleConnect(device.id)}">
+            {device.name}
+          </div>
+        {/each}
       </div>
       <button on:click="{() => handleCloseScan()}" class="close-btn"
         >Close</button
