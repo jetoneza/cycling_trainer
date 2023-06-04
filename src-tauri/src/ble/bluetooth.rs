@@ -248,6 +248,10 @@ impl Bluetooth {
         };
 
         for peripheral in peripherals.iter() {
+            let Ok(_) = peripheral.is_connected().await else {
+                continue;
+            };
+
             let Ok(Some(properties)) = peripheral.properties().await else {
                 continue;
             };
