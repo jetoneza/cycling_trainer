@@ -7,7 +7,6 @@
 
 .devices-list .device {
   background: rgba(255, 0, 0, 0.25);
-  border-radius: 1rem;
   padding: 1rem;
 }
 
@@ -18,6 +17,48 @@
 .devices-list .actions {
   margin-top: 1rem;
 }
+
+.scanned-devices-list {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: 2rem auto;
+
+  background: white;
+  color: black;
+
+  width: 50%;
+}
+
+.scanned-devices-list .title {
+  padding: 0;
+  margin: 0;
+  background: rgba(0, 0, 0, 0.9);
+  color: white;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  text-align: center;
+}
+
+.scanned-devices-list .list-container .device {
+  padding: 1rem;
+  border-bottom: 2px solid black;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.scanned-devices-list .list-container .device:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.scanned-devices-list .close-btn {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+}
 </style>
 
 <script lang="ts">
@@ -27,6 +68,8 @@ interface Device {
   name?: string
   isConnected: boolean
 }
+
+let isScanning = false
 
 let devices: Array<Device> = [
   {
@@ -41,17 +84,45 @@ let devices: Array<Device> = [
   },
 ]
 
-async function handleAction(selectedDevice: Device) {
+async function handleAction(device: Device) {
+  if (device.isConnected) {
+    disconnectDevice(device.id)
+
+    return
+  }
+
+  isScanning = true
+}
+
+async function handleConnect(deviceID: string) {
+  // TODO: Implement connection here
+
+  changeConnectionState(deviceID, true)
+
+  isScanning = false
+}
+
+async function disconnectDevice(deviceID: string) {
+  // TODO: Handle disconnection here
+
+  changeConnectionState(deviceID, false)
+}
+
+async function changeConnectionState(deviceID: string, isConnected: boolean) {
   devices = devices.map((device) => {
-    if (device.id == selectedDevice.id) {
+    if (device.id == deviceID) {
       return {
         ...device,
-        isConnected: !selectedDevice.isConnected,
+        isConnected,
       }
     }
 
     return device
   })
+}
+
+async function handleCloseScan() {
+  isScanning = false
 }
 </script>
 
@@ -73,4 +144,19 @@ async function handleAction(selectedDevice: Device) {
       </div>
     {/each}
   </div>
+
+  {#if isScanning}
+    <div class="scanned-devices-list">
+      <h3 class="title">Scanning...</h3>
+      <div class="list-container">
+        <div class="device" on:click="{() => handleConnect('sc')}">
+          Wahoo Kickr
+        </div>
+        <div class="device" on:click="{() => handleConnect('hrm')}">Venu 2</div>
+      </div>
+      <button on:click="{() => handleCloseScan()}" class="close-btn"
+        >Close</button
+      >
+    </div>
+  {/if}
 </div>
