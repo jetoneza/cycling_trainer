@@ -67,6 +67,10 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
 
                 info!("Device found: {} {}", id, local_name);
 
+                if let Ok(_) = peripheral.is_connected().await {
+                    continue;
+                }
+
                 let Some(sender) = &*bt.scan_broadcast_sender.read().await else {
                     continue;
                 };

@@ -68,8 +68,10 @@
 
 <script lang="ts">
 import { invoke } from '@tauri-apps/api/tauri'
-import clickOutside from '../utils/clickOutside'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
+
+// Utils
+import clickOutside from '../utils/clickOutside'
 
 interface Device {
   id: string
@@ -78,9 +80,9 @@ interface Device {
   isConnected: boolean
 }
 
+// States
 let isScanning = false
 let scannedDevices = []
-
 let devices: Array<Device> = [
   {
     id: 'hrm',
