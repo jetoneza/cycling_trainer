@@ -7,11 +7,11 @@ extern crate lazy_static;
 mod ble;
 
 use ble::bluetooth::Bluetooth;
+use ble::bluetooth::BLUETOOTH;
 use log::{error, warn};
+use std::time::Duration;
 use tauri::Manager;
 use tokio::sync::{broadcast::error::RecvError, Mutex};
-
-use ble::bluetooth::BLUETOOTH;
 
 lazy_static! {
     pub static ref TAURI_APP_HANDLE: Mutex<Option<tauri::AppHandle>> = Default::default();
@@ -51,15 +51,27 @@ async fn receive_scanned_devices() {
 }
 
 #[tauri::command]
-async fn get_connected_devices() -> Result<Vec<(String, String)>, String> {
+async fn get_connected_devices() -> Result<(), String> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
         return Err("Bluetooth not found when getting connected devices".into());
     };
 
-    let devices = bt.get_connected_devices().await;
+    loop {
+        if !bt.is_scanning().await {
+            break;
+        }
 
-    Ok(devices)
+        let devices = bt.get_connected_devices().await;
+
+        if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
+            app_handle.emit_all("devices-connected", devices).ok();
+        }
+
+        tokio::time::sleep(Duration::from_secs(1)).await;
+    }
+
+    Ok(())
 }
 
 #[tauri::command]

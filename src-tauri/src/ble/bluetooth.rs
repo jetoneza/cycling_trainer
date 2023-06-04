@@ -205,6 +205,10 @@ impl Bluetooth {
         Ok(())
     }
 
+    pub async fn is_scanning(&self) -> bool {
+        *self.is_scanning.read().await
+    }
+
     pub async fn get_scan_receiver(&self) -> Option<Receiver<BTDevice>> {
         let Some(tx) = &*self.scan_broadcast_sender.read().await else {
             return None;
