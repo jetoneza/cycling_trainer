@@ -1,4 +1,8 @@
 <style>
+.page-title {
+  text-align: center;
+}
+
 .devices-list {
   display: flex;
   flex-direction: column;
@@ -6,12 +10,12 @@
 }
 
 .devices-list .device {
-  background: rgba(255, 0, 0, 0.25);
+  border: 2px solid var(--black);
   padding: 1rem;
 }
 
-.devices-list .device.is-connected {
-  background: rgba(0, 255, 0, 0.25);
+.devices-list .title {
+  margin: 0;
 }
 
 .devices-list .actions {
@@ -26,17 +30,18 @@
   bottom: 0;
   margin: 2rem auto;
 
-  background: white;
-  color: black;
+  background: var(--white);
+  color: var(--black);
 
   width: 50%;
+  box-shadow: 0 0 0 50vmax rgba(0, 0, 0, 0.5);
 }
 
 .scanned-devices-list .title {
   padding: 0;
   margin: 0;
-  background: rgba(0, 0, 0, 0.9);
-  color: white;
+  background: var(--black);
+  color: var(--white);
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
   text-align: center;
@@ -44,7 +49,7 @@
 
 .scanned-devices-list .list-container .device {
   padding: 1rem;
-  border-bottom: 2px solid black;
+  border-bottom: 2px solid var(--black);
   cursor: pointer;
   font-weight: bold;
 }
@@ -62,6 +67,8 @@
 </style>
 
 <script lang="ts">
+import clickOutside from '../utils/clickOutside'
+
 interface Device {
   id: string
   title: string
@@ -127,7 +134,7 @@ async function handleCloseScan() {
 </script>
 
 <div class="component-paired-devices">
-  <h1>Paired Devices</h1>
+  <h1 class="page-title">Paired Devices</h1>
 
   <div class="devices-list">
     {#each devices as device}
@@ -146,7 +153,7 @@ async function handleCloseScan() {
   </div>
 
   {#if isScanning}
-    <div class="scanned-devices-list">
+    <div class="scanned-devices-list" use:clickOutside>
       <h3 class="title">Scanning...</h3>
       <div class="list-container">
         <div class="device" on:click="{() => handleConnect('sc')}">
