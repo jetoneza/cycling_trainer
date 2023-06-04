@@ -83,8 +83,13 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                     continue;
                 }
             }
-            CentralEvent::DeviceConnected(_) => {
+            CentralEvent::DeviceConnected(id) => {
                 // TODO: Handle device connected
+                println!("Connected: {}", id);
+            }
+            CentralEvent::DeviceDisconnected(id) => {
+                // TODO: Handle device disconnected
+                println!("Disconnected: {}", id);
             }
             _ => {}
         }
@@ -120,6 +125,12 @@ async fn listen_to_events() {
     drop(central_guard);
 
     tokio::spawn(handle_events(events));
+}
+
+#[derive(Debug)]
+pub enum Connection {
+    Connect,
+    Disconnect,
 }
 
 #[derive(Clone)]
@@ -219,7 +230,7 @@ impl Bluetooth {
         Some(receiver)
     }
 
-    pub async fn connect_to_device(&self, id: String) -> Result<(), String> {
+    pub async fn handle_connection(&self, id: String, action: Connection) -> Result<(), String> {
         let central_guard = self.central.read().await;
         let Some(central) = central_guard.as_ref() else {
             return Err("Adapter not found".into());
@@ -233,12 +244,19 @@ impl Bluetooth {
             return Err("Device not found.".into());
         };
 
-        match peripheral.connect().await {
-            Err(_) => {
-                return Err("Can't connect to device".into());
-            }
-            _ => Ok(()),
+        println!("{:?}", peripheral);
+
+        let result = match action {
+            Connection::Connect => peripheral.connect().await.ok(),
+            // TODO: Fix disconnect hang
+            Connection::Disconnect => peripheral.disconnect().await.ok(),
+        };
+
+        if let None = result {
+            return Err(format!("Cannot {:?} device.", action));
         }
+
+        Ok(())
     }
 
     pub async fn get_connected_devices(&self) -> Vec<(String, String)> {

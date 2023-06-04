@@ -8,6 +8,7 @@ mod ble;
 
 use ble::bluetooth::Bluetooth;
 use ble::bluetooth::BLUETOOTH;
+use ble::bluetooth::Connection;
 use log::{error, warn};
 use std::time::Duration;
 use tauri::Manager;
@@ -103,14 +104,27 @@ async fn start_scan() -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn connect_to_device(device_id: String) -> Result<(), String> {
+async fn connect_device(device_id: String) -> Result<(), String> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
         warn!("Bluetooth not found.");
         return Ok(());
     };
 
-    bt.connect_to_device(device_id).await?;
+    bt.handle_connection(device_id, Connection::Connect).await?;
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn disconnect_device(device_id: String) -> Result<(), String> {
+    let bluetooth_guard = &BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        warn!("Bluetooth not found.");
+        return Ok(());
+    };
+
+    bt.handle_connection(device_id, Connection::Disconnect).await?;
 
     Ok(())
 }
@@ -138,7 +152,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             start_scan,
             stop_scan,
-            connect_to_device,
+            connect_device,
+            disconnect_device,
             get_connected_devices,
         ])
         .run(tauri::generate_context!())

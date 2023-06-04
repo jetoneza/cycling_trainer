@@ -174,7 +174,7 @@ listen('device-discovered', (event: TauriEvent<any>) => {
 
 async function handleAction(device: Device) {
   if (device.isConnected) {
-    disconnectDevice(device.type)
+    disconnectDevice(device)
 
     return
   }
@@ -189,16 +189,18 @@ async function handleAction(device: Device) {
   }
 }
 
-async function handleConnect(device: object) {
+async function handleConnect(device: { id: string }) {
+  await invoke('connect_device', { deviceId: device.id })
+
   // TODO: Implement connection here
 
   cleanStates()
 }
 
-async function disconnectDevice(type: DeviceType) {
-  // TODO: Handle disconnection here
+async function disconnectDevice(device: Device) {
+  await invoke('disconnect_device', { deviceId: device.bleDevice.id })
 
-  changeConnectionState(type, false)
+  changeConnectionState(device.type, false)
 }
 
 async function changeConnectionState(type: DeviceType, isConnected: boolean) {
@@ -207,6 +209,7 @@ async function changeConnectionState(type: DeviceType, isConnected: boolean) {
       return {
         ...device,
         isConnected,
+        bleDevice: isConnected ? device.bleDevice : null,
       }
     }
 
