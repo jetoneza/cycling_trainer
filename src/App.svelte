@@ -1,5 +1,5 @@
 <script lang="ts">
-import PairedDevices from './components/PairedDevices.svelte'
+import PairedDevices from './pages/PairedDevices.svelte'
 </script>
 
 <main class="container">
