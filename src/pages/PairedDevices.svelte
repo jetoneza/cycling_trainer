@@ -1,4 +1,29 @@
+<style lang="postcss">
+.device {
+  height: 14rem;
+  width: 14rem;
+}
+
+.device.is-connected {
+  @apply bg-secondary;
+}
+
+.device.is-connected .name .title {
+  @apply text-white;
+}
+
+.device.is-connected .name .device-name {
+  @apply text-primary;
+}
+
+.device.is-connected .icon {
+  @apply text-white;
+}
+</style>
+
 <script lang="ts">
+import HeartIcon from 'svelte-icons/fa/FaHeartbeat.svelte'
+import BikeIcon from 'svelte-icons/md/MdDirectionsBike.svelte'
 import { onMount } from 'svelte'
 import { invoke } from '@tauri-apps/api/tauri'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
@@ -6,6 +31,7 @@ import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 // Utils
 import clickOutside from '../utils/clickOutside'
 
+// Types and enums
 enum DeviceType {
   HeartRate = 'hr',
   SmartTrainer = 'st',
@@ -29,12 +55,16 @@ let scannedDevices = []
 let devices: Array<Device> = [
   {
     type: DeviceType.HeartRate,
-    title: 'Heart Rate Monitor',
-    isConnected: false,
+    title: 'Heart Rate',
+    bleDevice: {
+      id: 'venu',
+      name: 'Venu 2',
+    },
+    isConnected: true,
   },
   {
     type: DeviceType.SmartTrainer,
-    title: 'Smart trainer (Power Meter, Speed, and Cadence)',
+    title: 'Smart trainer',
     isConnected: false,
   },
 ]
@@ -157,24 +187,37 @@ async function cleanStates() {
 }
 </script>
 
-<div class="component-paired-devices">
-  <h1 class="page-title">Paired Devices</h1>
+<div class="component-paired-devices p-10">
+  <div class="page-title text-xl font-bold text-center">Paired Devices</div>
 
-  <div class="devices-list">
+  <div class="devices-list flex space-x-6 justify-center m-10">
     {#each devices as device}
-      <div class="device {device.isConnected ? 'is-connected' : ''}">
-        <h3 class="title">{device.title}</h3>
-        <div class="name">
-          Name: {device.bleDevice?.name || '--'}
+      <button
+        class="device box-border border p-4 rounded-2xl flex flex-col justify-between {device.isConnected
+          ? 'is-connected'
+          : ''}"
+        on:click="{() => handleAction(device)}"
+      >
+        <div class="icon h-10 w-10 m-2">
+          {#if device.type === DeviceType.HeartRate}
+            <HeartIcon />
+          {/if}
+          {#if device.type === DeviceType.SmartTrainer}
+            <BikeIcon />
+          {/if}
         </div>
-        <div class="actions">
-          <button
-            class="{device.isConnected ? 'is-connected' : ''}"
-            on:click="{() => handleAction(device)}"
-            >{device.isConnected ? 'Disconnect' : 'Connect'}</button
-          >
+
+        <div class="name text-left">
+          <div class="title font-bold flex space-x-2">
+            <div>{device.title}</div>
+          </div>
+          <div class="device-name font-semibold text-secondary-500 text-xs">
+            {device.isConnected
+              ? `${device.bleDevice?.name || ''} connected`
+              : 'Click to pair'}
+          </div>
         </div>
-      </div>
+      </button>
     {/each}
   </div>
 
@@ -183,9 +226,9 @@ async function cleanStates() {
       <h3 class="title">Scanning...</h3>
       <div class="list-container">
         {#each scannedDevices as device}
-          <div class="device" on:click="{() => handleConnect(device)}">
+          <button class="device" on:click="{() => handleConnect(device)}">
             {device.name}
-          </div>
+          </button>
         {/each}
       </div>
       <button on:click="{() => handleCloseScan()}" class="close-btn"

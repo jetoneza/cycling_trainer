@@ -2,11 +2,16 @@
 export default {
   plugins: [],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: '#00A3A3',
+        secondary: '#171717',
+        'secondary-500': '#737373',
+      },
+    },
   },
   content: ['./index.html', './src/**/*.{svelte,js,ts}'], // for unused CSS
   variants: {
     extend: {},
   },
-  darkMode: false, // or 'media' or 'class'
 }

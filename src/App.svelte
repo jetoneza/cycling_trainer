@@ -4,7 +4,8 @@
 @tailwind base;
 
 :root {
-  @apply font-mono;
+  @apply font-mono antialiased;
+  @apply text-secondary;
 }
 </style>
 
