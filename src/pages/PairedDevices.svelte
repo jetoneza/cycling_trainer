@@ -56,11 +56,7 @@ let devices: Array<Device> = [
   {
     type: DeviceType.HeartRate,
     title: 'Heart Rate',
-    bleDevice: {
-      id: 'venu',
-      name: 'Venu 2',
-    },
-    isConnected: true,
+    isConnected: false,
   },
   {
     type: DeviceType.SmartTrainer,
