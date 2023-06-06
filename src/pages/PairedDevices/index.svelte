@@ -168,7 +168,7 @@ async function cleanStates() {
   <div class="devices-list flex space-x-6 justify-center m-10">
     {#each devices as device}
       <button
-        class="device box-border border p-4 rounded-2xl flex flex-col justify-between {device.isConnected
+        class="device relative box-border border p-4 rounded-2xl flex flex-col justify-between {device.isConnected
           ? 'is-connected'
           : ''}"
         on:click="{() => handleAction(device)}"
@@ -181,6 +181,17 @@ async function cleanStates() {
             <BikeIcon />
           {/if}
         </div>
+
+        {#if device.isConnected}
+          <span class="connected-indicator absolute left-4 flex h-2 w-2">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-300 opacity-75"
+            ></span>
+            <span
+              class="relative inline-flex rounded-full h-2 w-2 bg-primary-400"
+            ></span>
+          </span>
+        {/if}
 
         <div class="name text-left">
           <div class="title font-bold flex space-x-2">
@@ -197,16 +208,16 @@ async function cleanStates() {
   </div>
 
   {#if isScanListOpen}
-    <div class="scanned-devices-list" use:clickOutside>
-      <h3 class="title">Scanning...</h3>
+    <div class="scanned-devices-list overflow-hidden" use:clickOutside>
+      <div class="animate-pulse title">Scanning</div>
       <div class="list-container">
         {#each scannedDevices as device}
-          <button class="device" on:click="{() => handleConnect(device)}">
+          <button class="device-item" on:click="{() => handleConnect(device)}">
             {device.name}
           </button>
         {/each}
       </div>
-      <button on:click="{() => handleCloseScan()}" class="close-btn"
+      <button on:click="{() => handleCloseScan()}" class="btn close-btn"
         >Close</button
       >
     </div>

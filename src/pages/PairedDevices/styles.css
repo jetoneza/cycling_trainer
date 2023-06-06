@@ -1,6 +1,8 @@
 .device {
   height: 14rem;
   width: 14rem;
+
+  @apply bg-white;
 }
 
 .device.is-connected {
@@ -18,5 +20,44 @@
 
   .icon {
     @apply text-white;
+  }
+}
+
+.scanned-devices-list {
+  @apply py-6 rounded-2xl;
+  @apply absolute left-0 top-0 right-0 bottom-0;
+  @apply w-1/2;
+  @apply my-12 mx-auto;
+  @apply bg-white;
+
+  max-width: 500px;
+  max-height: 600px;
+
+  box-shadow: 0 0 0 50vmax rgba(0, 0, 0, 0.5);
+
+
+  .title {
+    @apply font-bold;
+    @apply text-center text-lg;
+  }
+
+  .list-container {
+    @apply flex flex-col p-4;
+
+    .device-item {
+      @apply text-left font-bold;
+      @apply py-4 px-6 rounded-lg;
+
+      &:hover {
+        @apply bg-primary-100 text-primary-400;
+      }
+    }
+  }
+
+  .close-btn {
+    @apply absolute bottom-6;
+
+    left: 50%;
+    transform: translateX(-50%);
   }
 }

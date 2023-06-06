@@ -5,7 +5,8 @@
 :root {
   @apply font-mono antialiased;
   @apply text-secondary-200;
-}
+  background: #fcfcfc;
+} 
 
 .btn {
   @apply bg-primary-400  px-4 py-2 rounded-md;
