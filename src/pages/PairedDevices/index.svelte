@@ -1,26 +1,3 @@
-<style lang="postcss">
-.device {
-  height: 14rem;
-  width: 14rem;
-}
-
-.device.is-connected {
-  @apply bg-secondary;
-}
-
-.device.is-connected .name .title {
-  @apply text-white;
-}
-
-.device.is-connected .name .device-name {
-  @apply text-primary;
-}
-
-.device.is-connected .icon {
-  @apply text-white;
-}
-</style>
-
 <script lang="ts">
 import HeartIcon from 'svelte-icons/fa/FaHeartbeat.svelte'
 import BikeIcon from 'svelte-icons/md/MdDirectionsBike.svelte'
@@ -29,7 +6,9 @@ import { invoke } from '@tauri-apps/api/tauri'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
 // Utils
-import clickOutside from '../utils/clickOutside'
+import clickOutside from '../../utils/clickOutside'
+
+import './styles.css'
 
 // Types and enums
 enum DeviceType {
@@ -207,7 +186,7 @@ async function cleanStates() {
           <div class="title font-bold flex space-x-2">
             <div>{device.title}</div>
           </div>
-          <div class="device-name font-semibold text-secondary-500 text-xs">
+          <div class="device-name font-semibold text-secondary-100 text-xs">
             {device.isConnected
               ? `${device.bleDevice?.name || ''} connected`
               : 'Click to pair'}

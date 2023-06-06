@@ -1,0 +1,22 @@
+.device {
+  height: 14rem;
+  width: 14rem;
+}
+
+.device.is-connected {
+  @apply bg-secondary-200;
+
+  .name {
+    .title {
+      @apply text-primary-300;
+    }
+
+    .device-name {
+      @apply text-primary-100;
+    }
+  }
+
+  .icon {
+    @apply text-white;
+  }
+}
