@@ -1,0 +1,17 @@
+@tailwind utilities;
+@tailwind components;
+@tailwind base;
+
+:root {
+  @apply font-mono antialiased;
+  @apply text-secondary-200;
+}
+
+.btn {
+  @apply bg-primary-400  px-4 py-2 rounded-md;
+  @apply text-white text-sm font-bold;
+
+  &:hover {
+    @apply bg-primary-500;
+  }
+}
