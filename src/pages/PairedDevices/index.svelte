@@ -86,12 +86,12 @@ async function handleConnect(device: { id: string }) {
   scannedDevices = scannedDevices.map((scannedDevice) => {
     if (scannedDevice.id == device.id) {
       return {
-        ...device,
+        ...scannedDevice,
         isConnecting: true,
       }
     }
 
-    return device
+    return scannedDevice
   })
 
   await invoke('connect_device', { deviceId: device.id })
