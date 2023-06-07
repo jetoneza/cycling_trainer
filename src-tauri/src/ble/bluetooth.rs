@@ -1,8 +1,9 @@
 use btleplug::api::bleuuid::uuid_from_u32;
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
-use btleplug::platform::{Adapter, Manager, PeripheralId};
+use btleplug::platform::{Adapter, Manager, Peripheral, PeripheralId};
 use futures::{Stream, StreamExt};
 use log::{error, info, warn};
+use std::fmt;
 use std::pin::Pin;
 use tokio::sync::broadcast::{self, Receiver, Sender};
 use tokio::sync::{Mutex, RwLock};
@@ -45,14 +46,14 @@ async fn get_manager() -> Option<Manager> {
 }
 
 async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Send>>) {
+    let bluetooth_guard = BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        return;
+    };
+
     while let Some(event) = events.next().await {
         match event {
             CentralEvent::DeviceDiscovered(id) => {
-                let bluetooth_guard = BLUETOOTH.read().await;
-                let Some(bt) = bluetooth_guard.as_ref() else {
-                    continue;
-                };
-
                 let central_guard = bt.central.read().await;
                 let Some(central) = central_guard.as_ref() else {
                     continue;
@@ -93,11 +94,9 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                 }
             }
             CentralEvent::DeviceConnected(id) => {
-                // TODO: Handle device connected
                 println!("Connected: {}", id);
             }
             CentralEvent::DeviceDisconnected(id) => {
-                // TODO: Handle device disconnected
                 println!("Disconnected: {}", id);
             }
             _ => {}
@@ -143,10 +142,20 @@ pub enum Connection {
 }
 
 #[derive(Debug)]
-pub enum ScanServiceFilter {
+pub enum DeviceType {
     HeartRate,
     SmartTrainer,
-    Default,
+    Generic,
+}
+
+impl fmt::Display for DeviceType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            DeviceType::HeartRate => write!(f, "heart_rate"),
+            DeviceType::SmartTrainer => write!(f, "smart_trainer"),
+            DeviceType::Generic => write!(f, "generic"),
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -187,7 +196,7 @@ impl Bluetooth {
         listen_to_events().await;
     }
 
-    pub async fn start_scan(&self, scan_filter: ScanServiceFilter) -> Result<(), String> {
+    pub async fn start_scan(&self, scan_filter: DeviceType) -> Result<(), String> {
         if *self.is_scanning.read().await {
             info!("Bluetooth is already scanning.");
             return Ok(());
@@ -198,17 +207,15 @@ impl Bluetooth {
             return Err("No Adapter found".into());
         };
 
-        println!("{}", HEART_RATE_SERVICE_UUID);
-
         let filter = match scan_filter {
-            ScanServiceFilter::HeartRate => ScanFilter {
+            DeviceType::HeartRate => ScanFilter {
                 services: vec![HEART_RATE_SERVICE_UUID],
             },
-            ScanServiceFilter::SmartTrainer => ScanFilter {
+            DeviceType::SmartTrainer => ScanFilter {
                 // TODO: Add other services related to smart trainers e.g. Cycling Power
                 services: vec![FITNESS_MACHINE_SERVICE_UUID],
             },
-            ScanServiceFilter::Default => ScanFilter::default(),
+            DeviceType::Generic => ScanFilter::default(),
         };
 
         if let Err(e) = central.start_scan(filter).await {
@@ -286,8 +293,8 @@ impl Bluetooth {
         Ok(())
     }
 
-    pub async fn get_connected_devices(&self) -> Vec<(String, String)> {
-        let mut devices: Vec<(String, String)> = vec![];
+    pub async fn get_connected_devices(&self) -> Vec<(String, String, String)> {
+        let mut devices: Vec<(String, String, String)> = vec![];
 
         let central_guard = self.central.read().await;
         let Some(central) = central_guard.as_ref() else {
@@ -317,9 +324,26 @@ impl Bluetooth {
                 continue;
             };
 
-            devices.push((peripheral.id().clone().to_string(), local_name.clone()));
+            let device_type = get_device_type(properties.services);
+
+            devices.push((
+                peripheral.id().clone().to_string(),
+                local_name.clone(),
+                device_type.to_string(),
+            ));
         }
 
         devices
+    }
+}
+
+fn get_device_type(services: Vec<Uuid>) -> DeviceType {
+    let is_heart_rate = services.contains(&HEART_RATE_SERVICE_UUID);
+    let is_smart_trainer = services.contains(&FITNESS_MACHINE_SERVICE_UUID);
+
+    match (is_heart_rate, is_smart_trainer) {
+        (true, false) => DeviceType::HeartRate,
+        (false, true) => DeviceType::SmartTrainer,
+        _ => DeviceType::Generic,
     }
 }

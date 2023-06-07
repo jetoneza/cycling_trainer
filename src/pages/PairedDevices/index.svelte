@@ -14,6 +14,7 @@ import './styles.css'
 enum DeviceType {
   HeartRate = 'heart_rate',
   SmartTrainer = 'smart_trainer',
+  Generic = 'generic',
 }
 
 interface Device {
@@ -95,30 +96,27 @@ async function handleConnect(device: { id: string }) {
   })
 
   await invoke('connect_device', { deviceId: device.id })
-  const connectedDevices: Array<[string, string]> = await invoke(
+  const connectedDevices: Array<[string, string, string]> = await invoke(
     'get_connected_devices'
   )
 
-  connectedDevices.forEach((connectedDevice: [string, string]) => {
-    const [id, name] = connectedDevice
+  connectedDevices.forEach((connectedDevice: [string, string, string]) => {
+    const [id, name, type] = connectedDevice
 
-    // TODO: Use appropriate identifiers
-    if (name == 'Venu 2') {
-      devices = devices.map((device) => {
-        if (device.type == DeviceType.HeartRate) {
-          return {
-            ...device,
-            bleDevice: {
-              id,
-              name,
-            },
-            isConnected: true,
-          }
+    devices = devices.map((device) => {
+      if (device.type == type) {
+        return {
+          ...device,
+          bleDevice: {
+            id,
+            name,
+          },
+          isConnected: true,
         }
+      }
 
-        return device
-      })
-    }
+      return device
+    })
   })
 
   handleCloseScan()

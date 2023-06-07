@@ -8,7 +8,7 @@ mod ble;
 
 use ble::bluetooth::Bluetooth;
 use ble::bluetooth::Connection;
-use ble::bluetooth::ScanServiceFilter;
+use ble::bluetooth::DeviceType;
 use ble::bluetooth::BLUETOOTH;
 use log::{error, warn};
 use tauri::Manager;
@@ -52,7 +52,7 @@ async fn receive_scanned_devices() {
 }
 
 #[tauri::command]
-async fn get_connected_devices() -> Result<Vec<(String, String)>, String> {
+async fn get_connected_devices() -> Result<Vec<(String, String, String)>, String> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
         return Err("Bluetooth not found when getting connected devices".into());
@@ -85,9 +85,9 @@ async fn start_scan(scan_filter: &str) -> Result<(), String> {
     };
 
     let filter = match scan_filter {
-        "heart_rate" => ScanServiceFilter::HeartRate,
-        "smart_trainer" => ScanServiceFilter::SmartTrainer,
-        _ => ScanServiceFilter::Default,
+        "heart_rate" => DeviceType::HeartRate,
+        "smart_trainer" => DeviceType::SmartTrainer,
+        _ => DeviceType::Generic,
     };
 
     bt.start_scan(filter).await?;
