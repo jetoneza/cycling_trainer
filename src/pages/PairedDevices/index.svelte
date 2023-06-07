@@ -12,8 +12,8 @@ import './styles.css'
 
 // Types and enums
 enum DeviceType {
-  HeartRate = 'hr',
-  SmartTrainer = 'st',
+  HeartRate = 'heart_rate',
+  SmartTrainer = 'smart_trainer',
 }
 
 interface Device {
@@ -71,7 +71,7 @@ async function handleAction(device: Device) {
     return
   }
 
-  await invoke('start_scan')
+  await invoke('start_scan', { scanFilter: device.type })
 
   isScanning = true
 }

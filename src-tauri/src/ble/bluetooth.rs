@@ -1,3 +1,4 @@
+use btleplug::api::bleuuid::uuid_from_u32;
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, PeripheralId};
 use futures::{Stream, StreamExt};
@@ -5,10 +6,14 @@ use log::{error, info, warn};
 use std::pin::Pin;
 use tokio::sync::broadcast::{self, Receiver, Sender};
 use tokio::sync::{Mutex, RwLock};
+use uuid::Uuid;
 
 lazy_static! {
     pub static ref BLUETOOTH: RwLock<Option<Bluetooth>> = Default::default();
 }
+
+pub const HEART_RATE_SERVICE_UUID: Uuid = uuid_from_u32(0x180D);
+pub const FITNESS_MACHINE_SERVICE_UUID: Uuid = uuid_from_u32(0x1826);
 
 pub enum BluetoothStatus {
     Error,
@@ -65,11 +70,11 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
                     continue;
                 };
 
-                info!("Device found: {} {}", id, local_name);
-
                 let Ok(is_connected) = peripheral.is_connected().await else {
                     continue;
                 };
+
+                info!("Device found: {} {} {}", id, local_name, is_connected);
 
                 if is_connected {
                     continue;
@@ -137,6 +142,13 @@ pub enum Connection {
     Disconnect,
 }
 
+#[derive(Debug)]
+pub enum ScanServiceFilter {
+    HeartRate,
+    SmartTrainer,
+    Default,
+}
+
 #[derive(Clone)]
 pub struct BTDevice {
     pub id: PeripheralId,
@@ -175,7 +187,7 @@ impl Bluetooth {
         listen_to_events().await;
     }
 
-    pub async fn start_scan(&self) -> Result<(), String> {
+    pub async fn start_scan(&self, scan_filter: ScanServiceFilter) -> Result<(), String> {
         if *self.is_scanning.read().await {
             info!("Bluetooth is already scanning.");
             return Ok(());
@@ -186,7 +198,20 @@ impl Bluetooth {
             return Err("No Adapter found".into());
         };
 
-        if let Err(e) = central.start_scan(ScanFilter::default()).await {
+        println!("{}", HEART_RATE_SERVICE_UUID);
+
+        let filter = match scan_filter {
+            ScanServiceFilter::HeartRate => ScanFilter {
+                services: vec![HEART_RATE_SERVICE_UUID],
+            },
+            ScanServiceFilter::SmartTrainer => ScanFilter {
+                // TODO: Add other services related to smart trainers e.g. Cycling Power
+                services: vec![FITNESS_MACHINE_SERVICE_UUID],
+            },
+            ScanServiceFilter::Default => ScanFilter::default(),
+        };
+
+        if let Err(e) = central.start_scan(filter).await {
             error!("Error: {}", e);
             return Err("Bluetooth is unable to scan".into());
         }
@@ -218,10 +243,6 @@ impl Bluetooth {
         *self.scan_broadcast_sender.write().await = None;
 
         Ok(())
-    }
-
-    pub async fn is_scanning(&self) -> bool {
-        *self.is_scanning.read().await
     }
 
     pub async fn get_scan_receiver(&self) -> Option<Receiver<BTDevice>> {

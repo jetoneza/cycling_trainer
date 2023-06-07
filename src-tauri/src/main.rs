@@ -8,9 +8,9 @@ mod ble;
 
 use ble::bluetooth::Bluetooth;
 use ble::bluetooth::Connection;
+use ble::bluetooth::ScanServiceFilter;
 use ble::bluetooth::BLUETOOTH;
 use log::{error, warn};
-use std::time::Duration;
 use tauri::Manager;
 use tokio::sync::{broadcast::error::RecvError, Mutex};
 
@@ -77,14 +77,20 @@ async fn stop_scan() -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn start_scan() -> Result<(), String> {
+async fn start_scan(scan_filter: &str) -> Result<(), String> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
         warn!("Bluetooth not found.");
         return Ok(());
     };
 
-    bt.start_scan().await?;
+    let filter = match scan_filter {
+        "heart_rate" => ScanServiceFilter::HeartRate,
+        "smart_trainer" => ScanServiceFilter::SmartTrainer,
+        _ => ScanServiceFilter::Default,
+    };
+
+    bt.start_scan(filter).await?;
 
     tokio::spawn(receive_scanned_devices());
 
