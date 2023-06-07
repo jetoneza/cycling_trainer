@@ -29,7 +29,6 @@ interface Device {
 
 // States
 let isScanning = false
-let isScanListOpen = false
 let scannedDevices = []
 let devices: Array<Device> = [
   {
@@ -43,46 +42,6 @@ let devices: Array<Device> = [
     isConnected: false,
   },
 ]
-
-onMount(async () => {
-  isScanning = true
-  await invoke('start_scan')
-  await invoke('get_connected_devices')
-})
-
-listen('devices-connected', async (event: TauriEvent<any>) => {
-  const { payload } = event
-
-  const [hrm, sc] = devices
-
-  if (hrm.isConnected && sc.isConnected) {
-    await invoke('stop_scan')
-
-    return
-  }
-
-  payload.forEach((connectedDevice: [string, string]) => {
-    const [id, name] = connectedDevice
-
-    // TODO: Use appropriate identifiers
-    if (name == 'Venu 2') {
-      devices = devices.map((device) => {
-        if (device.type == DeviceType.HeartRate) {
-          return {
-            ...device,
-            bleDevice: {
-              id,
-              name,
-            },
-            isConnected: true,
-          }
-        }
-
-        return device
-      })
-    }
-  })
-})
 
 listen('device-discovered', (event: TauriEvent<any>) => {
   const { payload } = event
@@ -111,22 +70,40 @@ async function handleAction(device: Device) {
     return
   }
 
-  // Start scanning
-  isScanListOpen = true
+  await invoke('start_scan')
 
-  if (!isScanning) {
-    await invoke('start_scan')
-
-    isScanning = true
-  }
+  isScanning = true
 }
 
 async function handleConnect(device: { id: string }) {
   await invoke('connect_device', { deviceId: device.id })
+  const connectedDevices: Array<[string, string]> = await invoke(
+    'get_connected_devices'
+  )
 
-  // TODO: Implement connection here
+  connectedDevices.forEach((connectedDevice: [string, string]) => {
+    const [id, name] = connectedDevice
 
-  cleanStates()
+    // TODO: Use appropriate identifiers
+    if (name == 'Venu 2') {
+      devices = devices.map((device) => {
+        if (device.type == DeviceType.HeartRate) {
+          return {
+            ...device,
+            bleDevice: {
+              id,
+              name,
+            },
+            isConnected: true,
+          }
+        }
+
+        return device
+      })
+    }
+  })
+
+  handleCloseScan()
 }
 
 async function disconnectDevice(device: Device) {
@@ -157,7 +134,6 @@ async function handleCloseScan() {
 
 async function cleanStates() {
   isScanning = false
-  isScanListOpen = false
   scannedDevices = []
 }
 </script>
@@ -207,7 +183,7 @@ async function cleanStates() {
     {/each}
   </div>
 
-  {#if isScanListOpen}
+  {#if isScanning}
     <div class="scanned-devices-list overflow-hidden" use:clickOutside>
       <div class="animate-pulse title">Scanning</div>
       <div class="list-container">

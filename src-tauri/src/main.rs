@@ -7,8 +7,8 @@ extern crate lazy_static;
 mod ble;
 
 use ble::bluetooth::Bluetooth;
-use ble::bluetooth::BLUETOOTH;
 use ble::bluetooth::Connection;
+use ble::bluetooth::BLUETOOTH;
 use log::{error, warn};
 use std::time::Duration;
 use tauri::Manager;
@@ -52,27 +52,15 @@ async fn receive_scanned_devices() {
 }
 
 #[tauri::command]
-async fn get_connected_devices() -> Result<(), String> {
+async fn get_connected_devices() -> Result<Vec<(String, String)>, String> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
         return Err("Bluetooth not found when getting connected devices".into());
     };
 
-    loop {
-        if !bt.is_scanning().await {
-            break;
-        }
+    let devices = bt.get_connected_devices().await;
 
-        let devices = bt.get_connected_devices().await;
-
-        if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
-            app_handle.emit_all("devices-connected", devices).ok();
-        }
-
-        tokio::time::sleep(Duration::from_secs(1)).await;
-    }
-
-    Ok(())
+    Ok(devices)
 }
 
 #[tauri::command]
@@ -111,7 +99,8 @@ async fn connect_device(device_id: String) -> Result<(), String> {
         return Ok(());
     };
 
-    bt.handle_connection(device_id, &Connection::Connect).await?;
+    bt.handle_connection(device_id, &Connection::Connect)
+        .await?;
 
     Ok(())
 }
@@ -124,7 +113,8 @@ async fn disconnect_device(device_id: String) -> Result<(), String> {
         return Ok(());
     };
 
-    bt.handle_connection(device_id, &Connection::Disconnect).await?;
+    bt.handle_connection(device_id, &Connection::Disconnect)
+        .await?;
 
     Ok(())
 }
