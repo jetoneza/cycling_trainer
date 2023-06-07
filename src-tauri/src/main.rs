@@ -111,7 +111,7 @@ async fn connect_device(device_id: String) -> Result<(), String> {
         return Ok(());
     };
 
-    bt.handle_connection(device_id, Connection::Connect).await?;
+    bt.handle_connection(device_id, &Connection::Connect).await?;
 
     Ok(())
 }
@@ -124,7 +124,7 @@ async fn disconnect_device(device_id: String) -> Result<(), String> {
         return Ok(());
     };
 
-    bt.handle_connection(device_id, Connection::Disconnect).await?;
+    bt.handle_connection(device_id, &Connection::Disconnect).await?;
 
     Ok(())
 }

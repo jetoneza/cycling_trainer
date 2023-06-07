@@ -67,7 +67,11 @@ async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> + Sen
 
                 info!("Device found: {} {}", id, local_name);
 
-                if let Ok(_) = peripheral.is_connected().await {
+                let Ok(is_connected) = peripheral.is_connected().await else {
+                    continue;
+                };
+
+                if is_connected {
                     continue;
                 }
 
@@ -230,7 +234,7 @@ impl Bluetooth {
         Some(receiver)
     }
 
-    pub async fn handle_connection(&self, id: String, action: Connection) -> Result<(), String> {
+    pub async fn handle_connection(&self, id: String, action: &Connection) -> Result<(), String> {
         let central_guard = self.central.read().await;
         let Some(central) = central_guard.as_ref() else {
             return Err("Adapter not found".into());
@@ -244,12 +248,14 @@ impl Bluetooth {
             return Err("Device not found.".into());
         };
 
-        println!("{:?}", peripheral);
+        let Ok(is_connected) = peripheral.is_connected().await else {
+            return Err("Can't determine connection status".into());
+        };
 
-        let result = match action {
-            Connection::Connect => peripheral.connect().await.ok(),
-            // TODO: Fix disconnect hang
-            Connection::Disconnect => peripheral.disconnect().await.ok(),
+        let result = match (action, is_connected) {
+            (Connection::Connect, false) => peripheral.connect().await.ok(),
+            (Connection::Disconnect, true) => peripheral.disconnect().await.ok(),
+            _ => None,
         };
 
         if let None = result {
@@ -274,9 +280,13 @@ impl Bluetooth {
         };
 
         for peripheral in peripherals.iter() {
-            let Ok(_) = peripheral.is_connected().await else {
+            let Ok(is_connected) = peripheral.is_connected().await else {
                 continue;
             };
+
+            if !is_connected {
+                continue;
+            }
 
             let Ok(Some(properties)) = peripheral.properties().await else {
                 continue;
