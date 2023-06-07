@@ -29,6 +29,7 @@ interface Device {
 
 // States
 let isScanning = false
+let isConnecting = false
 let scannedDevices = []
 let devices: Array<Device> = [
   {
@@ -76,6 +77,23 @@ async function handleAction(device: Device) {
 }
 
 async function handleConnect(device: { id: string }) {
+  if (isConnecting) {
+    return
+  }
+
+  isConnecting = true
+
+  scannedDevices = scannedDevices.map((scannedDevice) => {
+    if (scannedDevice.id == device.id) {
+      return {
+        ...device,
+        isConnecting: true,
+      }
+    }
+
+    return device
+  })
+
   await invoke('connect_device', { deviceId: device.id })
   const connectedDevices: Array<[string, string]> = await invoke(
     'get_connected_devices'
@@ -134,6 +152,7 @@ async function handleCloseScan() {
 
 async function cleanStates() {
   isScanning = false
+  isConnecting = false
   scannedDevices = []
 }
 </script>
@@ -188,8 +207,16 @@ async function cleanStates() {
       <div class="animate-pulse title">Scanning</div>
       <div class="list-container">
         {#each scannedDevices as device}
-          <button class="device-item" on:click="{() => handleConnect(device)}">
+          <button
+            class="device-item {device.isConnecting ? 'text-primary-400' : ''}"
+            on:click="{() => handleConnect(device)}"
+          >
             {device.name}
+            {#if device.isConnecting}
+              <div class="text-sm text-secondary-100 animate-pulse">
+                Connecting...
+              </div>
+            {/if}
           </button>
         {/each}
       </div>
