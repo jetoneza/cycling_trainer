@@ -1,7 +1,6 @@
 <script lang="ts">
 import HeartIcon from 'svelte-icons/fa/FaHeartbeat.svelte'
 import BikeIcon from 'svelte-icons/md/MdDirectionsBike.svelte'
-import { onMount } from 'svelte'
 import { invoke } from '@tauri-apps/api/tauri'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
@@ -19,6 +18,8 @@ enum DeviceType {
 
 interface HeartRateMonitor {
   bpm: number
+  is_sensor_contact_supported: boolean
+  is_sensor_in_contact: boolean
 }
 
 interface Device {
@@ -50,7 +51,7 @@ let devices: Array<Device> = [
   },
 ]
 
-listen('on-hrm-data', (event: TauriEvent<any>) => {
+listen('hrm-notification', (event: TauriEvent<any>) => {
   const { payload } = event
 
   devices = devices.map((device) => {
@@ -176,6 +177,17 @@ async function cleanStates() {
   isConnecting = false
   scannedDevices = []
 }
+
+function getDeviceHRM(device: Device) {
+  const { bpm, is_sensor_contact_supported, is_sensor_in_contact } =
+    device.bleDevice.data
+
+  if (!is_sensor_contact_supported) {
+    return bpm
+  }
+
+  return is_sensor_in_contact ? bpm : '--'
+}
 </script>
 
 <div class="component-paired-devices p-10">
@@ -211,8 +223,9 @@ async function cleanStates() {
 
         <div class="name text-left">
           {#if device.isConnected && device.type === DeviceType.HeartRate && device.bleDevice.data}
-            <div class="text-white font-bold text-5xl">
-              {device.bleDevice.data.bpm || ''}
+            <div class="text-white font-bold">
+              <span class="text-5xl">{getDeviceHRM(device)}</span>
+              <span class="text-lg">bpm</span>
             </div>
           {/if}
           <div class="title font-bold flex space-x-2">

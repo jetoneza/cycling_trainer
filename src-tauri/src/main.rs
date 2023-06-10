@@ -79,7 +79,7 @@ pub async fn handle_heart_rate_notifications() {
         let data = parse_hrm_data(&data.value);
 
         if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
-            app_handle.emit_all("on-hrm-data", data).ok();
+            app_handle.emit_all("hrm-notification", data).ok();
         }
     }
 }
