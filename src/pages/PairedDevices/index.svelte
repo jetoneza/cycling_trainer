@@ -17,6 +17,10 @@ enum DeviceType {
   Generic = 'generic',
 }
 
+interface HeartRateMonitor {
+  bpm: number
+}
+
 interface Device {
   type: DeviceType
   title: string
@@ -24,6 +28,7 @@ interface Device {
   bleDevice?: {
     id: string
     name: string
+    data?: HeartRateMonitor
   }
   isConnected: boolean
 }
@@ -44,6 +49,24 @@ let devices: Array<Device> = [
     isConnected: false,
   },
 ]
+
+listen('on-hrm-data', (event: TauriEvent<any>) => {
+  const { payload } = event
+
+  devices = devices.map((device) => {
+    if (device.type == DeviceType.HeartRate) {
+      const updatedDevice = {
+        ...device,
+      }
+
+      updatedDevice.bleDevice.data = payload as HeartRateMonitor
+
+      return updatedDevice
+    }
+
+    return device
+  })
+})
 
 listen('device-discovered', (event: TauriEvent<any>) => {
   const { payload } = event
@@ -187,6 +210,11 @@ async function cleanStates() {
         {/if}
 
         <div class="name text-left">
+          {#if device.isConnected && device.type === DeviceType.HeartRate && device.bleDevice.data}
+            <div class="text-white font-bold text-5xl">
+              {device.bleDevice.data.bpm || ''}
+            </div>
+          {/if}
           <div class="title font-bold flex space-x-2">
             <div>{device.title}</div>
           </div>

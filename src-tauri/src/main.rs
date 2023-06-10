@@ -16,6 +16,8 @@ use log::{error, warn};
 use tauri::Manager;
 use tokio::sync::{broadcast::error::RecvError, Mutex};
 
+use crate::ble::heart_rate_measurement::parse_hrm_data;
+
 lazy_static! {
     pub static ref TAURI_APP_HANDLE: Mutex<Option<tauri::AppHandle>> = Default::default();
 }
@@ -74,7 +76,11 @@ pub async fn handle_heart_rate_notifications() {
     drop(hrm_guard);
 
     while let Some(data) = notification_stream.next().await {
-        println!("Data {:?}", data.value);
+        let data = parse_hrm_data(&data.value);
+
+        if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
+            app_handle.emit_all("on-hrm-data", data).ok();
+        }
     }
 }
 
