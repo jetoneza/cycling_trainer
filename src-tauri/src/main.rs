@@ -10,6 +10,8 @@ use ble::bluetooth::Bluetooth;
 use ble::bluetooth::Connection;
 use ble::bluetooth::DeviceType;
 use ble::bluetooth::BLUETOOTH;
+use btleplug::api::Peripheral as _;
+use futures::StreamExt;
 use log::{error, warn};
 use tauri::Manager;
 use tokio::sync::{broadcast::error::RecvError, Mutex};
@@ -48,6 +50,31 @@ async fn receive_scanned_devices() {
                 )
                 .ok();
         }
+    }
+}
+
+pub async fn handle_heart_rate_notifications() {
+    let bluetooth_guard = BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        error!("Can't find bluetooth.");
+        return;
+    };
+
+    let hrm_guard = bt.heart_rate_device.read().await;
+    let Some(hrm) = hrm_guard.as_ref() else {
+        error!("Can't find heart rate measurment device.");
+        return;
+    };
+
+    let Ok(mut notification_stream) = hrm.notifications().await else {
+        error!("No notifications for heart rate measurement.");
+        return;
+    };
+
+    drop(hrm_guard);
+
+    while let Some(data) = notification_stream.next().await {
+        println!("Data {:?}", data.value);
     }
 }
 
@@ -107,6 +134,8 @@ async fn connect_device(device_id: &str) -> Result<(), String> {
 
     bt.handle_connection(device_id, &Connection::Connect)
         .await?;
+
+    tokio::spawn(handle_heart_rate_notifications());
 
     Ok(())
 }

@@ -124,32 +124,6 @@ pub async fn listen_to_events() {
     tokio::spawn(handle_events(events));
 }
 
-pub async fn handle_heart_rate_notifications() {
-    let bluetooth_guard = BLUETOOTH.read().await;
-    let Some(bt) = bluetooth_guard.as_ref() else {
-        error!("Can't find bluetooth.");
-        return;
-    };
-
-    let hrm_guard = bt.heart_rate_device.read().await;
-    let Some(hrm) = hrm_guard.as_ref() else {
-        error!("Can't find heart rate measurment device.");
-        return;
-    };
-
-    let Ok(mut notification_stream) = hrm.notifications().await else {
-        error!("No notifications for heart rate measurement.");
-        return;
-    };
-
-    drop(hrm_guard);
-
-    while let Some(data) = notification_stream.next().await {
-        // TODO: Notify frontend
-        println!("Data {:?}", data.value);
-    }
-}
-
 pub fn get_device_type(services: Vec<Uuid>) -> DeviceType {
     let is_heart_rate = services.contains(&HEART_RATE_SERVICE_UUID);
     let is_smart_trainer = services.contains(&FITNESS_MACHINE_SERVICE_UUID);
