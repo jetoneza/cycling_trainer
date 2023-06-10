@@ -1,9 +1,10 @@
 use btleplug::api::{Central, Peripheral as _, ScanFilter};
-use btleplug::platform::{Adapter, Manager, PeripheralId};
+use btleplug::platform::{Adapter, Manager, Peripheral, PeripheralId};
 use log::{error, info, warn};
 use std::fmt;
 use tokio::sync::broadcast::{self, Receiver, Sender};
 use tokio::sync::{Mutex, RwLock};
+use uuid::Uuid;
 
 use crate::ble::constants::{FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_SERVICE_UUID};
 
@@ -67,11 +68,11 @@ impl Bluetooth {
         };
 
         let bluetooth = Self {
+            central: RwLock::new(central),
             manager: Mutex::new(manager),
-            status: Mutex::new(status),
             is_scanning: RwLock::new(false),
             scan_broadcast_sender: RwLock::new(None),
-            central: RwLock::new(central),
+            status: Mutex::new(status),
         };
 
         *BLUETOOTH.write().await = Some(bluetooth);
@@ -145,17 +146,19 @@ impl Bluetooth {
         Some(receiver)
     }
 
-    pub async fn handle_connection(&self, id: String, action: &Connection) -> Result<(), String> {
+    pub async fn handle_connection(&self, id: &str, action: &Connection) -> Result<(), String> {
         let central_guard = self.central.read().await;
         let Some(central) = central_guard.as_ref() else {
             return Err("Adapter not found".into());
         };
 
-        let Ok(peripherals) = central.peripherals().await else {
-            return Err("No peripherals found.".into());
+        let Ok(device_id) = Uuid::parse_str(id) else {
+            return Err("Unable to parse device id from string to uuid".into());
         };
 
-        let Some(peripheral) = peripherals.iter().find(|p| p.id().to_string() == id) else {
+        let device_id = PeripheralId::from(device_id);
+
+        let Ok(peripheral) = central.peripheral(&device_id).await else {
             return Err("Device not found.".into());
         };
 

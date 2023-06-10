@@ -98,7 +98,7 @@ async fn start_scan(scan_filter: &str) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn connect_device(device_id: String) -> Result<(), String> {
+async fn connect_device(device_id: &str) -> Result<(), String> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
         warn!("Bluetooth not found.");
@@ -112,7 +112,7 @@ async fn connect_device(device_id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn disconnect_device(device_id: String) -> Result<(), String> {
+async fn disconnect_device(device_id: &str) -> Result<(), String> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
         warn!("Bluetooth not found.");
