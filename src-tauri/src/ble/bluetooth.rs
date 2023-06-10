@@ -9,7 +9,9 @@ use uuid::Uuid;
 use crate::ble::constants::{FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_SERVICE_UUID};
 
 use super::constants::HEART_RATE_MEASUREMENT_UUID;
-use super::utils::{get_central, get_device_type, get_manager, listen_to_events};
+use super::utils::{
+    get_central, get_device_type, get_manager, handle_heart_rate_notifications, listen_to_events,
+};
 
 lazy_static! {
     pub static ref BLUETOOTH: RwLock<Option<Bluetooth>> = Default::default();
@@ -209,6 +211,8 @@ impl Bluetooth {
                 }
 
                 *self.heart_rate_device.write().await = Some(peripheral);
+
+                tokio::spawn(handle_heart_rate_notifications());
             }
             DeviceType::SmartTrainer => {
                 // TODO: Implement smart trainer subscription
@@ -224,15 +228,32 @@ impl Bluetooth {
         peripheral: Peripheral,
         device_type: DeviceType,
     ) -> Result<(), String> {
-        if let None = peripheral.disconnect().await.ok() {
-            return Err("Cannot connect device.".into());
-        }
-
         match device_type {
-            DeviceType::SmartTrainer => {
+            DeviceType::HeartRate => {
+                let hrm_guard = self.heart_rate_device.read().await;
+                let Some(hrm) = hrm_guard.as_ref() else {
+                    return Err("Can't find heart rate measurment device.".into());
+                };
+
+                for characteristic in hrm.characteristics() {
+                    if characteristic.uuid != HEART_RATE_MEASUREMENT_UUID {
+                        continue;
+                    }
+
+                    let Ok(_) = peripheral.unsubscribe(&characteristic).await else {
+                        return Err("Unable to unsubscribe to heart rate measurement characteristics".into());
+                    };
+                }
+
+                drop(hrm_guard);
+
                 *self.heart_rate_device.write().await = None;
             }
             _ => {}
+        }
+
+        if let None = peripheral.disconnect().await.ok() {
+            return Err("Cannot connect device.".into());
         }
 
         Ok(())
