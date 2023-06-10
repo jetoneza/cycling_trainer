@@ -170,48 +170,69 @@ impl Bluetooth {
             return Err("Can't determine connection status".into());
         };
 
-        let result = match (action, is_connected) {
-            (Connection::Connect, false) => peripheral.connect().await.ok(),
-            (Connection::Disconnect, true) => peripheral.disconnect().await.ok(),
-            _ => None,
+        let Ok(Some(properties)) = peripheral.properties().await else {
+            return Err("Can't get peripheral properties upon connection.".into());
         };
 
-        if let None = result {
-            return Err(format!("Cannot {:?} device.", action));
+        let device_type = get_device_type(properties.services);
+
+        match (action, is_connected) {
+            (Connection::Connect, false) => self.add_device(peripheral, device_type).await,
+            (Connection::Disconnect, true) => self.remove_device(peripheral, device_type).await,
+            _ => Ok(()),
+        }
+    }
+
+    async fn add_device(
+        &self,
+        peripheral: Peripheral,
+        device_type: DeviceType,
+    ) -> Result<(), String> {
+        if let None = peripheral.connect().await.ok() {
+            return Err("Cannot connect device.".into());
         }
 
-        if let Connection::Connect = action {
-            let Ok(Some(properties)) = peripheral.properties().await else {
-                return Err("Can't get peripheral properties upon connection.".into());
-            };
+        match device_type {
+            DeviceType::HeartRate => {
+                let Ok(_) = peripheral.discover_services().await else {
+                    return Err("Unable to discover heart rate services".into());
+                };
 
-            let device_type = get_device_type(properties.services);
-
-            peripheral.is_connected().await.unwrap();
-
-            match device_type {
-                DeviceType::HeartRate => {
-                    let Ok(_) = peripheral.discover_services().await else {
-                        return Err("Unable to discover heart rate services".into());
-                    };
-
-                    for characteristic in peripheral.characteristics() {
-                        if characteristic.uuid != HEART_RATE_MEASUREMENT_UUID {
-                            continue;
-                        }
-
-                        let Ok(_) = peripheral.subscribe(&characteristic).await else {
-                            return Err("Unable to subscribe to heart rate measurement characteristics".into());
-                        };
+                for characteristic in peripheral.characteristics() {
+                    if characteristic.uuid != HEART_RATE_MEASUREMENT_UUID {
+                        continue;
                     }
 
-                    *self.heart_rate_device.write().await = Some(peripheral);
+                    let Ok(_) = peripheral.subscribe(&characteristic).await else {
+                        return Err("Unable to subscribe to heart rate measurement characteristics".into());
+                    };
                 }
-                DeviceType::SmartTrainer => {
-                    // TODO: Implement smart trainer subscription
-                }
-                _ => {}
+
+                *self.heart_rate_device.write().await = Some(peripheral);
             }
+            DeviceType::SmartTrainer => {
+                // TODO: Implement smart trainer subscription
+            }
+            _ => {}
+        };
+
+        Ok(())
+    }
+
+    async fn remove_device(
+        &self,
+        peripheral: Peripheral,
+        device_type: DeviceType,
+    ) -> Result<(), String> {
+        if let None = peripheral.disconnect().await.ok() {
+            return Err("Cannot connect device.".into());
+        }
+
+        match device_type {
+            DeviceType::SmartTrainer => {
+                *self.heart_rate_device.write().await = None;
+            }
+            _ => {}
         }
 
         Ok(())
