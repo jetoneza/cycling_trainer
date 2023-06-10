@@ -1,6 +1,5 @@
-use btleplug::api::bleuuid::uuid_from_u32;
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _, ScanFilter};
-use btleplug::platform::{Adapter, Manager, Peripheral, PeripheralId};
+use btleplug::platform::{Adapter, Manager, PeripheralId};
 use futures::{Stream, StreamExt};
 use log::{error, info, warn};
 use std::fmt;
@@ -9,12 +8,11 @@ use tokio::sync::broadcast::{self, Receiver, Sender};
 use tokio::sync::{Mutex, RwLock};
 use uuid::Uuid;
 
+use crate::ble::constants::{HEART_RATE_SERVICE_UUID, FITNESS_MACHINE_SERVICE_UUID};
+
 lazy_static! {
     pub static ref BLUETOOTH: RwLock<Option<Bluetooth>> = Default::default();
 }
-
-pub const HEART_RATE_SERVICE_UUID: Uuid = uuid_from_u32(0x180D);
-pub const FITNESS_MACHINE_SERVICE_UUID: Uuid = uuid_from_u32(0x1826);
 
 pub enum BluetoothStatus {
     Error,
