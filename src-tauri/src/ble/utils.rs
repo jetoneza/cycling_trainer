@@ -11,6 +11,7 @@ use crate::TAURI_APP_HANDLE;
 
 use super::bluetooth::{DeviceType, BLUETOOTH};
 use super::constants::{FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_SERVICE_UUID};
+use super::heart_rate_measurement::parse_hrm_data;
 
 pub async fn get_central(manager: &Option<Manager>) -> Option<Adapter> {
     let Some(manager) = manager.as_ref() else {
@@ -73,13 +74,15 @@ pub async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> +
                 }
 
                 if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
-                    app_handle.emit_all(
-                        "device-discovered",
-                        BTDevice {
-                            id: id.to_string(),
-                            local_name: local_name.to_string(),
-                        },
-                    ).ok();
+                    app_handle
+                        .emit_all(
+                            "device-discovered",
+                            BTDevice {
+                                id: id.to_string(),
+                                local_name: local_name.to_string(),
+                            },
+                        )
+                        .ok();
                 }
             }
             CentralEvent::DeviceConnected(id) => {
@@ -132,5 +135,34 @@ pub fn get_device_type(services: Vec<Uuid>) -> DeviceType {
         (true, false) => DeviceType::HeartRate,
         (false, true) => DeviceType::SmartTrainer,
         _ => DeviceType::Generic,
+    }
+}
+
+pub async fn handle_heart_rate_notifications() {
+    let bluetooth_guard = BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        error!("Can't find bluetooth.");
+        return;
+    };
+
+    let hrm_guard = bt.heart_rate_device.read().await;
+    let Some(hrm) = hrm_guard.as_ref() else {
+        error!("Can't find heart rate measurment device.");
+        return;
+    };
+
+    let Ok(mut notification_stream) = hrm.notifications().await else {
+        error!("No notifications for heart rate measurement.");
+        return;
+    };
+
+    drop(hrm_guard);
+
+    while let Some(data) = notification_stream.next().await {
+        let data = parse_hrm_data(&data.value);
+
+        if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
+            app_handle.emit_all("hrm-notification", data).ok();
+        }
     }
 }

@@ -10,45 +10,12 @@ use ble::bluetooth::Bluetooth;
 use ble::bluetooth::Connection;
 use ble::bluetooth::DeviceType;
 use ble::bluetooth::BLUETOOTH;
-use btleplug::api::Peripheral as _;
-use futures::StreamExt;
 use log::{error, warn};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
-use crate::ble::heart_rate_measurement::parse_hrm_data;
-
 lazy_static! {
     pub static ref TAURI_APP_HANDLE: Mutex<Option<tauri::AppHandle>> = Default::default();
-}
-
-pub async fn handle_heart_rate_notifications() {
-    let bluetooth_guard = BLUETOOTH.read().await;
-    let Some(bt) = bluetooth_guard.as_ref() else {
-        error!("Can't find bluetooth.");
-        return;
-    };
-
-    let hrm_guard = bt.heart_rate_device.read().await;
-    let Some(hrm) = hrm_guard.as_ref() else {
-        error!("Can't find heart rate measurment device.");
-        return;
-    };
-
-    let Ok(mut notification_stream) = hrm.notifications().await else {
-        error!("No notifications for heart rate measurement.");
-        return;
-    };
-
-    drop(hrm_guard);
-
-    while let Some(data) = notification_stream.next().await {
-        let data = parse_hrm_data(&data.value);
-
-        if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
-            app_handle.emit_all("hrm-notification", data).ok();
-        }
-    }
 }
 
 #[tauri::command]
@@ -105,8 +72,6 @@ async fn connect_device(device_id: &str) -> Result<(), String> {
 
     bt.handle_connection(device_id, &Connection::Connect)
         .await?;
-
-    tokio::spawn(handle_heart_rate_notifications());
 
     Ok(())
 }

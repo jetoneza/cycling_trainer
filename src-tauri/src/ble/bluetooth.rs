@@ -7,7 +7,7 @@ use tokio::sync::{Mutex, RwLock};
 use crate::ble::constants::{FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_SERVICE_UUID};
 
 use super::constants::HEART_RATE_MEASUREMENT_UUID;
-use super::utils::{get_central, get_device_type, get_manager, listen_to_events};
+use super::utils::{get_central, get_device_type, get_manager, listen_to_events, handle_heart_rate_notifications};
 
 lazy_static! {
     pub static ref BLUETOOTH: RwLock<Option<Bluetooth>> = Default::default();
@@ -189,6 +189,8 @@ impl Bluetooth {
                 }
 
                 *self.heart_rate_device.write().await = Some(peripheral);
+
+                tokio::spawn(handle_heart_rate_notifications());
             }
             DeviceType::SmartTrainer => {
                 // TODO: Implement smart trainer subscription
