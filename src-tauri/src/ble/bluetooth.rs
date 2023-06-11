@@ -1,7 +1,8 @@
-use btleplug::api::{Central, Peripheral as _, ScanFilter};
+use btleplug::api::{Central, Peripheral as _, ScanFilter, BDAddr};
 use btleplug::platform::{Adapter, Manager, Peripheral, PeripheralId};
 use log::{error, info, warn};
 use std::fmt;
+use std::str::FromStr;
 use tokio::sync::broadcast::{self, Receiver, Sender};
 use tokio::sync::{Mutex, RwLock};
 use uuid::Uuid;
@@ -156,14 +157,12 @@ impl Bluetooth {
             return Err("Adapter not found".into());
         };
 
-        let Ok(device_id) = Uuid::parse_str(id) else {
-            return Err("Unable to parse device id from string to uuid".into());
+        let Ok(peripherals) = central.peripherals().await else {
+          return Err("No peripherals found".into());
         };
 
-        let device_id = PeripheralId::from(device_id);
-
-        let Ok(peripheral) = central.peripheral(&device_id).await else {
-            return Err("Device not found.".into());
+        let Some(peripheral) = peripherals.iter().find(|p| p.id().to_string() == id) else {
+          return Err("Device not found".into());
         };
 
         let Ok(is_connected) = peripheral.is_connected().await else {
@@ -177,8 +176,8 @@ impl Bluetooth {
         let device_type = get_device_type(properties.services);
 
         match (action, is_connected) {
-            (Connection::Connect, false) => self.add_device(peripheral, device_type).await,
-            (Connection::Disconnect, true) => self.remove_device(peripheral, device_type).await,
+            (Connection::Connect, false) => self.add_device(peripheral.clone(), device_type).await,
+            (Connection::Disconnect, true) => self.remove_device(peripheral.clone(), device_type).await,
             _ => Ok(()),
         }
     }
