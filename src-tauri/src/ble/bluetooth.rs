@@ -4,10 +4,12 @@ use log::{error, info, warn};
 use std::fmt;
 use tokio::sync::{Mutex, RwLock};
 
-use crate::ble::constants::{FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_SERVICE_UUID};
-
-use super::constants::HEART_RATE_MEASUREMENT_UUID;
-use super::utils::{get_central, get_device_type, get_manager, listen_to_events, handle_heart_rate_notifications};
+use super::constants::{
+    FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_MEASUREMENT_UUID, HEART_RATE_SERVICE_UUID,
+};
+use super::utils::{
+    get_central, get_device_type, get_manager, handle_heart_rate_notifications, listen_to_events,
+};
 
 lazy_static! {
     pub static ref BLUETOOTH: RwLock<Option<Bluetooth>> = Default::default();

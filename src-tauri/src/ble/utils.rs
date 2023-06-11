@@ -6,10 +6,9 @@ use std::pin::Pin;
 use tauri::Manager as _;
 use uuid::Uuid;
 
-use crate::ble::bluetooth::{BTDevice, BluetoothStatus};
 use crate::TAURI_APP_HANDLE;
 
-use super::bluetooth::{DeviceType, BLUETOOTH};
+use super::bluetooth::{BTDevice, BluetoothStatus, DeviceType, BLUETOOTH};
 use super::constants::{FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_SERVICE_UUID};
 use super::heart_rate_measurement::parse_hrm_data;
 

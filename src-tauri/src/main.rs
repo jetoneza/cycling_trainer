@@ -6,10 +6,7 @@ extern crate lazy_static;
 
 mod ble;
 
-use ble::bluetooth::Bluetooth;
-use ble::bluetooth::Connection;
-use ble::bluetooth::DeviceType;
-use ble::bluetooth::BLUETOOTH;
+use ble::bluetooth::{Bluetooth, Connection, DeviceType, BLUETOOTH};
 use log::{error, warn};
 use tauri::Manager;
 use tokio::sync::Mutex;
