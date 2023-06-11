@@ -3,9 +3,11 @@ use btleplug::platform::{Adapter, Manager};
 use futures::{Stream, StreamExt};
 use log::{error, info, warn};
 use std::pin::Pin;
+use tauri::Manager as _;
 use uuid::Uuid;
 
 use crate::ble::bluetooth::{BTDevice, BluetoothStatus};
+use crate::TAURI_APP_HANDLE;
 
 use super::bluetooth::{DeviceType, BLUETOOTH};
 use super::constants::{FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_SERVICE_UUID};
@@ -70,16 +72,14 @@ pub async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> +
                     continue;
                 }
 
-                let Some(sender) = &*bt.scan_broadcast_sender.read().await else {
-                    continue;
-                };
-
-                if let Err(err) = sender.send(BTDevice {
-                    id: id.clone(),
-                    local_name: local_name.clone(),
-                }) {
-                    warn!("Error broadcasting device: {}", err);
-                    continue;
+                if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
+                    app_handle.emit_all(
+                        "device-discovered",
+                        BTDevice {
+                            id: id.to_string(),
+                            local_name: local_name.to_string(),
+                        },
+                    ).ok();
                 }
             }
             CentralEvent::DeviceConnected(id) => {

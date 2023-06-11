@@ -72,7 +72,7 @@ listen('hrm-notification', (event: TauriEvent<any>) => {
 listen('device-discovered', (event: TauriEvent<any>) => {
   const { payload } = event
 
-  const [id, name] = payload
+  const { id, local_name: name } = payload
 
   const existing = scannedDevices.find((device) => device.id == id)
 

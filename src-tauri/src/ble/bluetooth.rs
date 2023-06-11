@@ -1,11 +1,8 @@
-use btleplug::api::{Central, Peripheral as _, ScanFilter, BDAddr};
-use btleplug::platform::{Adapter, Manager, Peripheral, PeripheralId};
+use btleplug::api::{Central, Peripheral as _, ScanFilter};
+use btleplug::platform::{Adapter, Manager, Peripheral};
 use log::{error, info, warn};
 use std::fmt;
-use std::str::FromStr;
-use tokio::sync::broadcast::{self, Receiver, Sender};
 use tokio::sync::{Mutex, RwLock};
-use uuid::Uuid;
 
 use crate::ble::constants::{FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_SERVICE_UUID};
 
@@ -44,9 +41,9 @@ impl fmt::Display for DeviceType {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, serde::Serialize)]
 pub struct BTDevice {
-    pub id: PeripheralId,
+    pub id: String,
     pub local_name: String,
 }
 
@@ -55,7 +52,6 @@ pub struct Bluetooth {
 
     pub central: RwLock<Option<Adapter>>,
     pub manager: Mutex<Option<Manager>>,
-    pub scan_broadcast_sender: RwLock<Option<Sender<BTDevice>>>,
     pub status: Mutex<BluetoothStatus>,
 
     pub heart_rate_device: RwLock<Option<Peripheral>>,
@@ -75,7 +71,6 @@ impl Bluetooth {
             central: RwLock::new(central),
             manager: Mutex::new(manager),
             is_scanning: RwLock::new(false),
-            scan_broadcast_sender: RwLock::new(None),
             status: Mutex::new(status),
             heart_rate_device: RwLock::new(None),
         };
@@ -116,10 +111,6 @@ impl Bluetooth {
 
         info!("Scanning for devices...");
 
-        let (tx, _) = broadcast::channel(1);
-
-        *self.scan_broadcast_sender.write().await = Some(tx);
-
         Ok(())
     }
 
@@ -136,19 +127,7 @@ impl Bluetooth {
 
         *self.is_scanning.write().await = false;
 
-        *self.scan_broadcast_sender.write().await = None;
-
         Ok(())
-    }
-
-    pub async fn get_scan_receiver(&self) -> Option<Receiver<BTDevice>> {
-        let Some(tx) = &*self.scan_broadcast_sender.read().await else {
-            return None;
-        };
-
-        let receiver = tx.subscribe();
-
-        Some(receiver)
     }
 
     pub async fn handle_connection(&self, id: &str, action: &Connection) -> Result<(), String> {
@@ -177,7 +156,9 @@ impl Bluetooth {
 
         match (action, is_connected) {
             (Connection::Connect, false) => self.add_device(peripheral.clone(), device_type).await,
-            (Connection::Disconnect, true) => self.remove_device(peripheral.clone(), device_type).await,
+            (Connection::Disconnect, true) => {
+                self.remove_device(peripheral.clone(), device_type).await
+            }
             _ => Ok(()),
         }
     }
