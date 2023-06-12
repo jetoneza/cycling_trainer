@@ -1,4 +1,4 @@
-use btleplug::api::{Central, CentralEvent, Characteristic, Manager as _, Peripheral as _};
+use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _};
 use btleplug::platform::{Adapter, Manager, Peripheral};
 use futures::{Stream, StreamExt};
 use log::{error, info, warn};
@@ -11,6 +11,12 @@ use crate::TAURI_APP_HANDLE;
 use super::bluetooth::{BTDevice, BluetoothStatus, DeviceType, BLUETOOTH};
 use super::constants::{FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_SERVICE_UUID};
 use super::heart_rate_measurement::parse_hrm_data;
+
+#[derive(Debug)]
+pub enum CharacteristicAction {
+    Subscribe,
+    Unsubscribe,
+}
 
 pub async fn get_central(manager: &Option<Manager>) -> Option<Adapter> {
     let Some(manager) = manager.as_ref() else {
@@ -166,17 +172,25 @@ pub async fn handle_heart_rate_notifications() {
     }
 }
 
-pub async fn subscribe_to_characteristic(
+pub async fn handle_cycling_power_notifications() {}
+
+pub async fn on_characteristic(
     uuid: Uuid,
     peripheral: &Peripheral,
+    action: CharacteristicAction,
 ) -> Result<(), String> {
     for characteristic in peripheral.characteristics() {
         if characteristic.uuid != uuid {
             continue;
         }
 
-        let Ok(_) = peripheral.subscribe(&characteristic).await else {
-          return Err("Unable to subscribe to characteristic".into());
+        let result = match action {
+            CharacteristicAction::Subscribe => peripheral.subscribe(&characteristic).await,
+            CharacteristicAction::Unsubscribe => peripheral.unsubscribe(&characteristic).await,
+        };
+
+        let Ok(_) = result else {
+          return Err(format!("Unable to {:?} to characteristic", action));
         };
     }
 

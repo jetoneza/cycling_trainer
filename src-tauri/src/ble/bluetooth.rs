@@ -5,11 +5,12 @@ use std::fmt;
 use tokio::sync::{Mutex, RwLock};
 
 use super::constants::{
-    FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_MEASUREMENT_UUID, HEART_RATE_SERVICE_UUID,
+    CYCLING_POWER_MEASUREMENT_UUID, FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_MEASUREMENT_UUID,
+    HEART_RATE_SERVICE_UUID,
 };
 use super::utils::{
-    get_central, get_device_type, get_manager, handle_heart_rate_notifications, listen_to_events,
-    subscribe_to_characteristic,
+    get_central, get_device_type, get_manager, handle_cycling_power_notifications,
+    handle_heart_rate_notifications, listen_to_events, on_characteristic, CharacteristicAction,
 };
 
 lazy_static! {
@@ -58,6 +59,7 @@ pub struct Bluetooth {
     pub status: Mutex<BluetoothStatus>,
 
     pub heart_rate_device: RwLock<Option<Peripheral>>,
+    pub cycling_device: RwLock<Option<Peripheral>>,
 }
 
 impl Bluetooth {
@@ -76,6 +78,7 @@ impl Bluetooth {
             is_scanning: RwLock::new(false),
             status: Mutex::new(status),
             heart_rate_device: RwLock::new(None),
+            cycling_device: RwLock::new(None),
         };
 
         *BLUETOOTH.write().await = Some(bluetooth);
@@ -181,13 +184,29 @@ impl Bluetooth {
 
         match device_type {
             DeviceType::HeartRate => {
-                subscribe_to_characteristic(HEART_RATE_MEASUREMENT_UUID, &peripheral).await?;
+                on_characteristic(
+                    HEART_RATE_MEASUREMENT_UUID,
+                    &peripheral,
+                    CharacteristicAction::Subscribe,
+                )
+                .await?;
 
                 *self.heart_rate_device.write().await = Some(peripheral);
 
                 tokio::spawn(handle_heart_rate_notifications());
             }
-            DeviceType::SmartTrainer => {}
+            DeviceType::SmartTrainer => {
+                on_characteristic(
+                    CYCLING_POWER_MEASUREMENT_UUID,
+                    &peripheral,
+                    CharacteristicAction::Subscribe,
+                )
+                .await?;
+
+                *self.cycling_device.write().await = Some(peripheral);
+
+                tokio::spawn(handle_cycling_power_notifications());
+            }
             _ => {}
         };
 
@@ -206,19 +225,33 @@ impl Bluetooth {
                     return Err("Can't find heart rate measurment device.".into());
                 };
 
-                for characteristic in hrm.characteristics() {
-                    if characteristic.uuid != HEART_RATE_MEASUREMENT_UUID {
-                        continue;
-                    }
-
-                    let Ok(_) = peripheral.unsubscribe(&characteristic).await else {
-                        return Err("Unable to unsubscribe to heart rate measurement characteristics".into());
-                    };
-                }
+                on_characteristic(
+                    HEART_RATE_MEASUREMENT_UUID,
+                    &hrm,
+                    CharacteristicAction::Unsubscribe,
+                )
+                .await?;
 
                 drop(hrm_guard);
 
                 *self.heart_rate_device.write().await = None;
+            }
+            DeviceType::SmartTrainer => {
+                let cd_guard = self.heart_rate_device.read().await;
+                let Some(cycling_device) = cd_guard.as_ref() else {
+                  return Err("Can't find cycling device".into());
+                };
+
+                on_characteristic(
+                    CYCLING_POWER_MEASUREMENT_UUID,
+                    &cycling_device,
+                    CharacteristicAction::Unsubscribe,
+                )
+                .await?;
+
+                drop(cd_guard);
+
+                *self.cycling_device.write().await = None;
             }
             _ => {}
         }
