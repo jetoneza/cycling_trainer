@@ -185,7 +185,7 @@ impl Bluetooth {
 
         match device_type {
             DeviceType::HeartRate => {
-                on_characteristic(
+                on_characteristic_subscription(
                     HEART_RATE_MEASUREMENT_UUID,
                     &peripheral,
                     CharacteristicAction::Subscribe,
@@ -197,7 +197,7 @@ impl Bluetooth {
                 tokio::spawn(handle_heart_rate_notifications());
             }
             DeviceType::SmartTrainer => {
-                on_characteristic(
+                on_characteristic_subscription(
                     CYCLING_POWER_MEASUREMENT_UUID,
                     &peripheral,
                     CharacteristicAction::Subscribe,
