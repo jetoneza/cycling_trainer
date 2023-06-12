@@ -1,5 +1,5 @@
-use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral as _};
-use btleplug::platform::{Adapter, Manager};
+use btleplug::api::{Central, CentralEvent, Characteristic, Manager as _, Peripheral as _};
+use btleplug::platform::{Adapter, Manager, Peripheral};
 use futures::{Stream, StreamExt};
 use log::{error, info, warn};
 use std::pin::Pin;
@@ -164,4 +164,21 @@ pub async fn handle_heart_rate_notifications() {
             app_handle.emit_all("hrm-notification", data).ok();
         }
     }
+}
+
+pub async fn subscribe_to_characteristic(
+    uuid: Uuid,
+    peripheral: &Peripheral,
+) -> Result<(), String> {
+    for characteristic in peripheral.characteristics() {
+        if characteristic.uuid != uuid {
+            continue;
+        }
+
+        let Ok(_) = peripheral.subscribe(&characteristic).await else {
+          return Err("Unable to subscribe to characteristic".into());
+        };
+    }
+
+    Ok(())
 }

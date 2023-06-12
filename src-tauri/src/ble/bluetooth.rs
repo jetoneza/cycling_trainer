@@ -9,6 +9,7 @@ use super::constants::{
 };
 use super::utils::{
     get_central, get_device_type, get_manager, handle_heart_rate_notifications, listen_to_events,
+    subscribe_to_characteristic,
 };
 
 lazy_static! {
@@ -174,29 +175,19 @@ impl Bluetooth {
             return Err("Cannot connect device.".into());
         }
 
+        let Ok(_) = peripheral.discover_services().await else {
+            return Err("Unable to discover heart rate services".into());
+        };
+
         match device_type {
             DeviceType::HeartRate => {
-                let Ok(_) = peripheral.discover_services().await else {
-                    return Err("Unable to discover heart rate services".into());
-                };
-
-                for characteristic in peripheral.characteristics() {
-                    if characteristic.uuid != HEART_RATE_MEASUREMENT_UUID {
-                        continue;
-                    }
-
-                    let Ok(_) = peripheral.subscribe(&characteristic).await else {
-                        return Err("Unable to subscribe to heart rate measurement characteristics".into());
-                    };
-                }
+                subscribe_to_characteristic(HEART_RATE_MEASUREMENT_UUID, &peripheral).await?;
 
                 *self.heart_rate_device.write().await = Some(peripheral);
 
                 tokio::spawn(handle_heart_rate_notifications());
             }
-            DeviceType::SmartTrainer => {
-                // TODO: Implement smart trainer subscription
-            }
+            DeviceType::SmartTrainer => {}
             _ => {}
         };
 
