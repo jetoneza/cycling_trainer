@@ -5,6 +5,7 @@
 extern crate lazy_static;
 
 mod ble;
+mod data;
 
 use ble::bluetooth::{Bluetooth, Connection, DeviceType, BLUETOOTH};
 use log::{error, warn};
