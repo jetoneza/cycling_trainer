@@ -13,6 +13,7 @@ pub const SPEED_CADENCE_SERVICE_UUID: Uuid = uuid_from_u32(0x1816);
 
 // Fitness Machine
 pub const FITNESS_MACHINE_SERVICE_UUID: Uuid = uuid_from_u32(0x1826);
+pub const INDOOR_BIKE_DATA_UUID: Uuid = uuid_from_u32(0x2AD2);
 
 // Cycling Power
 pub const CYCLING_POWER_SERVICE_UUID: Uuid = uuid_from_u32(0x1818);
