@@ -6,16 +6,27 @@ use std::pin::Pin;
 use tauri::Manager as _;
 use uuid::Uuid;
 
+use crate::data::heart_rate_measurement::parse_hrm_data;
+use crate::data::indoor_bike_data::parse_indoor_bike_data;
 use crate::TAURI_APP_HANDLE;
 
 use super::bluetooth::{BTDevice, BluetoothStatus, DeviceType, BLUETOOTH};
-use super::constants::{FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_SERVICE_UUID};
-use super::heart_rate_measurement::parse_hrm_data;
+use super::constants::{
+    CYCLING_POWER_MEASUREMENT_UUID, FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_MEASUREMENT_UUID,
+    HEART_RATE_SERVICE_UUID, INDOOR_BIKE_DATA_UUID,
+};
 
 #[derive(Debug)]
 pub enum CharacteristicAction {
     Subscribe,
     Unsubscribe,
+}
+
+enum Characteristic {
+    CyclingPowerMeasurement,
+    HeartRateMeasurement,
+    IndoorBikeData,
+    Unknown,
 }
 
 pub async fn get_central(manager: &Option<Manager>) -> Option<Adapter> {
@@ -172,7 +183,53 @@ pub async fn handle_heart_rate_notifications() {
     }
 }
 
-pub async fn handle_cycling_power_notifications() {}
+pub async fn handle_cycling_device_notifications() {
+    let bluetooth_guard = BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        error!("Can't find bluetooth.");
+        return;
+    };
+
+    let cd_guard = bt.cycling_device.read().await;
+    let Some(cycling_device) = cd_guard.as_ref() else {
+        error!("Can't find heart rate measurment device.");
+        return;
+    };
+
+    let Ok(mut notification_stream) = cycling_device.notifications().await else {
+        error!("No notifications for heart rate measurement.");
+        return;
+    };
+
+    drop(cd_guard);
+
+    while let Some(data) = notification_stream.next().await {
+        let app_handle_guard = TAURI_APP_HANDLE.lock().await;
+        let Some(app_handle) = app_handle_guard.as_ref() else {
+            error!("Unable to get tauri app handle.");
+            return;
+        };
+
+        match get_uuid_characteristic(data.uuid) {
+            Characteristic::IndoorBikeData => {
+                let data = parse_indoor_bike_data(&data.value);
+
+                app_handle.emit_all("indoor-bike-notification", data).ok();
+            }
+            // TODO: Add support for cycling power
+            _ => {}
+        };
+    }
+}
+
+fn get_uuid_characteristic(uuid: Uuid) -> Characteristic {
+    match uuid {
+        CYCLING_POWER_MEASUREMENT_UUID => Characteristic::CyclingPowerMeasurement,
+        HEART_RATE_MEASUREMENT_UUID => Characteristic::HeartRateMeasurement,
+        INDOOR_BIKE_DATA_UUID => Characteristic::IndoorBikeData,
+        _ => Characteristic::Unknown,
+    }
+}
 
 pub async fn on_characteristic_subscription(
     uuid: Uuid,

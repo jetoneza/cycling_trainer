@@ -6,10 +6,11 @@ use tokio::sync::{Mutex, RwLock};
 
 use super::constants::{
     CYCLING_POWER_MEASUREMENT_UUID, CYCLING_POWER_SERVICE_UUID, FITNESS_MACHINE_SERVICE_UUID,
-    HEART_RATE_MEASUREMENT_UUID, HEART_RATE_SERVICE_UUID, SPEED_CADENCE_SERVICE_UUID,
+    HEART_RATE_MEASUREMENT_UUID, HEART_RATE_SERVICE_UUID, INDOOR_BIKE_DATA_UUID,
+    SPEED_CADENCE_SERVICE_UUID,
 };
 use super::utils::{
-    get_central, get_device_type, get_manager, handle_cycling_power_notifications,
+    get_central, get_device_type, get_manager, handle_cycling_device_notifications,
     handle_heart_rate_notifications, listen_to_events, on_characteristic_subscription,
     CharacteristicAction,
 };
@@ -208,9 +209,16 @@ impl Bluetooth {
                 )
                 .await?;
 
+                on_characteristic_subscription(
+                    INDOOR_BIKE_DATA_UUID,
+                    &peripheral,
+                    CharacteristicAction::Subscribe,
+                )
+                .await?;
+
                 *self.cycling_device.write().await = Some(peripheral);
 
-                tokio::spawn(handle_cycling_power_notifications());
+                tokio::spawn(handle_cycling_device_notifications());
             }
             _ => {}
         };
@@ -249,6 +257,13 @@ impl Bluetooth {
 
                 on_characteristic_subscription(
                     CYCLING_POWER_MEASUREMENT_UUID,
+                    &cycling_device,
+                    CharacteristicAction::Unsubscribe,
+                )
+                .await?;
+
+                on_characteristic_subscription(
+                    INDOOR_BIKE_DATA_UUID,
                     &cycling_device,
                     CharacteristicAction::Unsubscribe,
                 )
