@@ -174,7 +174,7 @@ pub async fn handle_heart_rate_notifications() {
 
 pub async fn handle_cycling_power_notifications() {}
 
-pub async fn on_characteristic(
+pub async fn on_characteristic_subscription(
     uuid: Uuid,
     peripheral: &Peripheral,
     action: CharacteristicAction,

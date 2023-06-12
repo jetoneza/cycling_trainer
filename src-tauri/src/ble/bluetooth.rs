@@ -10,7 +10,8 @@ use super::constants::{
 };
 use super::utils::{
     get_central, get_device_type, get_manager, handle_cycling_power_notifications,
-    handle_heart_rate_notifications, listen_to_events, on_characteristic, CharacteristicAction,
+    handle_heart_rate_notifications, listen_to_events, on_characteristic_subscription,
+    CharacteristicAction,
 };
 
 lazy_static! {
@@ -225,7 +226,7 @@ impl Bluetooth {
                     return Err("Can't find heart rate measurment device.".into());
                 };
 
-                on_characteristic(
+                on_characteristic_subscription(
                     HEART_RATE_MEASUREMENT_UUID,
                     &hrm,
                     CharacteristicAction::Unsubscribe,
@@ -242,7 +243,7 @@ impl Bluetooth {
                   return Err("Can't find cycling device".into());
                 };
 
-                on_characteristic(
+                on_characteristic_subscription(
                     CYCLING_POWER_MEASUREMENT_UUID,
                     &cycling_device,
                     CharacteristicAction::Unsubscribe,
