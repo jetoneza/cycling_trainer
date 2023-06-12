@@ -4,11 +4,9 @@ use log::{error, info, warn};
 use std::fmt;
 use tokio::sync::{Mutex, RwLock};
 
-use crate::ble::constants::{CYCLING_POWER_SERVICE_UUID, SPEED_CADENCE_SERVICE_UUID};
-
 use super::constants::{
-    CYCLING_POWER_MEASUREMENT_UUID, FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_MEASUREMENT_UUID,
-    HEART_RATE_SERVICE_UUID,
+    CYCLING_POWER_MEASUREMENT_UUID, CYCLING_POWER_SERVICE_UUID, FITNESS_MACHINE_SERVICE_UUID,
+    HEART_RATE_MEASUREMENT_UUID, HEART_RATE_SERVICE_UUID, SPEED_CADENCE_SERVICE_UUID,
 };
 use super::utils::{
     get_central, get_device_type, get_manager, handle_cycling_power_notifications,
