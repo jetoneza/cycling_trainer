@@ -198,13 +198,6 @@ function getDeviceHRM(device: Device) {
 
   return is_sensor_in_contact ? bpm : '--'
 }
-
-function getDeviceSpeed(device: Device) {
-  const { speed } =
-    device.bleDevice.data
-
-  return speed
-}
 </script>
 
 <div class="component-paired-devices p-10">
@@ -247,8 +240,12 @@ function getDeviceSpeed(device: Device) {
           {/if}
           {#if device.isConnected && device.type === DeviceType.SmartTrainer && device.bleDevice.data}
             <div class="text-white font-bold">
-              <span class="text-5xl">{getDeviceSpeed(device)}</span>
+              <span class="text-5xl">{device.bleDevice.data.speed}</span>
               <span class="text-lg">kph</span>
+            </div>
+            <div class="text-white font-bold">
+              <span class="text-sm">{device.bleDevice.data.cadence}</span>
+              <span class="text-lg">rpm</span>
             </div>
           {/if}
           <div class="title font-bold flex space-x-2">
