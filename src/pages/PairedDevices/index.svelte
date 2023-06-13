@@ -10,16 +10,14 @@ import clickOutside from '../../utils/clickOutside'
 import './styles.css'
 
 // Types and enums
+interface BasicObject {
+  [key: string]: any
+}
+
 enum DeviceType {
   HeartRate = 'heart_rate',
   SmartTrainer = 'smart_trainer',
   Generic = 'generic',
-}
-
-interface HeartRateMonitor {
-  bpm: number
-  is_sensor_contact_supported: boolean
-  is_sensor_in_contact: boolean
 }
 
 interface Device {
@@ -29,7 +27,7 @@ interface Device {
   bleDevice?: {
     id: string
     name: string
-    data?: HeartRateMonitor
+    data?: BasicObject
   }
   isConnected: boolean
 }
@@ -54,19 +52,13 @@ let devices: Array<Device> = [
 listen('hrm-notification', (event: TauriEvent<any>) => {
   const { payload } = event
 
-  devices = devices.map((device) => {
-    if (device.type == DeviceType.HeartRate) {
-      const updatedDevice = {
-        ...device,
-      }
+  notifyDevice(payload, DeviceType.HeartRate)
+})
 
-      updatedDevice.bleDevice.data = payload as HeartRateMonitor
+listen('indoor-bike-notification', (event: TauriEvent<any>) => {
+  const { payload } = event
 
-      return updatedDevice
-    }
-
-    return device
-  })
+  notifyDevice(payload, DeviceType.SmartTrainer)
 })
 
 listen('device-discovered', (event: TauriEvent<any>) => {
@@ -88,6 +80,24 @@ listen('device-discovered', (event: TauriEvent<any>) => {
     },
   ]
 })
+
+function notifyDevice(data: BasicObject, type: DeviceType) {
+  devices = devices.map((device) => {
+    if (device.type == type) {
+      const updatedDevice = {
+        ...device,
+      }
+
+      updatedDevice.bleDevice.data = data
+
+      return updatedDevice
+    }
+
+    return device
+  })
+
+  console.log(devices)
+}
 
 async function handleAction(device: Device) {
   if (device.isConnected) {
@@ -188,6 +198,13 @@ function getDeviceHRM(device: Device) {
 
   return is_sensor_in_contact ? bpm : '--'
 }
+
+function getDeviceSpeed(device: Device) {
+  const { speed } =
+    device.bleDevice.data
+
+  return speed
+}
 </script>
 
 <div class="component-paired-devices p-10">
@@ -226,6 +243,12 @@ function getDeviceHRM(device: Device) {
             <div class="text-white font-bold">
               <span class="text-5xl">{getDeviceHRM(device)}</span>
               <span class="text-lg">bpm</span>
+            </div>
+          {/if}
+          {#if device.isConnected && device.type === DeviceType.SmartTrainer && device.bleDevice.data}
+            <div class="text-white font-bold">
+              <span class="text-5xl">{getDeviceSpeed(device)}</span>
+              <span class="text-lg">kph</span>
             </div>
           {/if}
           <div class="title font-bold flex space-x-2">
