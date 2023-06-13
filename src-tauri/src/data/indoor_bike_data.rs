@@ -3,12 +3,14 @@ pub struct IndoorBikeData {
     pub cadence: Option<u16>,
     pub speed: Option<u16>,
     pub distance: Option<u32>,
+    pub power: Option<u16>,
 }
 
 enum IndoorBikeDataType {
     Speed,
     Cadence,
     Distance,
+    Power,
 }
 
 // Size in octets
@@ -18,6 +20,7 @@ const AVERAGE_SPEED_SIZE: usize = 2;
 const INSTANTANEOUS_CADENCE_SIZE: usize = 2;
 const AVERAGE_CADENCE_SIZE: usize = 2;
 const TOTAL_DISTANCE_SIZE: usize = 3;
+const RESISTANCE_LEVEL_SIZE: usize = 1;
 
 // Resource:
 // https://www.bluetooth.com/specifications/specs/gatt-specification-supplement/
@@ -26,11 +29,13 @@ pub fn parse_indoor_bike_data(data: &Vec<u8>) -> IndoorBikeData {
     let speed = get_speed(data);
     let cadence = get_cadence(data);
     let distance = get_distance(data);
+    let power = get_power(data);
 
     IndoorBikeData {
         cadence,
         speed,
         distance,
+        power,
     }
 }
 
@@ -81,7 +86,25 @@ fn get_distance(data: &Vec<u8>) -> Option<u32> {
 
     let distance = combine_u8_to_u32(data[data_index], data[data_index + 1], data[data_index + 2]);
 
-    return Some(distance);
+    // Distance is in meters
+    Some(distance)
+}
+
+// Instantaneous Power
+// Data type: i16
+// Size (octets): 0 or 2
+fn get_power(data: &Vec<u8>) -> Option<u16> {
+    // Present if bit 6 of Flags field is set to 1
+    if !is_power_present(data) {
+        return None;
+    }
+
+    let data_index = get_data_index(data, IndoorBikeDataType::Power);
+
+    let power = combine_u8_to_u16(data[data_index], data[data_index + 1]);
+
+    // Watts
+    Some(power)
 }
 
 fn get_data_index(data: &Vec<u8>, data_type: IndoorBikeDataType) -> usize {
@@ -101,7 +124,7 @@ fn get_data_index(data: &Vec<u8>, data_type: IndoorBikeDataType) -> usize {
             index
         }
         IndoorBikeDataType::Distance => {
-            let mut index = get_data_index(data, data_type);
+            let mut index = get_data_index(data, IndoorBikeDataType::Cadence);
 
             if is_cadence_present(data) {
                 index += INSTANTANEOUS_CADENCE_SIZE;
@@ -109,6 +132,19 @@ fn get_data_index(data: &Vec<u8>, data_type: IndoorBikeDataType) -> usize {
 
             if is_ave_cadence_present(data) {
                 index += AVERAGE_CADENCE_SIZE;
+            }
+
+            index
+        }
+        IndoorBikeDataType::Power => {
+            let mut index = get_data_index(data, IndoorBikeDataType::Distance);
+
+            if is_distance_present(data) {
+                index += TOTAL_DISTANCE_SIZE;
+            }
+
+            if is_resistance_present(data) {
+                index += RESISTANCE_LEVEL_SIZE;
             }
 
             index
@@ -144,6 +180,18 @@ fn is_distance_present(data: &Vec<u8>) -> bool {
     let flags = get_flags(data);
 
     flags & 0b10000 == 0b10000
+}
+
+fn is_resistance_present(data: &Vec<u8>) -> bool {
+    let flags = get_flags(data);
+
+    flags & 0b100000 == 0b100000
+}
+
+fn is_power_present(data: &Vec<u8>) -> bool {
+    let flags = get_flags(data);
+
+    flags & 0b1000000 == 0b1000000
 }
 
 // Flags field

@@ -245,12 +245,20 @@ function getDeviceHRM(device: Device) {
                 <span class="text-lg">kph</span>
               </div>
             {/if}
-            {#if device.bleDevice.data.cadence !== null}
-              <div class="text-white font-bold">
-                <span class="text-sm">{device.bleDevice.data.cadence}</span>
-                <span class="text-lg">rpm</span>
-              </div>
-            {/if}
+            <div class="flex flex-row space-x-4">
+              {#if device.bleDevice.data.cadence !== null}
+                <div class="text-white font-bold">
+                  <span class="text-sm">{device.bleDevice.data.cadence}</span>
+                  <span class="text-sm">rpm</span>
+                </div>
+              {/if}
+              {#if device.bleDevice.data.power !== null}
+                <div class="text-white font-bold">
+                  <span class="text-sm">{device.bleDevice.data.power}</span>
+                  <span class="text-sm">watt</span>
+                </div>
+              {/if}
+            </div>
           {/if}
           <div class="title font-bold flex space-x-2">
             <div>{device.title}</div>
