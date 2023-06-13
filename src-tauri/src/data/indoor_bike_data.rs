@@ -1,8 +1,8 @@
 #[derive(Debug, PartialEq, Clone, serde::Serialize)]
 pub struct IndoorBikeData {
-    pub cadence: u16,
-    pub speed: u16,
-    pub distance: u32,
+    pub cadence: Option<u16>,
+    pub speed: Option<u16>,
+    pub distance: Option<u32>,
 }
 
 enum IndoorBikeDataType {
@@ -37,10 +37,10 @@ pub fn parse_indoor_bike_data(data: &Vec<u8>) -> IndoorBikeData {
 // Instantaneous Speed
 // Data type: u16
 // Size (octets): 0 or 2
-fn get_speed(data: &Vec<u8>) -> u16 {
+fn get_speed(data: &Vec<u8>) -> Option<u16> {
     // Present if bit 0 of Flags field is set to 0
     if !is_speed_present(data) {
-        return 0;
+        return None;
     }
 
     let data_index = get_data_index(data, IndoorBikeDataType::Speed);
@@ -48,16 +48,16 @@ fn get_speed(data: &Vec<u8>) -> u16 {
     let raw_speed = combine_u8_to_u16(data[data_index], data[data_index + 1]);
 
     // Unit is 1/100 of a kilometer per hour
-    raw_speed / 100
+    Some(raw_speed / 100)
 }
 
 // Instantaneous Cadence
 // Data type: u16
 // Size (octets): 0 or 2
-fn get_cadence(data: &Vec<u8>) -> u16 {
+fn get_cadence(data: &Vec<u8>) -> Option<u16> {
     // Present if bit 2 of Flags field is set to 1
     if !is_cadence_present(data) {
-        return 0;
+        return None;
     }
 
     let data_index = get_data_index(data, IndoorBikeDataType::Cadence);
@@ -65,23 +65,23 @@ fn get_cadence(data: &Vec<u8>) -> u16 {
     let cadence = combine_u8_to_u16(data[data_index], data[data_index + 1]);
 
     // Unit is 1/2 of a revolution per minute
-    cadence / 2
+    Some(cadence / 2)
 }
 
 // Total Distance since the beginning of the training session
 // Data type: u24
 // Size (octets): 0 or 3
-fn get_distance(data: &Vec<u8>) -> u32 {
+fn get_distance(data: &Vec<u8>) -> Option<u32> {
     // Present if bit 4 of Flags field is set to 1
     if !is_distance_present(data) {
-        return 0;
+        return None;
     }
 
     let data_index = get_data_index(data, IndoorBikeDataType::Distance);
 
     let distance = combine_u8_to_u32(data[data_index], data[data_index + 1], data[data_index + 2]);
 
-    return distance;
+    return Some(distance);
 }
 
 fn get_data_index(data: &Vec<u8>, data_type: IndoorBikeDataType) -> usize {

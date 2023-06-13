@@ -239,14 +239,18 @@ function getDeviceHRM(device: Device) {
             </div>
           {/if}
           {#if device.isConnected && device.type === DeviceType.SmartTrainer && device.bleDevice.data}
-            <div class="text-white font-bold">
-              <span class="text-5xl">{device.bleDevice.data.speed}</span>
-              <span class="text-lg">kph</span>
-            </div>
-            <div class="text-white font-bold">
-              <span class="text-sm">{device.bleDevice.data.cadence}</span>
-              <span class="text-lg">rpm</span>
-            </div>
+            {#if device.bleDevice.data.speed !== null}
+              <div class="text-white font-bold">
+                <span class="text-5xl">{device.bleDevice.data.speed}</span>
+                <span class="text-lg">kph</span>
+              </div>
+            {/if}
+            {#if device.bleDevice.data.cadence !== null}
+              <div class="text-white font-bold">
+                <span class="text-sm">{device.bleDevice.data.cadence}</span>
+                <span class="text-lg">rpm</span>
+              </div>
+            {/if}
           {/if}
           <div class="title font-bold flex space-x-2">
             <div>{device.title}</div>
