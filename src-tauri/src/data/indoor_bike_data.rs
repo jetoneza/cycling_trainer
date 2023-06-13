@@ -2,17 +2,22 @@
 pub struct IndoorBikeData {
     pub cadence: u16,
     pub speed: u16,
+    pub distance: u32,
 }
 
 enum IndoorBikeDataType {
     Speed,
     Cadence,
+    Distance,
 }
 
 // Size in octets
 const FLAGS_SIZE: usize = 2;
-const AVERAGE_SPEED_SIZE: usize = 2;
 const INSTANTANEOUS_SPEED_SIZE: usize = 2;
+const AVERAGE_SPEED_SIZE: usize = 2;
+const INSTANTANEOUS_CADENCE_SIZE: usize = 2;
+const AVERAGE_CADENCE_SIZE: usize = 2;
+const TOTAL_DISTANCE_SIZE: usize = 3;
 
 // Resource:
 // https://www.bluetooth.com/specifications/specs/gatt-specification-supplement/
@@ -20,8 +25,13 @@ const INSTANTANEOUS_SPEED_SIZE: usize = 2;
 pub fn parse_indoor_bike_data(data: &Vec<u8>) -> IndoorBikeData {
     let speed = get_speed(data);
     let cadence = get_cadence(data);
+    let distance = get_distance(data);
 
-    IndoorBikeData { cadence, speed }
+    IndoorBikeData {
+        cadence,
+        speed,
+        distance,
+    }
 }
 
 // Instantaneous Speed
@@ -33,11 +43,9 @@ fn get_speed(data: &Vec<u8>) -> u16 {
         return 0;
     }
 
-    let Some(data_index) = get_data_index(data, IndoorBikeDataType::Speed) else {
-        return 0;
-    };
+    let data_index = get_data_index(data, IndoorBikeDataType::Speed);
 
-    let raw_speed = combine_u8_to_u16(data[data_index.0], data[data_index.1]);
+    let raw_speed = combine_u8_to_u16(data[data_index], data[data_index + 1]);
 
     // Unit is 1/100 of a kilometer per hour
     raw_speed / 100
@@ -52,19 +60,33 @@ fn get_cadence(data: &Vec<u8>) -> u16 {
         return 0;
     }
 
-    let Some(data_index) = get_data_index(data, IndoorBikeDataType::Cadence) else {
-        return 0;
-    };
+    let data_index = get_data_index(data, IndoorBikeDataType::Cadence);
 
-    let cadence = combine_u8_to_u16(data[data_index.0], data[data_index.1]);
+    let cadence = combine_u8_to_u16(data[data_index], data[data_index + 1]);
 
     // Unit is 1/2 of a revolution per minute
     cadence / 2
 }
 
-fn get_data_index(data: &Vec<u8>, data_type: IndoorBikeDataType) -> Option<(usize, usize)> {
+// Total Distance since the beginning of the training session
+// Data type: u24
+// Size (octets): 0 or 3
+fn get_distance(data: &Vec<u8>) -> u32 {
+    // Present if bit 4 of Flags field is set to 1
+    if !is_distance_present(data) {
+        return 0;
+    }
+
+    let data_index = get_data_index(data, IndoorBikeDataType::Distance);
+
+    let distance = combine_u8_to_u32(data[data_index], data[data_index + 1], data[data_index + 2]);
+
+    return distance;
+}
+
+fn get_data_index(data: &Vec<u8>, data_type: IndoorBikeDataType) -> usize {
     match data_type {
-        IndoorBikeDataType::Speed => Some((FLAGS_SIZE, FLAGS_SIZE + 1)),
+        IndoorBikeDataType::Speed => FLAGS_SIZE,
         IndoorBikeDataType::Cadence => {
             let mut index = FLAGS_SIZE;
 
@@ -76,9 +98,21 @@ fn get_data_index(data: &Vec<u8>, data_type: IndoorBikeDataType) -> Option<(usiz
                 index += AVERAGE_SPEED_SIZE;
             }
 
-            Some((index, index + 1))
+            index
         }
-        _ => None,
+        IndoorBikeDataType::Distance => {
+            let mut index = get_data_index(data, data_type);
+
+            if is_cadence_present(data) {
+                index += INSTANTANEOUS_CADENCE_SIZE;
+            }
+
+            if is_ave_cadence_present(data) {
+                index += AVERAGE_CADENCE_SIZE;
+            }
+
+            index
+        }
     }
 }
 
@@ -100,6 +134,18 @@ fn is_cadence_present(data: &Vec<u8>) -> bool {
     flags & 0b100 == 0b100
 }
 
+fn is_ave_cadence_present(data: &Vec<u8>) -> bool {
+    let flags = get_flags(data);
+
+    flags & 0b1000 == 0b1000
+}
+
+fn is_distance_present(data: &Vec<u8>) -> bool {
+    let flags = get_flags(data);
+
+    flags & 0b10000 == 0b10000
+}
+
 // Flags field
 // 0 - More data
 // 1 - Average speed present
@@ -110,4 +156,8 @@ fn get_flags(data: &Vec<u8>) -> u16 {
 
 fn combine_u8_to_u16(first: u8, second: u8) -> u16 {
     (first as u16) | (second as u16) << 8
+}
+
+fn combine_u8_to_u32(first: u8, second: u8, third: u8) -> u32 {
+    (first as u32) | (second as u32) << 8 | (third as u32) << 16
 }
