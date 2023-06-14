@@ -239,23 +239,23 @@ function getDeviceHRM(device: Device) {
             </div>
           {/if}
           {#if device.isConnected && device.type === DeviceType.SmartTrainer && device.bleDevice.data}
-            {#if device.bleDevice.data.speed !== null}
+            {#if device.bleDevice.data.power !== null}
               <div class="text-white font-bold">
-                <span class="text-5xl">{device.bleDevice.data.speed}</span>
-                <span class="text-lg">kph</span>
+                <span class="text-5xl">{device.bleDevice.data.power}</span>
+                <span class="text-lg">watt</span>
               </div>
             {/if}
             <div class="flex flex-row space-x-4">
+              {#if device.bleDevice.data.speed !== null}
+                <div class="text-white font-bold">
+                  <span class="text-sm">{device.bleDevice.data.speed}</span>
+                  <span class="text-sm">kph</span>
+                </div>
+              {/if}
               {#if device.bleDevice.data.cadence !== null}
                 <div class="text-white font-bold">
                   <span class="text-sm">{device.bleDevice.data.cadence}</span>
                   <span class="text-sm">rpm</span>
-                </div>
-              {/if}
-              {#if device.bleDevice.data.power !== null}
-                <div class="text-white font-bold">
-                  <span class="text-sm">{device.bleDevice.data.power}</span>
-                  <span class="text-sm">watt</span>
                 </div>
               {/if}
             </div>
