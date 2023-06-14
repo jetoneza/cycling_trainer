@@ -216,6 +216,11 @@ impl Bluetooth {
                 )
                 .await?;
 
+                // TODO: Subcribe to Fitness Machine Control indication?
+                // TODO: Request control to Fitness Machine Control
+
+                // TODO: Setup user control for Wahoo (custom characteristic), e.g. setting of weight
+
                 *self.cycling_device.write().await = Some(peripheral);
 
                 tokio::spawn(handle_cycling_device_notifications());
