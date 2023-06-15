@@ -2,12 +2,6 @@ export interface BasicObject {
   [key: string]: any
 }
 
-export enum DeviceType {
-  HeartRate = 'heart_rate',
-  SmartTrainer = 'smart_trainer',
-  Generic = 'generic',
-}
-
 export interface Device {
   type: DeviceType
   title: string
@@ -18,4 +12,15 @@ export interface Device {
     data?: BasicObject
   }
   isConnected: boolean
+}
+
+export enum DeviceType {
+  HeartRate = 'heart_rate',
+  SmartTrainer = 'smart_trainer',
+  Generic = 'generic',
+}
+
+export enum Page {
+  Main = 'main',
+  Devices = 'devices',
 }
