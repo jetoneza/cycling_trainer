@@ -1,65 +1,26 @@
 <script lang="ts">
+// Libraries
 import HeartIcon from 'svelte-icons/fa/FaHeartbeat.svelte'
 import BikeIcon from 'svelte-icons/md/MdDirectionsBike.svelte'
 import { invoke } from '@tauri-apps/api/tauri'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
+// Stores
+import { devices, updateDevices } from '../../stores/devices'
+
 // Utils
 import clickOutside from '../../utils/clickOutside'
 
+// Types
+import { DeviceType, type BasicObject, type Device } from '../../types'
+
+// Styles
 import './styles.css'
-
-// Types and enums
-interface BasicObject {
-  [key: string]: any
-}
-
-enum DeviceType {
-  HeartRate = 'heart_rate',
-  SmartTrainer = 'smart_trainer',
-  Generic = 'generic',
-}
-
-interface Device {
-  type: DeviceType
-  title: string
-  name?: string
-  bleDevice?: {
-    id: string
-    name: string
-    data?: BasicObject
-  }
-  isConnected: boolean
-}
 
 // States
 let isScanning = false
 let isConnecting = false
 let scannedDevices = []
-let devices: Array<Device> = [
-  {
-    type: DeviceType.HeartRate,
-    title: 'Heart Rate',
-    isConnected: false,
-  },
-  {
-    type: DeviceType.SmartTrainer,
-    title: 'Smart trainer',
-    isConnected: false,
-  },
-]
-
-listen('hrm-notification', (event: TauriEvent<any>) => {
-  const { payload } = event
-
-  notifyDevice(payload, DeviceType.HeartRate)
-})
-
-listen('indoor-bike-notification', (event: TauriEvent<any>) => {
-  const { payload } = event
-
-  notifyDevice(payload, DeviceType.SmartTrainer)
-})
 
 listen('device-discovered', (event: TauriEvent<any>) => {
   const { payload } = event
@@ -80,24 +41,6 @@ listen('device-discovered', (event: TauriEvent<any>) => {
     },
   ]
 })
-
-function notifyDevice(data: BasicObject, type: DeviceType) {
-  devices = devices.map((device) => {
-    if (device.type == type) {
-      const updatedDevice = {
-        ...device,
-      }
-
-      updatedDevice.bleDevice.data = data
-
-      return updatedDevice
-    }
-
-    return device
-  })
-
-  console.log(devices)
-}
 
 async function handleAction(device: Device) {
   if (device.isConnected) {
@@ -137,7 +80,7 @@ async function handleConnect(device: { id: string }) {
   connectedDevices.forEach((connectedDevice: [string, string, string]) => {
     const [id, name, type] = connectedDevice
 
-    devices = devices.map((device) => {
+    updateDevices((device) => {
       if (device.type == type) {
         return {
           ...device,
@@ -163,7 +106,7 @@ async function disconnectDevice(device: Device) {
 }
 
 async function changeConnectionState(type: DeviceType, isConnected: boolean) {
-  devices = devices.map((device) => {
+  updateDevices((device) => {
     if (device.type == type) {
       return {
         ...device,
@@ -204,7 +147,7 @@ function getDeviceHRM(device: Device) {
   <div class="page-title text-xl font-bold text-center">Paired Devices</div>
 
   <div class="devices-list flex space-x-6 justify-center m-10">
-    {#each devices as device}
+    {#each $devices as device}
       <button
         class="device relative box-border border p-4 rounded-2xl flex flex-col justify-between {device.isConnected
           ? 'is-connected'
