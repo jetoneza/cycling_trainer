@@ -1,5 +1,7 @@
 <script lang="ts">
 // Libraries
+import CloseIcon from 'svelte-icons/io/IoIosClose.svelte'
+import { createEventDispatcher } from 'svelte'
 import { invoke } from '@tauri-apps/api/tauri'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
@@ -11,10 +13,17 @@ import DeviceCard from './components/DeviceCard.svelte'
 import { devices, updateDevices } from '../../stores/devices'
 
 // Types
-import type { Device, DeviceType } from 'src/types'
+import {
+  DispatchMessage,
+  type Device,
+  type DeviceType,
+  Page,
+} from '../../types'
 
 // Styles
 import './styles.css'
+
+const dispatch = createEventDispatcher()
 
 // States
 let isScanning = false
@@ -42,6 +51,10 @@ listen('device-discovered', (event: TauriEvent<any>) => {
 })
 
 async function handleAction(device: Device) {
+  if (isScanning) {
+    return
+  }
+
   if (device.isConnected) {
     disconnectDevice(device)
 
@@ -129,10 +142,20 @@ async function cleanStates() {
   isConnecting = false
   scannedDevices = []
 }
+
+const handleBackToMain = () => {
+  if (isScanning) {
+    return
+  }
+
+  dispatch(DispatchMessage.PageChange, {
+    page: Page.Main,
+  })
+}
 </script>
 
-<div class="component-paired-devices p-10">
-  <div class="page-title text-xl font-bold text-center">Paired Devices</div>
+<div class="devices-page p-10">
+  <div class="page-title text-2xl font-bold text-center">Devices</div>
 
   <div class="devices-list flex space-x-6 justify-center m-10">
     {#each $devices as device}
@@ -147,4 +170,8 @@ async function cleanStates() {
       handleCloseScan="{handleCloseScan}"
     />
   {/if}
+
+  <button class="btn-back" on:click="{handleBackToMain}">
+    <CloseIcon />
+  </button>
 </div>

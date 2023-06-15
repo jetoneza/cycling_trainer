@@ -54,10 +54,15 @@
     }
   }
 
-  .close-btn {
+  .btn-close {
     @apply absolute bottom-6;
 
     left: 50%;
     transform: translateX(-50%);
   }
+}
+
+.btn-back {
+  @apply h-12 w-12 m-2;
+  @apply absolute right-0 top-0;
 }

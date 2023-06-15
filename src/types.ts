@@ -24,3 +24,7 @@ export enum Page {
   Main = 'main',
   Devices = 'devices',
 }
+
+export enum DispatchMessage {
+  PageChange = 'pagechange',
+}

@@ -27,7 +27,7 @@ export let handleCloseScan: () => {}
       </button>
     {/each}
   </div>
-  <button on:click="{() => handleCloseScan()}" class="btn close-btn"
+  <button on:click="{() => handleCloseScan()}" class="btn btn-close"
     >Close</button
   >
 </div>
