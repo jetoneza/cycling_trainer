@@ -5,9 +5,8 @@ use std::fmt;
 use tokio::sync::{Mutex, RwLock};
 
 use super::constants::{
-    CYCLING_POWER_MEASUREMENT_UUID, CYCLING_POWER_SERVICE_UUID, FITNESS_MACHINE_SERVICE_UUID,
-    HEART_RATE_MEASUREMENT_UUID, HEART_RATE_SERVICE_UUID, INDOOR_BIKE_DATA_UUID,
-    SPEED_CADENCE_SERVICE_UUID,
+    CYCLING_POWER_SERVICE_UUID, FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_MEASUREMENT_UUID,
+    HEART_RATE_SERVICE_UUID, INDOOR_BIKE_DATA_UUID, SPEED_CADENCE_SERVICE_UUID,
 };
 use super::event_handlers::{
     handle_characteristic_subscription, handle_cycling_device_notifications,
@@ -104,7 +103,6 @@ impl Bluetooth {
                 services: vec![HEART_RATE_SERVICE_UUID],
             },
             DeviceType::SmartTrainer => ScanFilter {
-                // TODO: Add other services related to smart trainers e.g. Cycling Power
                 services: vec![
                     FITNESS_MACHINE_SERVICE_UUID,
                     SPEED_CADENCE_SERVICE_UUID,
@@ -203,18 +201,14 @@ impl Bluetooth {
             }
             DeviceType::SmartTrainer => {
                 handle_characteristic_subscription(
-                    CYCLING_POWER_MEASUREMENT_UUID,
-                    &peripheral,
-                    CharacteristicAction::Subscribe,
-                )
-                .await?;
-
-                handle_characteristic_subscription(
                     INDOOR_BIKE_DATA_UUID,
                     &peripheral,
                     CharacteristicAction::Subscribe,
                 )
                 .await?;
+
+                // TODO: Add support for separate device. e.g. cycling power + speed and cadence
+                // TODO: If indoor bike data is unavailable, use cycling power, speed and cadence
 
                 // TODO: Subcribe to Fitness Machine Control indication?
                 // TODO: Request control to Fitness Machine Control
@@ -259,13 +253,6 @@ impl Bluetooth {
                 let Some(cycling_device) = cd_guard.as_ref() else {
                   return Err("Can't find cycling device".into());
                 };
-
-                handle_characteristic_subscription(
-                    CYCLING_POWER_MEASUREMENT_UUID,
-                    &cycling_device,
-                    CharacteristicAction::Unsubscribe,
-                )
-                .await?;
 
                 handle_characteristic_subscription(
                     INDOOR_BIKE_DATA_UUID,
