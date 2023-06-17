@@ -28,3 +28,15 @@ export enum Page {
 export enum DispatchMessage {
   PageChange = 'pagechange',
 }
+
+export enum DataType {
+  Distance = 'distance',
+  Speed = 'speed',
+  HeartRate = 'heart-rate',
+  Power = 'power',
+  TargetPower = 'target-power',
+  Cadence = 'cadence',
+  TargetCadence = 'target-cadence',
+  ElapsedTime = 'elapsed-time',
+  IntervalTime = 'invertal-time',
+}
