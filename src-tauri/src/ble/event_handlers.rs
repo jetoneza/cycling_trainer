@@ -1,3 +1,6 @@
+use crate::error::error_generic;
+use crate::prelude::*;
+
 use btleplug::api::{Central, CentralEvent, Peripheral as _};
 use btleplug::platform::Peripheral;
 use futures::{Stream, StreamExt};
@@ -188,7 +191,7 @@ pub async fn handle_characteristic_subscription(
     uuid: Uuid,
     peripheral: &Peripheral,
     action: CharacteristicAction,
-) -> Result<(), String> {
+) -> Result<()> {
     for characteristic in peripheral.characteristics() {
         if characteristic.uuid != uuid {
             continue;
@@ -200,7 +203,8 @@ pub async fn handle_characteristic_subscription(
         };
 
         let Ok(_) = result else {
-          return Err(format!("Unable to {:?} to characteristic", action));
+          let message = format!("Unable to {:?} to characteristic", action);
+          return Err(error_generic(message.as_str()));
         };
     }
 

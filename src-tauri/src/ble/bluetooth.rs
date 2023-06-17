@@ -1,8 +1,11 @@
 use btleplug::api::{Central, Peripheral as _, ScanFilter};
 use btleplug::platform::{Adapter, Manager, Peripheral};
-use log::{error, info, warn};
+use log::{info, warn};
 use std::fmt;
 use tokio::sync::{Mutex, RwLock};
+
+use crate::error::error_generic;
+use crate::prelude::*;
 
 use super::constants::{
     CYCLING_POWER_SERVICE_UUID, FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_MEASUREMENT_UUID,
@@ -87,7 +90,7 @@ impl Bluetooth {
         listen_to_events().await;
     }
 
-    pub async fn start_scan(&self, scan_filter: DeviceType) -> Result<(), String> {
+    pub async fn start_scan(&self, scan_filter: DeviceType) -> Result<()> {
         if *self.is_scanning.read().await {
             info!("Bluetooth is already scanning.");
             return Ok(());
@@ -95,7 +98,7 @@ impl Bluetooth {
 
         let central_guard = self.central.read().await;
         let Some(central) = central_guard.as_ref() else {
-            return Err("No Adapter found".into());
+            return Err(error_generic("No adapater found"));
         };
 
         let filter = match scan_filter {
@@ -113,8 +116,8 @@ impl Bluetooth {
         };
 
         if let Err(e) = central.start_scan(filter).await {
-            error!("Error: {}", e);
-            return Err("Bluetooth is unable to scan".into());
+            let message = format!("Bluetooth is unable to start scan: {}", e);
+            return Err(error_generic(message.as_str()));
         }
 
         *self.is_scanning.write().await = true;
@@ -124,15 +127,15 @@ impl Bluetooth {
         Ok(())
     }
 
-    pub async fn stop_scan(&self) -> Result<(), String> {
+    pub async fn stop_scan(&self) -> Result<()> {
         let central_guard = self.central.read().await;
         let Some(central) = central_guard.as_ref() else {
-            return Err("No Adapter found".into());
+            return Err(error_generic("No adapater found"));
         };
 
         if let Err(e) = central.stop_scan().await {
-            error!("Error: {}", e);
-            return Err("Bluetooth is unable to stop scan".into());
+            let message = format!("Bluetooth is unable to stop scan: {}", e);
+            return Err(error_generic(message.as_str()));
         }
 
         *self.is_scanning.write().await = false;
@@ -140,26 +143,26 @@ impl Bluetooth {
         Ok(())
     }
 
-    pub async fn handle_connection(&self, id: &str, action: &Connection) -> Result<(), String> {
+    pub async fn handle_connection(&self, id: &str, action: &Connection) -> Result<()> {
         let central_guard = self.central.read().await;
         let Some(central) = central_guard.as_ref() else {
-            return Err("Adapter not found".into());
+            return Err(error_generic("No adapater found"));
         };
 
         let Ok(peripherals) = central.peripherals().await else {
-          return Err("No peripherals found".into());
+            return Err(error_generic("No peripherals found"));
         };
 
         let Some(peripheral) = peripherals.iter().find(|p| p.id().to_string() == id) else {
-          return Err("Device not found".into());
+            return Err(error_generic("No device found"));
         };
 
         let Ok(is_connected) = peripheral.is_connected().await else {
-            return Err("Can't determine connection status".into());
+            return Err(error_generic("Unable to determine connection status"));
         };
 
         let Ok(Some(properties)) = peripheral.properties().await else {
-            return Err("Can't get peripheral properties upon connection.".into());
+            return Err(error_generic("Unable to get peripheral properties"));
         };
 
         let device_type = get_device_type(properties.services);
@@ -173,17 +176,13 @@ impl Bluetooth {
         }
     }
 
-    async fn add_device(
-        &self,
-        peripheral: Peripheral,
-        device_type: DeviceType,
-    ) -> Result<(), String> {
+    async fn add_device(&self, peripheral: Peripheral, device_type: DeviceType) -> Result<()> {
         if let None = peripheral.connect().await.ok() {
-            return Err("Cannot connect device.".into());
+            return Err(error_generic("Unable to connect to device"));
         }
 
         let Ok(_) = peripheral.discover_services().await else {
-            return Err("Unable to discover heart rate services".into());
+            return Err(error_generic("Unable to discover heart rate services"));
         };
 
         match device_type {
@@ -225,16 +224,12 @@ impl Bluetooth {
         Ok(())
     }
 
-    async fn remove_device(
-        &self,
-        peripheral: Peripheral,
-        device_type: DeviceType,
-    ) -> Result<(), String> {
+    async fn remove_device(&self, peripheral: Peripheral, device_type: DeviceType) -> Result<()> {
         match device_type {
             DeviceType::HeartRate => {
                 let hrm_guard = self.heart_rate_device.read().await;
                 let Some(hrm) = hrm_guard.as_ref() else {
-                    return Err("Can't find heart rate measurment device.".into());
+                    return Err(error_generic("Unable to read heart rate measurement device"))
                 };
 
                 handle_characteristic_subscription(
@@ -251,7 +246,7 @@ impl Bluetooth {
             DeviceType::SmartTrainer => {
                 let cd_guard = self.heart_rate_device.read().await;
                 let Some(cycling_device) = cd_guard.as_ref() else {
-                  return Err("Can't find cycling device".into());
+                    return Err(error_generic("Unable to read cycling device"))
                 };
 
                 handle_characteristic_subscription(
@@ -269,7 +264,7 @@ impl Bluetooth {
         }
 
         if let None = peripheral.disconnect().await.ok() {
-            return Err("Cannot connect device.".into());
+            return Err(error_generic("Cannot connect device"));
         }
 
         Ok(())

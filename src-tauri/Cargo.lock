@@ -531,6 +531,7 @@ checksum = "b365fabc795046672053e29c954733ec3b05e4be654ab130fe8f1f94d7051f35"
 name = "cycling_trainer"
 version = "0.0.0"
 dependencies = [
+ "anyhow",
  "btleplug",
  "futures",
  "lazy_static",
@@ -539,6 +540,7 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
+ "thiserror",
  "tokio",
  "uuid",
 ]

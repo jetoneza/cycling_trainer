@@ -6,8 +6,13 @@ extern crate lazy_static;
 
 mod ble;
 mod data;
+mod error;
+mod prelude;
+
+use crate::prelude::*;
 
 use ble::bluetooth::{Bluetooth, Connection, DeviceType, BLUETOOTH};
+use error::error_generic;
 use log::{error, warn};
 use tauri::Manager;
 use tokio::sync::Mutex;
@@ -16,11 +21,11 @@ lazy_static! {
     pub static ref TAURI_APP_HANDLE: Mutex<Option<tauri::AppHandle>> = Default::default();
 }
 
-#[tauri::command]
-async fn get_connected_devices() -> Result<Vec<(String, String, String)>, String> {
+#[tauri::command(async)]
+async fn get_connected_devices() -> Result<Vec<(String, String, String)>> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
-        return Err("Bluetooth not found when getting connected devices".into());
+        return Err(error_generic("Bluetooth not found when getting connected devices"));
     };
 
     let devices = bt.get_connected_devices().await;
@@ -28,8 +33,8 @@ async fn get_connected_devices() -> Result<Vec<(String, String, String)>, String
     Ok(devices)
 }
 
-#[tauri::command]
-async fn stop_scan() -> Result<(), String> {
+#[tauri::command(async)]
+async fn stop_scan() -> Result<()> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
         warn!("Bluetooth not found.");
@@ -41,8 +46,8 @@ async fn stop_scan() -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
-async fn start_scan(scan_filter: &str) -> Result<(), String> {
+#[tauri::command(async)]
+async fn start_scan(scan_filter: &str) -> Result<()> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
         warn!("Bluetooth not found.");
@@ -60,8 +65,8 @@ async fn start_scan(scan_filter: &str) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
-async fn connect_device(device_id: &str) -> Result<(), String> {
+#[tauri::command(async)]
+async fn connect_device(device_id: &str) -> Result<()> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
         warn!("Bluetooth not found.");
@@ -74,8 +79,8 @@ async fn connect_device(device_id: &str) -> Result<(), String> {
     Ok(())
 }
 
-#[tauri::command]
-async fn disconnect_device(device_id: &str) -> Result<(), String> {
+#[tauri::command(async)]
+async fn disconnect_device(device_id: &str) -> Result<()> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
         warn!("Bluetooth not found.");
