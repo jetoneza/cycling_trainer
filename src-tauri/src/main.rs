@@ -37,7 +37,7 @@ async fn get_connected_devices() -> Result<Vec<(String, String, String)>> {
 async fn stop_scan() -> Result<()> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
-        warn!("Bluetooth not found.");
+        warn!("main::stop_scan: Bluetooth not found.");
         return Ok(());
     };
 
@@ -50,7 +50,7 @@ async fn stop_scan() -> Result<()> {
 async fn start_scan(scan_filter: &str) -> Result<()> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
-        warn!("Bluetooth not found.");
+        warn!("main::stop_scan: Bluetooth not found.");
         return Ok(());
     };
 
@@ -69,7 +69,7 @@ async fn start_scan(scan_filter: &str) -> Result<()> {
 async fn connect_device(device_id: &str) -> Result<()> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
-        warn!("Bluetooth not found.");
+        warn!("main::stop_scan: Bluetooth not found.");
         return Ok(());
     };
 
@@ -83,7 +83,7 @@ async fn connect_device(device_id: &str) -> Result<()> {
 async fn disconnect_device(device_id: &str) -> Result<()> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
-        warn!("Bluetooth not found.");
+        warn!("main::stop_scan: Bluetooth not found.");
         return Ok(());
     };
 
@@ -108,7 +108,7 @@ fn main() {
             ))) {
                 Ok(_) => Ok(()),
                 Err(e) => {
-                    error!("Error on initialization!: {}", e);
+                    error!("main: Error on initialization!: {}", e);
                     std::process::exit(1);
                 }
             }

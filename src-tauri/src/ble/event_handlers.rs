@@ -16,6 +16,8 @@ use crate::TAURI_APP_HANDLE;
 use super::bluetooth::{BTDevice, BluetoothStatus, BLUETOOTH};
 use super::utils::get_uuid_characteristic;
 
+const LOGGER_NAME: &str = "ble::event_handlers";
+
 #[derive(Debug)]
 pub enum CharacteristicAction {
     Subscribe,
@@ -59,7 +61,10 @@ pub async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> +
                     continue;
                 };
 
-                info!("Device found: {} {} {}", id, local_name, is_connected);
+                info!(
+                    "{}::handle_events: Device discovered: {} - {}",
+                    LOGGER_NAME, id, local_name
+                );
 
                 if is_connected {
                     continue;
@@ -91,20 +96,23 @@ pub async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> +
 pub async fn listen_to_events() {
     let bluetooth_guard = BLUETOOTH.read().await;
     let Some(bluetooth) = bluetooth_guard.as_ref() else {
-        error!("Can't find bluetooth.");
+        error!("{}::listen_to_events: Bluetooth not found", LOGGER_NAME);
         return;
     };
 
     let central_guard = bluetooth.central.read().await;
     let Some(central) = central_guard.as_ref() else {
-        error!("Can't find adapter.");
+        error!("{}::listen_to_events: Adapter not found", LOGGER_NAME);
         return;
     };
 
     let events = match central.events().await {
         Ok(events) => events,
         Err(e) => {
-            error!("Could not detect adapter events: {}", e);
+            error!(
+                "{}::listen_to_events: Could not detect adapter events: {}",
+                LOGGER_NAME, e
+            );
 
             *bluetooth.manager.lock().await = None;
             *bluetooth.central.write().await = None;
@@ -122,18 +130,18 @@ pub async fn listen_to_events() {
 pub async fn handle_heart_rate_notifications() {
     let bluetooth_guard = BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
-        error!("Can't find bluetooth.");
+        error!("{}::handle_heart_rate_notifications: Bluetooth not found", LOGGER_NAME);
         return;
     };
 
     let hrm_guard = bt.heart_rate_device.read().await;
     let Some(hrm) = hrm_guard.as_ref() else {
-        error!("Can't find heart rate measurment device.");
+        error!("{}::handle_heart_rate_notifications: Heart rate measurement device not found", LOGGER_NAME);
         return;
     };
 
     let Ok(mut notification_stream) = hrm.notifications().await else {
-        error!("No notifications for heart rate measurement.");
+        error!("{}::handle_heart_rate_notifications: Notifications for heart rate measurement not found", LOGGER_NAME);
         return;
     };
 
@@ -151,18 +159,18 @@ pub async fn handle_heart_rate_notifications() {
 pub async fn handle_cycling_device_notifications() {
     let bluetooth_guard = BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
-        error!("Can't find bluetooth.");
+        error!("{}::handle_cycling_device_notifications: Bluetooth not found", LOGGER_NAME);
         return;
     };
 
     let cd_guard = bt.cycling_device.read().await;
     let Some(cycling_device) = cd_guard.as_ref() else {
-        error!("Can't find heart rate measurment device.");
+        error!("{}::handle_cycling_device_notifications: Cycling device not found", LOGGER_NAME);
         return;
     };
 
     let Ok(mut notification_stream) = cycling_device.notifications().await else {
-        error!("No notifications for heart rate measurement.");
+        error!("{}::handle_cycling_device_notifications: Notification for cycling device not found", LOGGER_NAME);
         return;
     };
 
@@ -171,7 +179,7 @@ pub async fn handle_cycling_device_notifications() {
     while let Some(data) = notification_stream.next().await {
         let app_handle_guard = TAURI_APP_HANDLE.lock().await;
         let Some(app_handle) = app_handle_guard.as_ref() else {
-            error!("Unable to get tauri app handle.");
+            error!("{}::handle_cycling_device_notifications: Tauri app handle not found", LOGGER_NAME);
             return;
         };
 

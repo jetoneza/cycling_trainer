@@ -21,6 +21,8 @@ lazy_static! {
     pub static ref BLUETOOTH: RwLock<Option<Bluetooth>> = Default::default();
 }
 
+const LOGGER_NAME: &str = "ble::bluetooth";
+
 pub enum BluetoothStatus {
     Error,
     Ready,
@@ -92,7 +94,7 @@ impl Bluetooth {
 
     pub async fn start_scan(&self, scan_filter: DeviceType) -> Result<()> {
         if *self.is_scanning.read().await {
-            info!("Bluetooth is already scanning.");
+            info!("{}::start_scan: Bluetooth is already scanning", LOGGER_NAME);
             return Ok(());
         }
 
@@ -122,7 +124,7 @@ impl Bluetooth {
 
         *self.is_scanning.write().await = true;
 
-        info!("Scanning for devices...");
+        info!("{}::start_scan:: Scanning for devices...", LOGGER_NAME);
 
         Ok(())
     }
@@ -275,12 +277,12 @@ impl Bluetooth {
 
         let central_guard = self.central.read().await;
         let Some(central) = central_guard.as_ref() else {
-            warn!("Adapter not found when getting connected devices.");
+            warn!("{}::get_connected_devices: Adapter not found when getting connected devices", LOGGER_NAME);
             return devices;
         };
 
         let Ok(peripherals) = central.peripherals().await else {
-            warn!("Peripherals not found when getting connected devices.");
+            warn!("{}::get_connected_devices: Peripherals not found when getting connected devices", LOGGER_NAME);
             return devices;
         };
 

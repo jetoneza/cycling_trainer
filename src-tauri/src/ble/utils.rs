@@ -10,14 +10,16 @@ use super::constants::{
 };
 use super::event_handlers::Characteristic;
 
+const LOGGER_NAME: &str = "ble::utils";
+
 pub async fn get_central(manager: &Option<Manager>) -> Option<Adapter> {
     let Some(manager) = manager.as_ref() else {
-        warn!("No manager found.");
+        warn!("{}::get_central: No manager found", LOGGER_NAME);
         return None;
     };
 
     let Ok(adapters) = manager.adapters().await else {
-        warn!("No bluetooth adapters found");
+        warn!("{}::get_central: No adapters found", LOGGER_NAME);
         return None;
     };
 
@@ -28,7 +30,10 @@ pub async fn get_manager() -> Option<Manager> {
     match Manager::new().await {
         Ok(manager) => Some(manager),
         Err(e) => {
-            error!("Could not initialize bluetooth manager: {}", e);
+            error!(
+                "{}::get_manager: Could not initialize bluetooth manager: {}",
+                LOGGER_NAME, e
+            );
             None
         }
     }
