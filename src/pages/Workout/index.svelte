@@ -51,21 +51,21 @@ const data = {
   </div>
 
   <div class="main-data flex space-x-4 bg-secondary-200 rounded-lg">
-    <div class="column flex flex-col justify-between text-center py-8 px-6">
-      <div class="text-xl font-bold text-white">Target</div>
+    <div class="column flex flex-col justify-between text-center py-4 px-6">
+      <div class="text-2xl font-bold text-white">Target</div>
 
       <div class="item">
-        <div class="value font-bold text-3xl text-primary-300">
-          {data[DataType.TargetPower].value}<span class="text-xl">w</span>
+        <div class="value font-bold text-4xl text-primary-300">
+          {data[DataType.TargetPower].value}<span class="text-2xl">w</span>
         </div>
       </div>
 
       {#if !!data[DataType.TargetCadence]}
-        <div class="text-xl font-bold text-white">at</div>
+        <div class="text-2xl font-bold text-white">at</div>
 
         <div class="item">
-          <div class="value font-bold text-3xl text-primary-300">
-            {data[DataType.TargetCadence].value}<span class="text-xl">rpm</span>
+          <div class="value font-bold text-4xl text-primary-300">
+            {data[DataType.TargetCadence].value}<span class="text-2xl">rpm</span>
           </div>
         </div>
       {/if}
@@ -104,16 +104,16 @@ const data = {
       </div>
     </div>
 
-    <div class="column py-8 px-6 flex flex-col justify-between text-center">
+    <div class="column py-4 px-6 flex flex-col justify-between text-center">
       <div class="item text-white">
-        <div class="text-lg font-bold">Elapsed</div>
-        <div class="value font-bold text-3xl">
+        <div class="text-xl font-bold">Elapsed</div>
+        <div class="value font-bold text-4xl">
           {data[DataType.ElapsedTime].value}
         </div>
       </div>
       <div class="item text-white">
-        <div class="text-lg font-bold">Interval</div>
-        <div class="value font-bold text-3xl">
+        <div class="text-xl font-bold">Interval</div>
+        <div class="value font-bold text-4xl">
           {data[DataType.IntervalTime].value}
         </div>
       </div>
