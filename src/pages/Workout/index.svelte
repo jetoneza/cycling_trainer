@@ -1,4 +1,8 @@
 <script lang="ts">
+import HeartIcon from 'svelte-icons/fa/FaHeartbeat.svelte'
+import LightningIcon from 'svelte-icons/fa/FaBolt.svelte'
+import CadenceIcon from 'svelte-icons/go/GoSync.svelte'
+import SpeedIcon from 'svelte-icons/io/IoMdSpeedometer.svelte'
 import { DataType } from '../../types'
 
 const data = {
@@ -23,7 +27,7 @@ const data = {
     unit: 'watt',
   },
   [DataType.Cadence]: {
-    value: 100,
+    value: 90,
     unit: 'rpm',
   },
   [DataType.TargetCadence]: {
@@ -39,54 +43,103 @@ const data = {
     unit: '',
   },
 }
-
-const distanceAndSpeed = [DataType.Distance, DataType.Speed]
-const mainData = [
-  DataType.HeartRate,
-  DataType.Power,
-  DataType.Cadence,
-  DataType.IntervalTime,
-  DataType.TargetPower,
-  DataType.TargetCadence,
-]
 </script>
 
 <div class="workout-page flex p-4 justify-between">
-  <div class="distance-and-speed flex-col space-y-4 basis-1/6 bg-blue-100">
-    {#each distanceAndSpeed as type}
-      {#if data[type]}
-        <div class="item text-center">
-          <div class="value font-bold text-2xl">
-            {data[type].value}
-            {data[type].unit}
-          </div>
-          <div class="text-sm">{type}</div>
-        </div>
-      {/if}
-    {/each}
+  <div class="basis-1/6">
+    <!-- TODO: Add other data here. -->
   </div>
 
-  <div class="main-data grid grid-cols-3 bg-pink-100 basis-4/6">
-    {#each mainData as type}
-      {#if data[type]}
-        <div class="item text-center">
-          <div class="value font-bold text-2xl">
-            {data[type].value}
-            {data[type].unit}
-          </div>
-          <div class="text-sm">{type}</div>
-        </div>
-      {/if}
-    {/each}
-  </div>
+  <div class="main-data flex space-x-4 bg-secondary-200 rounded-lg">
+    <div class="column flex flex-col justify-between text-center py-8 px-6">
+      <div class="text-xl font-bold text-white">Target</div>
 
-  {#if data[DataType.ElapsedTime]}
-    <div class="item text-center bg-green-100 basis-1/6">
-      <div class="value font-bold text-2xl">
-        {data[DataType.ElapsedTime].value}
-        {data[DataType.ElapsedTime].unit}
+      <div class="item">
+        <div class="value font-bold text-3xl text-primary-300">
+          {data[DataType.TargetPower].value}<span class="text-xl">w</span>
+        </div>
       </div>
-      <div class="text-sm">{DataType.ElapsedTime}</div>
+
+      {#if !!data[DataType.TargetCadence]}
+        <div class="text-xl font-bold text-white">at</div>
+
+        <div class="item">
+          <div class="value font-bold text-3xl text-primary-300">
+            {data[DataType.TargetCadence].value}<span class="text-xl">rpm</span>
+          </div>
+        </div>
+      {/if}
     </div>
-  {/if}
+
+    <div class="column pt-2 pb-4 px-6">
+      <div class="row item text-center">
+        <div
+          class="value font-bold text-9xl flex w-full justify-center text-white"
+        >
+          {data[DataType.Power].value}
+          <div class="icon w-10 mt-11 ml-2">
+            <LightningIcon />
+          </div>
+        </div>
+      </div>
+
+      <div class="row flex m-0 space-x-6 justify-center">
+        <div class="item">
+          <div class="value font-bold text-4xl flex text-white">
+            {data[DataType.HeartRate].value}
+            <div class="icon h-5 w-5 mt-3 ml-2">
+              <HeartIcon />
+            </div>
+          </div>
+        </div>
+
+        <div class="item">
+          <div class="value font-bold text-4xl flex text-white">
+            {data[DataType.Cadence].value}
+            <div class="icon h-5 w-5 mt-3 ml-1">
+              <CadenceIcon />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="column py-8 px-6 flex flex-col justify-between text-center">
+      <div class="item text-white">
+        <div class="text-lg font-bold">Elapsed</div>
+        <div class="value font-bold text-3xl">
+          {data[DataType.ElapsedTime].value}
+        </div>
+      </div>
+      <div class="item text-white">
+        <div class="text-lg font-bold">Interval</div>
+        <div class="value font-bold text-3xl">
+          {data[DataType.IntervalTime].value}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="basis-1/6">
+    <!-- TODO: Add other data here. -->
+  </div>
+
+  <div class="absolute speed bottom-12 right-12 text-right">
+    <div class="bg-secondary-200 rounded-lg px-4 py-2">
+      <div class="font-bold text-white flex space-x-1 justify-end">
+        <div class="text-6xl">
+          {data[DataType.Speed].value}
+        </div>
+        <div class="flex flex-col">
+          <div class="icon w-10 h-10">
+            <SpeedIcon />
+          </div>
+          <span class="text-md m-0 w-full text-center">kph</span>
+        </div>
+      </div>
+      <div class="text-lg font-bold text-primary-300">
+        {data[DataType.Distance].value}<span class="text-lg ml-1">km dist</span>
+      </div>
+    </div>
+  </div>
 </div>
