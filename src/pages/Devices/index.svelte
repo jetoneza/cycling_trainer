@@ -1,6 +1,5 @@
 <script lang="ts">
 // Libraries
-import CloseIcon from 'svelte-icons/io/IoIosClose.svelte'
 import { createEventDispatcher } from 'svelte'
 import { invoke } from '@tauri-apps/api/tauri'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
@@ -13,12 +12,7 @@ import DeviceCard from './components/DeviceCard.svelte'
 import { devices, updateDevices } from '../../stores/devices'
 
 // Types
-import {
-  DispatchMessage,
-  type Device,
-  type DeviceType,
-  Page,
-} from '../../types'
+import type { Device, DeviceType } from '../../types'
 
 // Styles
 import './styles.css'
@@ -142,16 +136,6 @@ async function cleanStates() {
   isConnecting = false
   scannedDevices = []
 }
-
-const handleBackToMain = () => {
-  if (isScanning) {
-    return
-  }
-
-  dispatch(DispatchMessage.PageChange, {
-    page: Page.Main,
-  })
-}
 </script>
 
 <div class="devices-page p-10">
@@ -170,8 +154,4 @@ const handleBackToMain = () => {
       handleCloseScan="{handleCloseScan}"
     />
   {/if}
-
-  <button class="btn-back" on:click="{handleBackToMain}">
-    <CloseIcon />
-  </button>
 </div>
