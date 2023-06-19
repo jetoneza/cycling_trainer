@@ -1,0 +1,28 @@
+.navigation {
+  @apply py-4;
+
+  ul {
+    @apply flex flex-row justify-center;
+
+    li {
+      @apply w-24 text-center cursor-pointer;
+
+      &:hover {
+        @apply font-bold;
+      }
+
+      &.active {
+        @apply font-bold;
+
+        .indicator {
+          width: 5px;
+          height: 5px;
+          left: 50%;
+          transform: translateX(-50%);
+
+          @apply absolute rounded-full bg-primary-400 -bottom-2;
+        }
+      }
+    }
+  }
+}
