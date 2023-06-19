@@ -23,6 +23,8 @@ export enum DeviceType {
 export enum Page {
   Main = 'main',
   Devices = 'devices',
+  Workout = 'workout',
+  Activities = 'activities',
 }
 
 export enum DispatchMessage {
