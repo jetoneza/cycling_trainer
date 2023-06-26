@@ -1,6 +1,5 @@
 <script lang="ts">
 // Libraries
-import { createEventDispatcher } from 'svelte'
 import { invoke } from '@tauri-apps/api/tauri'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
@@ -16,8 +15,6 @@ import type { Device, DeviceType } from '../../types'
 
 // Styles
 import './styles.css'
-
-const dispatch = createEventDispatcher()
 
 // States
 let isScanning = false
