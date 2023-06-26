@@ -3,9 +3,12 @@ import HeartIcon from 'svelte-icons/fa/FaHeartbeat.svelte'
 import LightningIcon from 'svelte-icons/fa/FaBolt.svelte'
 import CadenceIcon from 'svelte-icons/go/GoSync.svelte'
 import SpeedIcon from 'svelte-icons/io/IoMdSpeedometer.svelte'
-import { DataType } from '../../types'
+import { DataType, DeviceType } from '../../types'
 
-const data = {
+// Stores
+import { devices } from '../../stores/devices'
+
+let data = {
   [DataType.Distance]: {
     value: 19.1,
     unit: 'km',
@@ -15,7 +18,7 @@ const data = {
     unit: 'kph',
   },
   [DataType.HeartRate]: {
-    value: 120,
+    value: '--',
     unit: 'bpm',
   },
   [DataType.Power]: {
@@ -43,6 +46,16 @@ const data = {
     unit: '',
   },
 }
+
+devices.subscribe((items) => {
+  // TODO: Use key value map for devices instead of array
+  const hrm = items.find((item) => item.type === DeviceType.HeartRate)
+
+  if (hrm) {
+    const { bpm, is_sensor_in_contact } = hrm.bleDevice.data
+    data[DataType.HeartRate].value = is_sensor_in_contact ? bpm : '--'
+  }
+})
 </script>
 
 <div class="workout-page flex p-4 justify-between">
@@ -65,7 +78,8 @@ const data = {
 
         <div class="item">
           <div class="value font-bold text-4xl text-primary-300">
-            {data[DataType.TargetCadence].value}<span class="text-2xl">rpm</span>
+            {data[DataType.TargetCadence].value}<span class="text-2xl">rpm</span
+            >
           </div>
         </div>
       {/if}
