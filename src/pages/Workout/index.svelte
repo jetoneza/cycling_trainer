@@ -10,11 +10,11 @@ import { devices } from '../../stores/devices'
 
 let data = {
   [DataType.Distance]: {
-    value: 19.1,
+    value: 0,
     unit: 'km',
   },
   [DataType.Speed]: {
-    value: 32,
+    value: 0,
     unit: 'kph',
   },
   [DataType.HeartRate]: {
@@ -22,19 +22,19 @@ let data = {
     unit: 'bpm',
   },
   [DataType.Power]: {
-    value: 250,
+    value: 0,
     unit: 'watt',
   },
   [DataType.TargetPower]: {
-    value: 245,
+    value: 0,
     unit: 'watt',
   },
   [DataType.Cadence]: {
-    value: 90,
+    value: 0,
     unit: 'rpm',
   },
   [DataType.TargetCadence]: {
-    value: 100,
+    value: 0,
     unit: 'rpm',
   },
   [DataType.IntervalTime]: {
@@ -49,10 +49,20 @@ let data = {
 
 devices.subscribe((map) => {
   const hrm = map[DeviceType.HeartRate]
+  const smartTrainer = map[DeviceType.SmartTrainer]
 
-  if (hrm) {
+  if (hrm && hrm.bleDevice) {
     const { bpm, is_sensor_in_contact } = hrm.bleDevice.data
     data[DataType.HeartRate].value = is_sensor_in_contact ? bpm : '--'
+  }
+
+  if (smartTrainer && smartTrainer.bleDevice) {
+    const { cadence, distance, power, speed } = smartTrainer.bleDevice.data
+
+    data[DataType.Distance].value = distance || 0
+    data[DataType.Speed].value = speed || 0
+    data[DataType.Power].value = power || 0
+    data[DataType.Cadence].value = cadence || 0
   }
 })
 </script>
