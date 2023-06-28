@@ -17,21 +17,19 @@ const setup = () => {
 }
 
 const notifyDevice = (data: BasicObject, type: DeviceType) => {
-  devices.update((items) =>
-    items.map((device) => {
-      if (device.type == type) {
-        const updatedDevice = {
-          ...device,
-        }
+  devices.update((map) => {
+    const device = map[type]
 
-        updatedDevice.bleDevice.data = data
+    const updatedDevice = {
+      ...device,
+    }
 
-        return updatedDevice
-      }
+    updatedDevice.bleDevice.data = data
 
-      return device
-    })
-  )
+    map[type] = updatedDevice
+
+    return map
+  })
 }
 
 export default {

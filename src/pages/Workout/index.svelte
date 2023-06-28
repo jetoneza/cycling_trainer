@@ -47,9 +47,8 @@ let data = {
   },
 }
 
-devices.subscribe((items) => {
-  // TODO: Use key value map for devices instead of array
-  const hrm = items.find((item) => item.type === DeviceType.HeartRate)
+devices.subscribe((map) => {
+  const hrm = map[DeviceType.HeartRate]
 
   if (hrm) {
     const { bpm, is_sensor_in_contact } = hrm.bleDevice.data

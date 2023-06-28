@@ -11,7 +11,7 @@ import DeviceCard from './components/DeviceCard.svelte'
 import { devices, updateDevices } from '../../stores/devices'
 
 // Types
-import type { Device, DeviceType } from '../../types'
+import { DeviceType, type Device } from '../../types'
 
 // Styles
 import './styles.css'
@@ -83,19 +83,19 @@ async function handleConnect(device: { id: string }) {
   connectedDevices.forEach((connectedDevice: [string, string, string]) => {
     const [id, name, type] = connectedDevice
 
-    updateDevices((device) => {
-      if (device.type == type) {
-        return {
-          ...device,
-          bleDevice: {
-            id,
-            name,
-          },
-          isConnected: true,
-        }
+    updateDevices((map) => {
+      const device = map[type]
+
+      map[type] = {
+        ...device,
+        bleDevice: {
+          id,
+          name,
+        },
+        isConnected: true,
       }
 
-      return device
+      return map
     })
   })
 
@@ -109,16 +109,16 @@ async function disconnectDevice(device: Device) {
 }
 
 async function changeConnectionState(type: DeviceType, isConnected: boolean) {
-  updateDevices((device) => {
-    if (device.type == type) {
-      return {
-        ...device,
-        isConnected,
-        bleDevice: isConnected ? device.bleDevice : null,
-      }
+  updateDevices((map) => {
+    const device = map[type]
+
+    map[type] = {
+      ...device,
+      isConnected,
+      bleDevice: isConnected ? device.bleDevice : null,
     }
 
-    return device
+    return map
   })
 }
 
@@ -139,9 +139,14 @@ async function cleanStates() {
   <div class="page-title text-2xl font-bold text-center">Devices</div>
 
   <div class="devices-list flex space-x-6 justify-center m-10">
-    {#each $devices as device}
-      <DeviceCard device="{device}" handleAction="{handleAction}" />
-    {/each}
+    <DeviceCard
+      device="{$devices[DeviceType.HeartRate]}"
+      handleAction="{handleAction}"
+    />
+    <DeviceCard
+      device="{$devices[DeviceType.SmartTrainer]}"
+      handleAction="{handleAction}"
+    />
   </div>
 
   {#if isScanning}
