@@ -1,0 +1,132 @@
+{
+  "info": {
+    "author": "J. Ordaneza",
+    "name": "Z2 Chiller - 30mins",
+    "description": "Zone 2 Workout for 30 minutes.",
+    "sportType": "bike"
+    "tags": ["z2"]
+  },
+  "workout": [
+    {
+      "type": "warmup",
+      "duration": 360,
+      "powerLow": 0.4,
+      "powerHigh": 0.6,
+      "pace": 1428186484,
+      "cadence": 60
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.7,
+      "pace": 1428186484,
+      "cadence": 75
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.7,
+      "pace": 1428186484,
+      "cadence": 85
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.7,
+      "pace": 1428186484,
+      "cadence": 100
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.65,
+      "pace": 1428186484,
+      "cadence": 75
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.65,
+      "pace": 1428186484,
+      "cadence": 85
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.65,
+      "pace": 1428186484,
+      "cadence": 100
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.65,
+      "pace": 1428186484,
+      "cadence": 75
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.65,
+      "pace": 1428186484,
+      "cadence": 85
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.65,
+      "pace": 1428186484,
+      "cadence": 100
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.65,
+      "pace": 1428186484,
+      "cadence": 75
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.65,
+      "pace": 1428186484,
+      "cadence": 85
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.65,
+      "pace": 1428186484,
+      "cadence": 100
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.6,
+      "pace": 1428186484,
+      "cadence": 75
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.6,
+      "pace": 1428186484,
+      "cadence": 85
+    },
+    {
+      "type": "steady-state",
+      "duration": 180,
+      "power": 0.6,
+      "pace": 1428186484,
+      "cadence": 100
+    },
+    {
+      "type": "cooldown",
+      "duration": 360,
+      "powerLow": 0.6,
+      "powerHigh": 0.4,
+      "pace": 1428186484,
+      "cadence": 60
+    }
+  ]
+}
