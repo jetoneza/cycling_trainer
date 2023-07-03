@@ -8,6 +8,7 @@ mod ble;
 mod data;
 mod error;
 mod prelude;
+mod workouts;
 
 use crate::prelude::*;
 
@@ -93,11 +94,19 @@ async fn disconnect_device(device_id: &str) -> Result<()> {
     Ok(())
 }
 
+#[tauri::command(async)]
+async fn get_workouts() -> Result<()> {
+    workouts::get_workouts();
+    Ok(())
+}
+
 async fn initialize_app(app_handle: tauri::AppHandle) {
     *TAURI_APP_HANDLE.lock().await = Some(app_handle.clone());
 
     // TODO: Pass instance to tauri
     Bluetooth::init().await;
+
+    workouts::get_workouts();
 }
 
 fn main() {
@@ -119,6 +128,7 @@ fn main() {
             connect_device,
             disconnect_device,
             get_connected_devices,
+            get_workouts,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
