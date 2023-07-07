@@ -1,4 +1,4 @@
-use quick_xml::{self, Reader};
+use quick_xml;
 use serde::Deserialize;
 
 #[allow(dead_code)]
