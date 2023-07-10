@@ -83,10 +83,10 @@ pub async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> +
                 }
             }
             CentralEvent::DeviceConnected(id) => {
-                println!("Connected: {}", id);
+                info!("Connected: {}", id);
             }
             CentralEvent::DeviceDisconnected(id) => {
-                println!("Disconnected: {}", id);
+                info!("Disconnected: {}", id);
             }
             _ => {}
         }

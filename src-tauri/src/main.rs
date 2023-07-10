@@ -16,6 +16,7 @@ use ble::bluetooth::{Bluetooth, Connection, DeviceType, BLUETOOTH};
 use error::error_generic;
 use log::{error, warn};
 use tauri::Manager;
+use tauri_plugin_log::{self, LogTarget};
 use tokio::sync::Mutex;
 use workouts::reader::WorkoutFile;
 
@@ -111,6 +112,11 @@ async fn initialize_app(app_handle: tauri::AppHandle) {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_log::Builder::default()
+                .targets([LogTarget::Stdout, LogTarget::Webview])
+                .build(),
+        )
         .setup(|app| {
             match tauri::async_runtime::block_on(tauri::async_runtime::spawn(initialize_app(
                 app.app_handle(),
