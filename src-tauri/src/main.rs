@@ -96,7 +96,6 @@ async fn disconnect_device(device_id: &str) -> Result<()> {
 
 #[tauri::command(async)]
 async fn get_workouts() -> Result<()> {
-    workouts::get_workouts();
     Ok(())
 }
 
@@ -106,7 +105,7 @@ async fn initialize_app(app_handle: tauri::AppHandle) {
     // TODO: Pass instance to tauri
     Bluetooth::init().await;
 
-    workouts::get_workouts();
+    workouts::reader::get_workouts();
 }
 
 fn main() {
