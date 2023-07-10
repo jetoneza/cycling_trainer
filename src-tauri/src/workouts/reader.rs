@@ -1,10 +1,7 @@
 use log::error;
 use quick_xml;
 use serde::Deserialize;
-use std::{
-    env, fs,
-    path::{Path, PathBuf},
-};
+use std::{env, fs, path::Path};
 
 const LOGGER_NAME: &str = "workouts::reader";
 
@@ -102,9 +99,21 @@ pub fn get_workouts() -> Vec<WorkoutFile> {
                 let entry = entry.ok()?;
 
                 let file_path = entry.path();
+                let extension = file_path.extension()?;
 
-                // TODO: Add support for other file types
-                xml_to_workout(&file_path)
+                match extension.to_string_lossy().to_string().as_str() {
+                    "zwo" => {
+                        let xml = fs::read_to_string(file_path).ok()?;
+
+                        quick_xml::de::from_str(xml.as_str()).ok()
+                    }
+
+                    // TODO: Support other file times
+                    _ => {
+                        error!("{}:get_workouts: Unsupported file type", LOGGER_NAME);
+                        None
+                    }
+                }
             })
             .collect(),
         Err(error) => {
@@ -112,15 +121,10 @@ pub fn get_workouts() -> Vec<WorkoutFile> {
                 "{}:get_workouts: Error while reading directory: {:?}",
                 LOGGER_NAME, error
             );
+
             Vec::new()
         }
     };
 
     workout_files
-}
-
-fn xml_to_workout(file_path: &PathBuf) -> Option<WorkoutFile> {
-    let xml = fs::read_to_string(file_path).ok()?;
-
-    quick_xml::de::from_str(xml.as_str()).ok()
 }
