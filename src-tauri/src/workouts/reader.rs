@@ -1,80 +1,17 @@
 use log::error;
-use quick_xml;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use std::{env, fs, path::Path};
+
+use super::zwo::{zwo_to_workout, WorkoutFile};
 
 const LOGGER_NAME: &str = "workouts::reader";
 
-#[allow(dead_code)]
-#[derive(Deserialize, Serialize)]
-pub struct WorkoutFile {
-    #[serde(rename = "sportType")]
-    sport_type: String,
-    author: String,
-    name: String,
-    description: String,
-    tags: Tags,
-    workout: Workout,
-}
-
-#[allow(dead_code)]
-#[derive(Deserialize, Serialize)]
-struct Tags {
-    tag: Vec<Tag>,
-}
-
-#[allow(dead_code)]
-#[derive(Deserialize, Serialize)]
-struct Tag {
-    #[serde(rename = "@name")]
-    name: String,
-}
-
-#[allow(dead_code)]
-#[derive(Deserialize, Serialize)]
-struct Workout {
-    #[serde(rename = "$value")]
-    workouts: Vec<WorkoutType>,
-}
-
-#[allow(dead_code)]
-#[derive(Deserialize, Serialize)]
-enum WorkoutType {
-    Warmup {
-        #[serde(rename = "@Duration")]
-        duration: u16,
-        #[serde(rename = "@PowerLow")]
-        power_low: f64,
-        #[serde(rename = "@PowerHigh")]
-        power_high: f64,
-        #[serde(rename = "@pace")]
-        pace: u32,
-        #[serde(rename = "@Cadence")]
-        cadence: u8,
-    },
-    SteadyState {
-        #[serde(rename = "@Duration")]
-        duration: u16,
-        #[serde(rename = "@Power")]
-        power: f64,
-        #[serde(rename = "@pace")]
-        pace: u32,
-        #[serde(rename = "@Cadence")]
-        cadence: u8,
-    },
-    Cooldown {
-        #[serde(rename = "@Duration")]
-        duration: u16,
-        #[serde(rename = "@PowerLow")]
-        power_low: f64,
-        #[serde(rename = "@PowerHigh")]
-        power_high: f64,
-        #[serde(rename = "@pace")]
-        pace: u32,
-        #[serde(rename = "@Cadence")]
-        cadence: u8,
-    },
-}
+#[derive(Serialize)]
+pub struct WorkoutItem {
+    pub id: usize,
+    pub name: String,
+    pub description: String
+} 
 
 pub fn get_workouts() -> Vec<WorkoutFile> {
     // TODO: Use event based reading for large XML files
@@ -102,11 +39,7 @@ pub fn get_workouts() -> Vec<WorkoutFile> {
                 let extension = file_path.extension()?;
 
                 match extension.to_string_lossy().to_string().as_str() {
-                    "zwo" => {
-                        let xml = fs::read_to_string(file_path).ok()?;
-
-                        quick_xml::de::from_str(xml.as_str()).ok()
-                    }
+                    "zwo" => zwo_to_workout(&file_path),
 
                     // TODO: Support other file times
                     _ => {
