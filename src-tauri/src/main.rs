@@ -17,6 +17,7 @@ use error::error_generic;
 use log::{error, warn};
 use tauri::Manager;
 use tokio::sync::Mutex;
+use workouts::reader::WorkoutFile;
 
 lazy_static! {
     pub static ref TAURI_APP_HANDLE: Mutex<Option<tauri::AppHandle>> = Default::default();
@@ -95,8 +96,10 @@ async fn disconnect_device(device_id: &str) -> Result<()> {
 }
 
 #[tauri::command(async)]
-async fn get_workouts() -> Result<()> {
-    Ok(())
+async fn get_workouts() -> Result<Vec<WorkoutFile>> {
+    let workouts = workouts::reader::get_workouts();
+
+    Ok(workouts)
 }
 
 async fn initialize_app(app_handle: tauri::AppHandle) {
@@ -104,8 +107,6 @@ async fn initialize_app(app_handle: tauri::AppHandle) {
 
     // TODO: Pass instance to tauri
     Bluetooth::init().await;
-
-    workouts::reader::get_workouts();
 }
 
 fn main() {
