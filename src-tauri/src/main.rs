@@ -18,7 +18,7 @@ use log::{error, warn};
 use tauri::Manager;
 use tauri_plugin_log::{self, LogTarget};
 use tokio::sync::Mutex;
-use workouts::reader::WorkoutFile;
+use workouts::reader::WorkoutItem;
 
 lazy_static! {
     pub static ref TAURI_APP_HANDLE: Mutex<Option<tauri::AppHandle>> = Default::default();
@@ -97,10 +97,20 @@ async fn disconnect_device(device_id: &str) -> Result<()> {
 }
 
 #[tauri::command(async)]
-async fn get_workouts() -> Result<Vec<WorkoutFile>> {
+async fn get_workouts() -> Result<Vec<WorkoutItem>> {
     let workouts = workouts::reader::get_workouts();
 
-    Ok(workouts)
+    let mapped_workouts = workouts
+        .iter()
+        .enumerate()
+        .map(|(index, item)| WorkoutItem {
+            id: index,
+            name: item.name.to_owned(),
+            description: item.description.to_owned(),
+        })
+        .collect();
+
+    Ok(mapped_workouts)
 }
 
 async fn initialize_app(app_handle: tauri::AppHandle) {
