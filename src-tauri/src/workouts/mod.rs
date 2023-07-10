@@ -1,3 +1,5 @@
+use std::{env, fs, path::Path};
+
 use quick_xml;
 use serde::Deserialize;
 
@@ -73,35 +75,27 @@ enum WorkoutType {
 }
 
 pub fn get_workouts() {
-    let xml = r#"
-        <workout_file>
-            <author>J.Ordaneza</author>
-            <name>Z2 Chiller - 30mins</name>
-            <description>Zone 2 Workout for 30 minutes.</description>
-            <sportType>bike</sportType>
-            <tags>
-                <tag name="z2"/>
-            </tags>
-            <workout>
-                <Warmup Duration="360" PowerLow="0.39908534" PowerHigh="0.61249995" pace="1428186484" Cadence="60"/>
-                <SteadyState Duration="180" Power="0.67347556" pace="1428186484" Cadence="75"/>
-                <SteadyState Duration="180" Power="0.67347556" pace="1428186484" Cadence="85"/>
-                <SteadyState Duration="60" Power="0.67347556" pace="1428186484" Cadence="100"/>
-                <SteadyState Duration="180" Power="0.64908534" pace="0" Cadence="75"/>
-                <SteadyState Duration="180" Power="0.64908534" pace="0" Cadence="85"/>
-                <SteadyState Duration="60" Power="0.64908534" pace="0" Cadence="100"/>
-                <SteadyState Duration="180" Power="0.64908534" pace="0" Cadence="75"/>
-                <SteadyState Duration="180" Power="0.64908534" pace="0" Cadence="85"/>
-                <SteadyState Duration="60" Power="0.64908534" pace="0" Cadence="100"/>
-                <SteadyState Duration="180" Power="0.61249995" pace="0" Cadence="75"/>
-                <SteadyState Duration="180" Power="0.61249995" pace="0" Cadence="85"/>
-                <SteadyState Duration="60" Power="0.61249995" pace="0" Cadence="100"/>
-                <Cooldown Duration="360" PowerLow="0.61249995" PowerHigh="0.39908534" pace="1428186484" Cadence="60"/>
-            </workout>
-        </workout_file>
-    "#;
+    // TODO: Use event based reading for large XML files
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
+    let root_dir = Path::new(manifest_dir)
+        .parent()
+        .expect("Unable to retrieve root directory");
 
-    let workout: WorkoutFile = quick_xml::de::from_str(xml).unwrap();
+    let path = root_dir.join("workouts").join("sample.zwo");
+
+    println!("Path: {:?}", path);
+
+    let xml = match fs::read_to_string(path) {
+        Ok(result) => result,
+        Err(error) => {
+            println!("Error: {:?}", error);
+            
+            // TODO: Return an error instead
+            "".to_string()
+        }
+    };
+
+    let workout: WorkoutFile = quick_xml::de::from_str(xml.as_str()).unwrap();
 
     println!("{:?}", workout)
 }
