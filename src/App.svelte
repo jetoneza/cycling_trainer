@@ -7,7 +7,7 @@ import bootstrap from './bootstrap'
 // Components
 import Devices from './pages/Devices/index.svelte'
 import Main from './pages/Main/index.svelte'
-import Workout from './pages/Workout/index.svelte'
+import Activities from './pages/Activities/index.svelte'
 import Navigation from './components/Navigation/index.svelte'
 
 // Enums
@@ -17,7 +17,7 @@ import './styles.css'
 
 const pages = {
   [Page.Main]: Main,
-  [Page.Activities]: Workout,
+  [Page.Activities]: Activities,
   [Page.Devices]: Devices,
 }
 
