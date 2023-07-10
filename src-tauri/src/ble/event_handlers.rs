@@ -5,6 +5,7 @@ use btleplug::api::{Central, CentralEvent, Peripheral as _};
 use btleplug::platform::Peripheral;
 use futures::{Stream, StreamExt};
 use log::{error, info};
+use std::fmt;
 use std::pin::Pin;
 use tauri::Manager as _;
 use uuid::Uuid;
@@ -18,10 +19,18 @@ use super::utils::get_uuid_characteristic;
 
 const LOGGER_NAME: &str = "ble::event_handlers";
 
-#[derive(Debug)]
 pub enum CharacteristicAction {
     Subscribe,
     Unsubscribe,
+}
+
+impl fmt::Display for CharacteristicAction {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            CharacteristicAction::Subscribe => write!(f, "Subscribe"),
+            CharacteristicAction::Unsubscribe => write!(f, "Unsubscribe"),
+        }
+    }
 }
 
 pub enum Characteristic {
@@ -211,7 +220,7 @@ pub async fn handle_characteristic_subscription(
         };
 
         let Ok(_) = result else {
-          let message = format!("Unable to {:?} to characteristic", action);
+          let message = format!("Unable to {} to characteristic", action);
           return Err(error_generic(message.as_str()));
         };
     }

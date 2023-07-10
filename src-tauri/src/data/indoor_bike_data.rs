@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Clone, serde::Serialize)]
+#[derive(PartialEq, Clone, serde::Serialize)]
 pub struct IndoorBikeData {
     pub cadence: Option<u16>,
     pub speed: Option<u16>,

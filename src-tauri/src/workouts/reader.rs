@@ -6,7 +6,7 @@ use std::{env, fs, path::Path};
 const LOGGER_NAME: &str = "workouts::reader";
 
 #[allow(dead_code)]
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct WorkoutFile {
     #[serde(rename = "sportType")]
     sport_type: String,
@@ -18,27 +18,27 @@ pub struct WorkoutFile {
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 struct Tags {
     tag: Vec<Tag>,
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 struct Tag {
     #[serde(rename = "@name")]
     name: String,
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 struct Workout {
     #[serde(rename = "$value")]
     workouts: Vec<WorkoutType>,
 }
 
 #[allow(dead_code)]
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Deserialize, Serialize)]
 enum WorkoutType {
     Warmup {
         #[serde(rename = "@Duration")]

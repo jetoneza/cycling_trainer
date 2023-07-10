@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Clone, serde::Serialize)]
+#[derive(PartialEq, Clone, serde::Serialize)]
 pub struct HeartRateMeasurement {
     pub bpm: u16,
     pub is_sensor_contact_supported: bool,

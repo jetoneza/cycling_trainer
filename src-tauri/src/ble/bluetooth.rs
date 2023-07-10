@@ -28,13 +28,11 @@ pub enum BluetoothStatus {
     Ready,
 }
 
-#[derive(Debug)]
 pub enum Connection {
     Connect,
     Disconnect,
 }
 
-#[derive(Debug)]
 pub enum DeviceType {
     HeartRate,
     SmartTrainer,
