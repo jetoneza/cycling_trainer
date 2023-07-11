@@ -2,14 +2,22 @@
 import { onMount } from 'svelte'
 import { invoke } from '@tauri-apps/api/tauri'
 
-let workouts = []
+let activities = []
 
 onMount(async () => {
-  workouts = await invoke('get_workouts')
+  activities = await invoke('get_activities')
 })
 </script>
 
-<div class="activities">
+<div class="activities-wrapper">
   <h1>Workouts</h1>
-  <button>Create workout</button>
+
+  <div class="activities mt-6">
+    {#each activities as activity}
+      <div class="activity p-6 border rounded">
+        <span class="font-bold">{activity.name}</span> <br />
+        <span class="text-sm">{activity.description}</span>
+      </div>
+    {/each}
+  </div>
 </div>
