@@ -40,8 +40,6 @@ pub enum WorkoutType {
         power_low: f64,
         #[serde(rename = "@PowerHigh")]
         power_high: f64,
-        #[serde(rename = "@pace")]
-        pace: u32,
         #[serde(rename = "@Cadence")]
         cadence: u8,
     },
@@ -50,8 +48,6 @@ pub enum WorkoutType {
         duration: u16,
         #[serde(rename = "@Power")]
         power: f64,
-        #[serde(rename = "@pace")]
-        pace: u32,
         #[serde(rename = "@Cadence")]
         cadence: u8,
     },
@@ -62,8 +58,6 @@ pub enum WorkoutType {
         power_low: f64,
         #[serde(rename = "@PowerHigh")]
         power_high: f64,
-        #[serde(rename = "@pace")]
-        pace: u32,
         #[serde(rename = "@Cadence")]
         cadence: u8,
     },
