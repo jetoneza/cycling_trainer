@@ -15,7 +15,7 @@ $: items = [
     page: Page.Main,
   },
   {
-    name: 'Workouts',
+    name: 'Activities',
     isActive: page === Page.Activities,
     page: Page.Activities,
   },

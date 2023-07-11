@@ -33,7 +33,7 @@ const handlePageChange = (event: BasicObject) => (page = event.detail.page)
 </script>
 
 <main class="container mx-auto">
-  {#if page !== Page.Activities}
+  {#if page !== Page.Workout}
     <Navigation page="{page}" on:pagechange="{handlePageChange}" />
   {/if}
 

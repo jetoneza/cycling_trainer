@@ -42,3 +42,25 @@ export enum DataType {
   ElapsedTime = 'elapsed-time',
   IntervalTime = 'invertal-time',
 }
+
+export interface Activity {
+  id: string
+  name: string
+  description: string
+  workouts: Array<Workout>
+}
+
+interface Workout {
+  workoutType: WorkoutType
+  duration: number
+  cadence: number
+  powerLow: number
+  powerHigh: number
+  powerSteady: number
+}
+
+enum WorkoutType {
+  Warmup = 'warmup',
+  SteadyState = 'steady_state',
+  Cooldown = 'cooldown',
+}

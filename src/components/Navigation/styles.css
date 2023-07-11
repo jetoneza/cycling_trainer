@@ -5,7 +5,7 @@
     @apply flex flex-row justify-center;
 
     li {
-      @apply w-24 text-center cursor-pointer;
+      @apply w-32 text-center cursor-pointer;
 
       &:hover {
         @apply font-bold;
