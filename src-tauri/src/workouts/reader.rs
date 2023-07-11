@@ -13,7 +13,7 @@ pub struct WorkoutItem {
     pub description: String
 } 
 
-pub fn get_workouts() -> Vec<WorkoutFile> {
+pub fn get_workouts_from_file() -> Vec<WorkoutFile> {
     // TODO: Use event based reading for large XML files
     let manifest_dir = env!("CARGO_MANIFEST_DIR");
     let root_dir = match Path::new(manifest_dir).parent() {

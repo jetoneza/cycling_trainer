@@ -4,11 +4,12 @@ use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct WorkoutFile {
+    pub name: String,
+    pub description: String,
+
     #[serde(rename = "sportType")]
     sport_type: String,
     author: String,
-    pub name: String,
-    pub description: String,
     tags: Tags,
     workout: Workout,
 }
