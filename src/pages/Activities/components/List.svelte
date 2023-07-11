@@ -11,6 +11,7 @@ const MINUTE = 60 // seconds
 // Props
 export let activities: Array<Activity>
 export let selectedActivity: Activity
+export let handleSelectActivity: (activity: Activity) => {}
 
 const getDuration = (activity: Activity) => {
   const { workouts } = activity
@@ -25,6 +26,7 @@ const getDuration = (activity: Activity) => {
       class="{selectedActivity.id === activity.id
         ? 'selected'
         : ''} activity-item relative flex flex-col py-4 px-6 w-full border rounded-lg"
+      on:click="{() => handleSelectActivity(activity)}"
     >
       <span class="font-bold">{activity.name}</span>
       <span class="text-sm">{activity.description}</span>

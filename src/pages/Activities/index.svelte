@@ -20,9 +20,16 @@ onMount(async () => {
 
   selectedActivity = activities[0]
 })
+
+const handleSelectActivity = (activity: Activity) =>
+  (selectedActivity = activity)
 </script>
 
 <div class="activities flex">
   <ActivityComponent selectedActivity="{selectedActivity}" />
-  <List activities="{activities}" selectedActivity="{selectedActivity}" />
+  <List
+    activities="{activities}"
+    selectedActivity="{selectedActivity}"
+    handleSelectActivity="{handleSelectActivity}"
+  />
 </div>
