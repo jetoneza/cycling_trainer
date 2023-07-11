@@ -18,10 +18,7 @@ use log::{error, warn};
 use tauri::Manager;
 use tauri_plugin_log::{self, LogTarget};
 use tokio::sync::Mutex;
-use workouts::{
-    workout::{self, WORKOUTS},
-    zwo::WorkoutFile,
-};
+use workouts::workout::{self, Workout, WORKOUTS};
 
 lazy_static! {
     pub static ref TAURI_APP_HANDLE: Mutex<Option<tauri::AppHandle>> = Default::default();
@@ -100,17 +97,18 @@ async fn disconnect_device(device_id: &str) -> Result<()> {
 }
 
 #[tauri::command(async)]
-async fn get_workouts() -> Result<Vec<String>> {
+async fn get_workouts() -> Result<Vec<(String, String)>> {
     let Some(lock) = WORKOUTS.get() else {
         return Err(error_generic("main::get_workouts: Unable to get WORKOUTS."));
     };
 
     let guard = lock.read().await;
-    let workouts: &Vec<WorkoutFile> = guard.as_ref();
+    let workouts: &Vec<Workout> = guard.as_ref();
 
     let workout_names = workouts
         .iter()
-        .map(|workout| workout.name.to_owned())
+        // TODO: Construct and return a correct format.
+        .map(|workout| (workout.id.to_string(), workout.workout_file.name.to_owned()))
         .collect();
 
     Ok(workout_names)

@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf};
 
 use serde::Deserialize;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct WorkoutFile {
     pub name: String,
     pub description: String,
@@ -14,24 +14,24 @@ pub struct WorkoutFile {
     workout: Workout,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 struct Tags {
     tag: Vec<Tag>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 struct Tag {
     #[serde(rename = "@name")]
     name: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 struct Workout {
     #[serde(rename = "$value")]
     workouts: Vec<WorkoutType>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 enum WorkoutType {
     Warmup {
         #[serde(rename = "@Duration")]
