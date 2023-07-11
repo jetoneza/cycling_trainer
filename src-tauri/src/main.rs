@@ -18,7 +18,7 @@ use log::{error, warn};
 use tauri::Manager;
 use tauri_plugin_log::{self, LogTarget};
 use tokio::sync::Mutex;
-use workouts::workout::{self, Workout, WORKOUTS};
+use workouts::activities::{self, Activity, ACTIVITIES};
 
 lazy_static! {
     pub static ref TAURI_APP_HANDLE: Mutex<Option<tauri::AppHandle>> = Default::default();
@@ -97,27 +97,21 @@ async fn disconnect_device(device_id: &str) -> Result<()> {
 }
 
 #[tauri::command(async)]
-async fn get_workouts() -> Result<Vec<(String, String)>> {
-    let Some(lock) = WORKOUTS.get() else {
-        return Err(error_generic("main::get_workouts: Unable to get WORKOUTS."));
+async fn get_activities() -> Result<Vec<Activity>> {
+    let Some(lock) = ACTIVITIES.get() else {
+        return Err(error_generic("main::get_activities: Unable to get ACTIVITIES."));
     };
 
     let guard = lock.read().await;
-    let workouts: &Vec<Workout> = guard.as_ref();
+    let activities: &Vec<Activity> = guard.as_ref();
 
-    let workout_names = workouts
-        .iter()
-        // TODO: Construct and return a correct format.
-        .map(|workout| (workout.id.to_string(), workout.workout_file.name.to_owned()))
-        .collect();
-
-    Ok(workout_names)
+    Ok(activities.to_owned())
 }
 
 async fn initialize_app(app_handle: tauri::AppHandle) {
     *TAURI_APP_HANDLE.lock().await = Some(app_handle.clone());
 
-    workout::init();
+    activities::init();
 
     // TODO: Pass instance to tauri
     Bluetooth::init().await;
@@ -147,7 +141,7 @@ fn main() {
             connect_device,
             disconnect_device,
             get_connected_devices,
-            get_workouts,
+            get_activities,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

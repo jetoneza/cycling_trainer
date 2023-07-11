@@ -9,9 +9,9 @@ use super::{
     zwo::{self, WorkoutFile},
 };
 
-pub static WORKOUTS: OnceLock<RwLock<Vec<Activity>>> = OnceLock::new();
+pub static ACTIVITIES: OnceLock<RwLock<Vec<Activity>>> = OnceLock::new();
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct Activity {
     pub id: String,
     pub name: String,
@@ -19,7 +19,7 @@ pub struct Activity {
     pub workouts: Vec<Workout>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Clone)]
 pub struct Workout {
     pub workout_type: WorkoutType,
     pub duration: u16,
@@ -29,8 +29,8 @@ pub struct Workout {
     pub power_steady: f64,
 }
 
-#[derive(Serialize)]
-enum WorkoutType {
+#[derive(Serialize, Clone)]
+pub enum WorkoutType {
     Warmup,
     SteadyState,
     Cooldown,
@@ -54,14 +54,12 @@ impl From<WorkoutFile> for Activity {
                         duration,
                         power_low,
                         power_high,
-                        pace,
                         cadence,
                     }
                     | zwo::WorkoutType::Cooldown {
                         duration,
                         power_low,
                         power_high,
-                        pace,
                         cadence,
                     } => (
                         duration.to_owned(),
@@ -73,7 +71,6 @@ impl From<WorkoutFile> for Activity {
                     zwo::WorkoutType::SteadyState {
                         duration,
                         power,
-                        pace,
                         cadence,
                     } => (
                         duration.to_owned(),
@@ -106,12 +103,12 @@ impl From<WorkoutFile> for Activity {
 
 pub fn init() {
     let files = get_workouts_from_file();
-    let workouts: Vec<Activity> = files
+    let activities: Vec<Activity> = files
         .iter()
         .map(|file| Activity::from(file.to_owned()))
         .collect();
 
-    if let Err(_) = WORKOUTS.set(RwLock::new(workouts)) {
+    if let Err(_) = ACTIVITIES.set(RwLock::new(activities)) {
         warn!("Unable to load workouts.");
         return;
     }
