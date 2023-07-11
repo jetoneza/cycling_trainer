@@ -1,27 +1,114 @@
 use log::warn;
+use serde::Serialize;
 use std::sync::OnceLock;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
-use super::{reader::get_workouts_from_file, zwo::WorkoutFile};
+use super::{
+    reader::get_workouts_from_file,
+    zwo::{self, WorkoutFile},
+};
 
-pub static WORKOUTS: OnceLock<RwLock<Vec<Workout>>> = OnceLock::new();
+pub static WORKOUTS: OnceLock<RwLock<Vec<Activity>>> = OnceLock::new();
 
+#[derive(Serialize)]
+pub struct Activity {
+    pub id: String,
+    pub name: String,
+    pub description: String,
+    pub workouts: Vec<Workout>,
+}
+
+#[derive(Serialize)]
 pub struct Workout {
-    pub id: Uuid,
+    pub workout_type: WorkoutType,
+    pub duration: u16,
+    pub cadence: u8,
+    pub power_low: f64,
+    pub power_high: f64,
+    pub power_steady: f64,
+}
 
-    // TODO: Convert deserialized data from other formats to a common structure
-    pub workout_file: WorkoutFile,
+#[derive(Serialize)]
+enum WorkoutType {
+    Warmup,
+    SteadyState,
+    Cooldown,
+}
+
+impl From<WorkoutFile> for Activity {
+    fn from(value: WorkoutFile) -> Self {
+        let workouts = value
+            .workout
+            .workouts
+            .iter()
+            .map(|workout| {
+                let workout_type = match workout {
+                    zwo::WorkoutType::Warmup { .. } => WorkoutType::Warmup,
+                    zwo::WorkoutType::SteadyState { .. } => WorkoutType::SteadyState,
+                    zwo::WorkoutType::Cooldown { .. } => WorkoutType::Cooldown,
+                };
+
+                let (duration, cadence, power_high, power_low, power_steady) = match workout {
+                    zwo::WorkoutType::Warmup {
+                        duration,
+                        power_low,
+                        power_high,
+                        pace,
+                        cadence,
+                    }
+                    | zwo::WorkoutType::Cooldown {
+                        duration,
+                        power_low,
+                        power_high,
+                        pace,
+                        cadence,
+                    } => (
+                        duration.to_owned(),
+                        cadence.to_owned(),
+                        power_high.to_owned(),
+                        power_low.to_owned(),
+                        0.0,
+                    ),
+                    zwo::WorkoutType::SteadyState {
+                        duration,
+                        power,
+                        pace,
+                        cadence,
+                    } => (
+                        duration.to_owned(),
+                        cadence.to_owned(),
+                        0.0,
+                        0.0,
+                        power.to_owned(),
+                    ),
+                };
+
+                Workout {
+                    workout_type,
+                    cadence,
+                    duration,
+                    power_high,
+                    power_low,
+                    power_steady,
+                }
+            })
+            .collect();
+
+        Activity {
+            id: Uuid::new_v4().to_string(),
+            name: value.name,
+            description: value.description,
+            workouts,
+        }
+    }
 }
 
 pub fn init() {
     let files = get_workouts_from_file();
-    let workouts: Vec<Workout> = files
+    let workouts: Vec<Activity> = files
         .iter()
-        .map(|file| Workout {
-            id: Uuid::new_v4(),
-            workout_file: file.clone(),
-        })
+        .map(|file| Activity::from(file.to_owned()))
         .collect();
 
     if let Err(_) = WORKOUTS.set(RwLock::new(workouts)) {

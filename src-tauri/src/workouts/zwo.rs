@@ -6,12 +6,12 @@ use serde::Deserialize;
 pub struct WorkoutFile {
     pub name: String,
     pub description: String,
+    pub workout: Workout,
 
     #[serde(rename = "sportType")]
     sport_type: String,
     author: String,
     tags: Tags,
-    workout: Workout,
 }
 
 #[derive(Deserialize, Clone)]
@@ -26,13 +26,13 @@ struct Tag {
 }
 
 #[derive(Deserialize, Clone)]
-struct Workout {
+pub struct Workout {
     #[serde(rename = "$value")]
-    workouts: Vec<WorkoutType>,
+    pub workouts: Vec<WorkoutType>,
 }
 
 #[derive(Deserialize, Clone)]
-enum WorkoutType {
+pub enum WorkoutType {
     Warmup {
         #[serde(rename = "@Duration")]
         duration: u16,
