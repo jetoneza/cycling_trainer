@@ -13,13 +13,16 @@ import type { Activity } from '../../types'
 import './styles.css'
 
 let activities: Array<Activity> = []
+let selectedActivity: Activity
 
 onMount(async () => {
   activities = await invoke('get_activities')
+
+  selectedActivity = activities[0]
 })
 </script>
 
 <div class="activities flex">
-  <ActivityComponent />
-  <List activities="{activities}" />
+  <ActivityComponent selectedActivity="{selectedActivity}" />
+  <List activities="{activities}" selectedActivity="{selectedActivity}" />
 </div>

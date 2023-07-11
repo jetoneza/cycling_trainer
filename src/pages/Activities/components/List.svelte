@@ -10,7 +10,7 @@ const MINUTE = 60 // seconds
 
 // Props
 export let activities: Array<Activity>
-
+export let selectedActivity: Activity
 
 const getDuration = (activity: Activity) => {
   const { workouts } = activity
@@ -19,9 +19,13 @@ const getDuration = (activity: Activity) => {
 }
 </script>
 
-<div class="list flex-1 p-6">
+<div class="list flex-1 p-6 space-y-2">
   {#each activities as activity}
-    <button class="activity-item relative flex flex-col py-4 px-6 w-full border rounded-lg">
+    <button
+      class="{selectedActivity.id === activity.id
+        ? 'selected'
+        : ''} activity-item relative flex flex-col py-4 px-6 w-full border rounded-lg"
+    >
       <span class="font-bold">{activity.name}</span>
       <span class="text-sm">{activity.description}</span>
       <span class="absolute right-6 top-4 flex font-bold text-sm">
