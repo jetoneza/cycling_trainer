@@ -101,7 +101,7 @@ impl From<WorkoutFile> for Activity {
     }
 }
 
-pub fn init() {
+pub fn load_activities() {
     let files = get_workouts_from_file();
     let activities: Vec<Activity> = files
         .iter()

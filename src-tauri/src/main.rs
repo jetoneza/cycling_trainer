@@ -105,15 +105,14 @@ async fn get_activities() -> Result<Vec<Activity>> {
     let guard = lock.read().await;
     let activities: &Vec<Activity> = guard.as_ref();
 
-    Ok(activities.to_owned())
+    Ok(activities.clone())
 }
 
 async fn initialize_app(app_handle: tauri::AppHandle) {
     *TAURI_APP_HANDLE.lock().await = Some(app_handle.clone());
 
-    activities::init();
+    activities::load_activities();
 
-    // TODO: Pass instance to tauri
     Bluetooth::init().await;
 }
 
