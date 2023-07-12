@@ -4,20 +4,15 @@ import ClockIcon from 'svelte-icons/fa/FaRegClock.svelte'
 
 // Types
 import type { Activity } from 'src/types'
-
-// Constants
-const MINUTE = 60 // seconds
+import {
+  convertSecondsToMinutes,
+  getActivityDuration,
+} from '../../../utils/time'
 
 // Props
 export let activities: Array<Activity>
 export let selectedActivity: Activity
 export let handleSelectActivity: (activity: Activity) => {}
-
-const getDuration = (activity: Activity) => {
-  const { workouts } = activity
-
-  return workouts.reduce((acc, workout) => workout.duration + acc, 0) / MINUTE
-}
 </script>
 
 <div class="activities-list scrollable flex-1 p-6 space-y-2">
@@ -34,7 +29,7 @@ const getDuration = (activity: Activity) => {
         <div class="icon w-5 h-5 mr-2">
           <ClockIcon />
         </div>
-        {getDuration(activity)} mins
+        {convertSecondsToMinutes(getActivityDuration(activity)).formatted} mins
       </span>
     </button>
   {/each}
