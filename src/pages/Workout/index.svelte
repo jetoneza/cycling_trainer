@@ -3,12 +3,13 @@ import HeartIcon from 'svelte-icons/fa/FaHeartbeat.svelte'
 import LightningIcon from 'svelte-icons/fa/FaBolt.svelte'
 import CadenceIcon from 'svelte-icons/go/GoSync.svelte'
 import SpeedIcon from 'svelte-icons/io/IoMdSpeedometer.svelte'
-import { DataType, DeviceType } from '../../types'
+import { DataType, DeviceType, type Activity } from '../../types'
 
 // Stores
-import { devices } from '../../stores/devices'
+import { devicesStore } from '../../stores/devices'
+import { activityStore } from '../../stores/activities'
 
-let data = {
+let devices = {
   [DataType.Distance]: {
     value: 0,
     unit: 'km',
@@ -47,24 +48,28 @@ let data = {
   },
 }
 
-devices.subscribe((map) => {
+let activity: Activity
+
+devicesStore.subscribe((map) => {
   const hrm = map[DeviceType.HeartRate]
   const smartTrainer = map[DeviceType.SmartTrainer]
 
   if (hrm && hrm.bleDevice) {
     const { bpm, is_sensor_in_contact } = hrm.bleDevice.data
-    data[DataType.HeartRate].value = is_sensor_in_contact ? bpm : '--'
+    devices[DataType.HeartRate].value = is_sensor_in_contact ? bpm : '--'
   }
 
   if (smartTrainer && smartTrainer.bleDevice) {
     const { cadence, distance, power, speed } = smartTrainer.bleDevice.data
 
-    data[DataType.Distance].value = distance || 0
-    data[DataType.Speed].value = speed || 0
-    data[DataType.Power].value = power || 0
-    data[DataType.Cadence].value = cadence || 0
+    devices[DataType.Distance].value = distance || 0
+    devices[DataType.Speed].value = speed || 0
+    devices[DataType.Power].value = power || 0
+    devices[DataType.Cadence].value = cadence || 0
   }
 })
+
+activityStore.subscribe((value) => (activity = value))
 </script>
 
 <div class="workout-page flex p-4 justify-between">
@@ -78,16 +83,17 @@ devices.subscribe((map) => {
 
       <div class="item">
         <div class="value font-bold text-4xl text-primary-300">
-          {data[DataType.TargetPower].value}<span class="text-2xl">w</span>
+          {devices[DataType.TargetPower].value}<span class="text-2xl">w</span>
         </div>
       </div>
 
-      {#if !!data[DataType.TargetCadence]}
+      {#if !!devices[DataType.TargetCadence]}
         <div class="text-2xl font-bold text-white">at</div>
 
         <div class="item">
           <div class="value font-bold text-4xl text-primary-300">
-            {data[DataType.TargetCadence].value}<span class="text-2xl">rpm</span
+            {devices[DataType.TargetCadence].value}<span class="text-2xl"
+              >rpm</span
             >
           </div>
         </div>
@@ -99,7 +105,7 @@ devices.subscribe((map) => {
         <div
           class="value font-bold text-9xl flex w-full justify-center text-white"
         >
-          {data[DataType.Power].value}
+          {devices[DataType.Power].value}
           <div class="icon w-10 mt-11 ml-2">
             <LightningIcon />
           </div>
@@ -109,7 +115,7 @@ devices.subscribe((map) => {
       <div class="row flex m-0 space-x-6 justify-center">
         <div class="item">
           <div class="value font-bold text-4xl flex text-white">
-            {data[DataType.HeartRate].value}
+            {devices[DataType.HeartRate].value}
             <div class="icon h-5 w-5 mt-3 ml-2">
               <HeartIcon />
             </div>
@@ -118,7 +124,7 @@ devices.subscribe((map) => {
 
         <div class="item">
           <div class="value font-bold text-4xl flex text-white">
-            {data[DataType.Cadence].value}
+            {devices[DataType.Cadence].value}
             <div class="icon h-5 w-5 mt-3 ml-1">
               <CadenceIcon />
             </div>
@@ -131,13 +137,13 @@ devices.subscribe((map) => {
       <div class="item text-white">
         <div class="text-xl font-bold">Elapsed</div>
         <div class="value font-bold text-4xl">
-          {data[DataType.ElapsedTime].value}
+          {devices[DataType.ElapsedTime].value}
         </div>
       </div>
       <div class="item text-white">
         <div class="text-xl font-bold">Interval</div>
         <div class="value font-bold text-4xl">
-          {data[DataType.IntervalTime].value}
+          {devices[DataType.IntervalTime].value}
         </div>
       </div>
     </div>
@@ -151,7 +157,7 @@ devices.subscribe((map) => {
     <div class="bg-secondary-200 rounded-lg px-4 py-2">
       <div class="font-bold text-white flex space-x-1 justify-end">
         <div class="text-6xl">
-          {data[DataType.Speed].value}
+          {devices[DataType.Speed].value}
         </div>
         <div class="flex flex-col">
           <div class="icon w-10 h-10">
@@ -161,7 +167,9 @@ devices.subscribe((map) => {
         </div>
       </div>
       <div class="text-lg font-bold text-primary-300">
-        {data[DataType.Distance].value}<span class="text-lg ml-1">km dist</span>
+        {devices[DataType.Distance].value}<span class="text-lg ml-1"
+          >km dist</span
+        >
       </div>
     </div>
   </div>

@@ -8,7 +8,7 @@ import ScanList from './components/ScanList.svelte'
 import DeviceCard from './components/DeviceCard.svelte'
 
 // Stores
-import { devices, updateDevices } from '../../stores/devices'
+import { devicesStore, updateDevices } from '../../stores/devices'
 
 // Types
 import { DeviceType, type Device } from '../../types'
@@ -140,11 +140,11 @@ async function cleanStates() {
 
   <div class="devices-list flex space-x-6 justify-center m-10">
     <DeviceCard
-      device="{$devices[DeviceType.HeartRate]}"
+      device="{$devicesStore[DeviceType.HeartRate]}"
       handleAction="{handleAction}"
     />
     <DeviceCard
-      device="{$devices[DeviceType.SmartTrainer]}"
+      device="{$devicesStore[DeviceType.SmartTrainer]}"
       handleAction="{handleAction}"
     />
   </div>

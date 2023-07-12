@@ -8,7 +8,7 @@ interface DevicesMap {
   [DeviceType.SmartTrainer]: Device
 }
 
-export const devices = writable<DevicesMap>({
+export const devicesStore = writable<DevicesMap>({
   [DeviceType.HeartRate]: {
     type: DeviceType.HeartRate,
     title: 'Heart Rate',
@@ -22,5 +22,5 @@ export const devices = writable<DevicesMap>({
 })
 
 export const updateDevices = (updateFn: UpdateFn) => {
-  devices.update((map) => updateFn(map))
+  devicesStore.update((map) => updateFn(map))
 }

@@ -1,5 +1,5 @@
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
-import { devices } from '../stores/devices'
+import { devicesStore } from '../stores/devices'
 import { DeviceType, type BasicObject } from '../types'
 
 const setup = () => {
@@ -17,7 +17,7 @@ const setup = () => {
 }
 
 const notifyDevice = (data: BasicObject, type: DeviceType) => {
-  devices.update((map) => {
+  devicesStore.update((map) => {
     const device = map[type]
 
     const updatedDevice = {
