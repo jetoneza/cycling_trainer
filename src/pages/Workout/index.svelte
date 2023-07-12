@@ -8,6 +8,10 @@ import { DataType, DeviceType, type Activity } from '../../types'
 // Stores
 import { devicesStore } from '../../stores/devices'
 import { activityStore } from '../../stores/activities'
+import WorkoutsList from './components/WorkoutsList.svelte'
+
+// Styles
+import './styles.css'
 
 let devices = {
   [DataType.Distance]: {
@@ -72,84 +76,86 @@ devicesStore.subscribe((map) => {
 activityStore.subscribe((value) => (activity = value))
 </script>
 
-<div class="workout-page flex p-4 justify-between">
-  <div class="basis-1/6">
-    <!-- TODO: Add other data here. -->
+<div class="workout-page flex py-4 justify-between">
+  <div class="basis-3/12">
+    <WorkoutsList activity="{activity}" />
   </div>
 
-  <div class="main-data flex space-x-4 bg-secondary-200 rounded-lg">
-    <div class="column flex flex-col justify-between text-center py-4 px-6">
-      <div class="text-2xl font-bold text-white">Target</div>
-
-      <div class="item">
-        <div class="value font-bold text-4xl text-primary-300">
-          {devices[DataType.TargetPower].value}<span class="text-2xl">w</span>
-        </div>
-      </div>
-
-      {#if !!devices[DataType.TargetCadence]}
-        <div class="text-2xl font-bold text-white">at</div>
+  <div class="main-data">
+    <div class="data-view flex space-x-4 bg-secondary-200 rounded-lg">
+      <div class="column flex flex-col justify-between text-center py-4 px-6">
+        <div class="text-2xl font-bold text-white">Target</div>
 
         <div class="item">
           <div class="value font-bold text-4xl text-primary-300">
-            {devices[DataType.TargetCadence].value}<span class="text-2xl"
-              >rpm</span
-            >
+            {devices[DataType.TargetPower].value}<span class="text-2xl">w</span>
           </div>
         </div>
-      {/if}
-    </div>
 
-    <div class="column pt-2 pb-4 px-6">
-      <div class="row item text-center">
-        <div
-          class="value font-bold text-9xl flex w-full justify-center text-white"
-        >
-          {devices[DataType.Power].value}
-          <div class="icon w-10 mt-11 ml-2">
-            <LightningIcon />
+        {#if !!devices[DataType.TargetCadence]}
+          <div class="text-2xl font-bold text-white">at</div>
+
+          <div class="item">
+            <div class="value font-bold text-4xl text-primary-300">
+              {devices[DataType.TargetCadence].value}<span class="text-2xl"
+                >rpm</span
+              >
+            </div>
           </div>
-        </div>
+        {/if}
       </div>
 
-      <div class="row flex m-0 space-x-6 justify-center">
-        <div class="item">
-          <div class="value font-bold text-4xl flex text-white">
-            {devices[DataType.HeartRate].value}
-            <div class="icon h-5 w-5 mt-3 ml-2">
-              <HeartIcon />
+      <div class="column pt-2 pb-4 px-6">
+        <div class="row item text-center">
+          <div
+            class="value font-bold text-9xl flex w-full justify-center text-white"
+          >
+            {devices[DataType.Power].value}
+            <div class="icon w-10 mt-11 ml-2">
+              <LightningIcon />
             </div>
           </div>
         </div>
 
-        <div class="item">
-          <div class="value font-bold text-4xl flex text-white">
-            {devices[DataType.Cadence].value}
-            <div class="icon h-5 w-5 mt-3 ml-1">
-              <CadenceIcon />
+        <div class="row flex m-0 space-x-6 justify-center">
+          <div class="item">
+            <div class="value font-bold text-4xl flex text-white">
+              {devices[DataType.HeartRate].value}
+              <div class="icon h-5 w-5 mt-3 ml-2">
+                <HeartIcon />
+              </div>
+            </div>
+          </div>
+
+          <div class="item">
+            <div class="value font-bold text-4xl flex text-white">
+              {devices[DataType.Cadence].value}
+              <div class="icon h-5 w-5 mt-3 ml-1">
+                <CadenceIcon />
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
-    <div class="column py-4 px-6 flex flex-col justify-between text-center">
-      <div class="item text-white">
-        <div class="text-xl font-bold">Elapsed</div>
-        <div class="value font-bold text-4xl">
-          {devices[DataType.ElapsedTime].value}
+      <div class="column py-4 px-6 flex flex-col justify-between text-center">
+        <div class="item text-white">
+          <div class="text-xl font-bold">Elapsed</div>
+          <div class="value font-bold text-4xl">
+            {devices[DataType.ElapsedTime].value}
+          </div>
         </div>
-      </div>
-      <div class="item text-white">
-        <div class="text-xl font-bold">Interval</div>
-        <div class="value font-bold text-4xl">
-          {devices[DataType.IntervalTime].value}
+        <div class="item text-white">
+          <div class="text-xl font-bold">Interval</div>
+          <div class="value font-bold text-4xl">
+            {devices[DataType.IntervalTime].value}
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="basis-1/6">
+  <div class="basis-3/12">
     <!-- TODO: Add other data here. -->
   </div>
 

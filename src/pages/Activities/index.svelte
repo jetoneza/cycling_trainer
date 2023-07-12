@@ -21,6 +21,8 @@ let selectedActivity: Activity
 onMount(async () => {
   activities = await invoke('get_activities')
 
+  console.log(activities)
+
   selectedActivity = activities[0]
 })
 
@@ -28,7 +30,13 @@ const handleSelectActivity = (activity: Activity) =>
   (selectedActivity = activity)
 
 const handleStartActivity = () => {
-  activityStore.set(selectedActivity)
+  activityStore.set({
+    ...selectedActivity,
+
+    // TODO: Use dynamic fpt value
+    // TODO: Remove static ftp value
+    ftp: 200,
+  })
 
   dispatch(DispatchMessage.PageChange, {
     page: Page.Workout,

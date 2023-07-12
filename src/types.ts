@@ -47,11 +47,13 @@ export interface Activity {
   id: string
   name: string
   description: string
+  ftp: number
   workouts: Array<Workout>
 }
 
-interface Workout {
+export interface Workout {
   workoutType: WorkoutType
+  status: WorkoutStatus
   duration: number
   cadence: number
   powerLow: number
@@ -59,8 +61,13 @@ interface Workout {
   powerSteady: number
 }
 
-enum WorkoutType {
-  Warmup = 'warmup',
-  SteadyState = 'steady_state',
-  Cooldown = 'cooldown',
+export enum WorkoutType {
+  Warmup = 'Warmup',
+  SteadyState = 'SteadyState',
+  Cooldown = 'Cooldown',
+}
+
+export enum WorkoutStatus {
+  Active = 'active',
+  Done = 'done',
 }

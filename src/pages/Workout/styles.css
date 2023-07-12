@@ -1,0 +1,6 @@
+
+.list-wrapper {
+  li.workout.active {
+    @apply text-primary-400;
+  }
+}
