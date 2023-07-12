@@ -1,3 +1,7 @@
+.activities-list {
+  max-height: 90vh;
+}
+
 .activity-item {
   &:hover, &.selected {
     @apply bg-primary-100 text-primary-400;

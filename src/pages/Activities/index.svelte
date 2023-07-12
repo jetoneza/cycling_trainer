@@ -25,7 +25,7 @@ const handleSelectActivity = (activity: Activity) =>
   (selectedActivity = activity)
 </script>
 
-<div class="activities flex">
+<div class="activities flex mt-4">
   <ActivityComponent selectedActivity="{selectedActivity}" />
   <List
     activities="{activities}"

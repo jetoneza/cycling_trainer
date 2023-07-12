@@ -20,7 +20,7 @@ const getDuration = (activity: Activity) => {
 }
 </script>
 
-<div class="list flex-1 p-6 space-y-2">
+<div class="activities-list scrollable flex-1 p-6 space-y-2">
   {#each activities as activity}
     <button
       class="{selectedActivity.id === activity.id
