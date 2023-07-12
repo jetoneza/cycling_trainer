@@ -11,6 +11,7 @@ import { DispatchMessage, type Activity, Page } from '../../types'
 
 // Styles
 import './styles.css'
+import { activityStore } from '../../stores/activities'
 
 const dispatch = createEventDispatcher()
 
@@ -27,7 +28,7 @@ const handleSelectActivity = (activity: Activity) =>
   (selectedActivity = activity)
 
 const handleStartActivity = () => {
-  console.log('Staring Activity: ', selectedActivity.id)
+  activityStore.set(selectedActivity)
 
   dispatch(DispatchMessage.PageChange, {
     page: Page.Workout,
