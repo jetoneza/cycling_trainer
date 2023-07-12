@@ -8,6 +8,7 @@ import bootstrap from './bootstrap'
 import Devices from './pages/Devices/index.svelte'
 import Main from './pages/Main/index.svelte'
 import Activities from './pages/Activities/index.svelte'
+import Workout from './pages/Workout/index.svelte'
 import Navigation from './components/Navigation/index.svelte'
 
 // Enums
@@ -19,6 +20,7 @@ const pages = {
   [Page.Main]: Main,
   [Page.Activities]: Activities,
   [Page.Devices]: Devices,
+  [Page.Workout]: Workout,
 }
 
 let page = Page.Main
@@ -37,5 +39,8 @@ const handlePageChange = (event: BasicObject) => (page = event.detail.page)
     <Navigation page="{page}" on:pagechange="{handlePageChange}" />
   {/if}
 
-  <svelte:component this="{getActivePage()}" />
+  <svelte:component
+    this="{getActivePage()}"
+    on:pagechange="{handlePageChange}"
+  />
 </main>

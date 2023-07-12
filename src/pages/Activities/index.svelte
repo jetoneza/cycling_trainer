@@ -1,5 +1,5 @@
 <script lang="ts">
-import { onMount } from 'svelte'
+import { onMount, createEventDispatcher } from 'svelte'
 import { invoke } from '@tauri-apps/api/tauri'
 
 // Components
@@ -7,10 +7,12 @@ import List from './components/List.svelte'
 import ActivityComponent from './components/Activity.svelte'
 
 // Types
-import type { Activity } from '../../types'
+import { DispatchMessage, type Activity, Page } from '../../types'
 
 // Styles
 import './styles.css'
+
+const dispatch = createEventDispatcher()
 
 let activities: Array<Activity> = []
 let selectedActivity: Activity
@@ -23,10 +25,21 @@ onMount(async () => {
 
 const handleSelectActivity = (activity: Activity) =>
   (selectedActivity = activity)
+
+const handleStartActivity = () => {
+  console.log('Staring Activity: ', selectedActivity.id)
+
+  dispatch(DispatchMessage.PageChange, {
+    page: Page.Workout,
+  })
+}
 </script>
 
 <div class="activities flex mt-4">
-  <ActivityComponent selectedActivity="{selectedActivity}" />
+  <ActivityComponent
+    selectedActivity="{selectedActivity}"
+    handleStartActivity="{handleStartActivity}"
+  />
   <List
     activities="{activities}"
     selectedActivity="{selectedActivity}"
