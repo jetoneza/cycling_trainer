@@ -20,6 +20,7 @@ pub struct Activity {
 }
 
 #[derive(Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Workout {
     pub workout_type: WorkoutType,
     pub duration: u16,
