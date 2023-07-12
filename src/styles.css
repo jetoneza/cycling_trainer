@@ -10,7 +10,7 @@
 
 .btn {
   @apply bg-primary-400  px-4 py-2 rounded-md;
-  @apply text-white text-sm font-bold;
+  @apply text-white font-bold;
 
   &:hover {
     @apply bg-primary-500;
