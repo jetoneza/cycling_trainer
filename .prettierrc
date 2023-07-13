@@ -1,7 +1,12 @@
 {
+  "plugins": [
+    "prettier-plugin-svelte",
+    "prettier-plugin-tailwindcss"
+  ],
+  "pluginSearchDirs": false,
   "svelteSortOrder" : "options-styles-scripts-markup",
   "svelteStrictMode": true,
-  "svelteAllowShorthand": false,
+  "svelteAllowShorthand": true,
   "svelteIndentScriptAndStyle": false,
   "trailingComma": "es5",
   "tabWidth": 2,

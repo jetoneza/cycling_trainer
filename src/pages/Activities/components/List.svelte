@@ -15,18 +15,18 @@ export let selectedActivity: Activity
 export let handleSelectActivity: (activity: Activity) => {}
 </script>
 
-<div class="activities-list scrollable flex-1 p-6 space-y-2">
+<div class="activities-list scrollable flex-1 space-y-2 p-6">
   {#each activities as activity}
     <button
       class="{selectedActivity.id === activity.id
         ? 'selected'
-        : ''} activity-item relative flex flex-col py-4 px-6 w-full border rounded-lg"
+        : ''} activity-item relative flex w-full flex-col rounded-lg border px-6 py-4"
       on:click="{() => handleSelectActivity(activity)}"
     >
       <span class="font-bold">{activity.name}</span>
       <span class="text-sm">{activity.description}</span>
-      <span class="absolute right-6 top-4 flex font-bold text-sm">
-        <div class="icon w-5 h-5 mr-2">
+      <span class="absolute right-6 top-4 flex text-sm font-bold">
+        <div class="icon mr-2 h-5 w-5">
           <ClockIcon />
         </div>
         {convertSecondsToMinutes(getActivityDuration(activity)).formatted} mins

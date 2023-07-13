@@ -44,7 +44,7 @@ const handleStartActivity = () => {
 }
 </script>
 
-<div class="activities flex mt-4">
+<div class="activities mt-4 flex">
   <ActivityComponent
     selectedActivity="{selectedActivity}"
     handleStartActivity="{handleStartActivity}"

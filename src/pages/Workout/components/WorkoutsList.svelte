@@ -39,14 +39,14 @@ const getTimeRemaining = () => {
 
 <div class="workouts-list">
   {#if activity.workouts && activity.workouts.length > 0}
-    <ul class="list-wrapper border border-primary-100 rounded-lg divide-y">
+    <ul class="list-wrapper divide-y rounded-lg border border-primary-100">
       <li
-        class="workout font-bold text-right py-2 px-4 text-primary-400 border border-primary-100 bg-primary-100 rounded-t-lg"
+        class="workout rounded-t-lg border border-primary-100 bg-primary-100 px-4 py-2 text-right font-bold text-primary-400"
       >
         Time remaining: {getTimeRemaining()}
       </li>
       {#each activity.workouts as workout}
-        <li class="workout text-right py-1 px-4 {workout.status || ''}">
+        <li class="workout px-4 py-1 text-right {workout.status || ''}">
           {format(workout)}
         </li>
       {/each}

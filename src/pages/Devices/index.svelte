@@ -136,9 +136,9 @@ async function cleanStates() {
 </script>
 
 <div class="devices-page p-10">
-  <div class="page-title text-2xl font-bold text-center">Devices</div>
+  <div class="page-title text-center text-2xl font-bold">Devices</div>
 
-  <div class="devices-list flex space-x-6 justify-center m-10">
+  <div class="devices-list m-10 flex justify-center space-x-6">
     <DeviceCard
       device="{$devicesStore[DeviceType.HeartRate]}"
       handleAction="{handleAction}"

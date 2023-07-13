@@ -76,18 +76,18 @@ devicesStore.subscribe((map) => {
 activityStore.subscribe((value) => (activity = value))
 </script>
 
-<div class="workout-page flex py-4 justify-between">
+<div class="workout-page flex justify-between py-4">
   <div class="basis-3/12">
     <WorkoutsList activity="{activity}" />
   </div>
 
   <div class="main-data">
-    <div class="data-view flex space-x-4 bg-secondary-200 rounded-lg">
-      <div class="column flex flex-col justify-between text-center py-4 px-6">
+    <div class="data-view flex space-x-4 rounded-lg bg-secondary-200">
+      <div class="column flex flex-col justify-between px-6 py-4 text-center">
         <div class="text-2xl font-bold text-white">Target</div>
 
         <div class="item">
-          <div class="value font-bold text-4xl text-primary-300">
+          <div class="value text-4xl font-bold text-primary-300">
             {devices[DataType.TargetPower].value}<span class="text-2xl">w</span>
           </div>
         </div>
@@ -96,7 +96,7 @@ activityStore.subscribe((value) => (activity = value))
           <div class="text-2xl font-bold text-white">at</div>
 
           <div class="item">
-            <div class="value font-bold text-4xl text-primary-300">
+            <div class="value text-4xl font-bold text-primary-300">
               {devices[DataType.TargetCadence].value}<span class="text-2xl"
                 >rpm</span
               >
@@ -105,32 +105,32 @@ activityStore.subscribe((value) => (activity = value))
         {/if}
       </div>
 
-      <div class="column pt-2 pb-4 px-6">
+      <div class="column px-6 pb-4 pt-2">
         <div class="row item text-center">
           <div
-            class="value font-bold text-9xl flex w-full justify-center text-white"
+            class="value flex w-full justify-center text-9xl font-bold text-white"
           >
             {devices[DataType.Power].value}
-            <div class="icon w-10 mt-11 ml-2">
+            <div class="icon ml-2 mt-11 w-10">
               <LightningIcon />
             </div>
           </div>
         </div>
 
-        <div class="row flex m-0 space-x-6 justify-center">
+        <div class="row m-0 flex justify-center space-x-6">
           <div class="item">
-            <div class="value font-bold text-4xl flex text-white">
+            <div class="value flex text-4xl font-bold text-white">
               {devices[DataType.HeartRate].value}
-              <div class="icon h-5 w-5 mt-3 ml-2">
+              <div class="icon ml-2 mt-3 h-5 w-5">
                 <HeartIcon />
               </div>
             </div>
           </div>
 
           <div class="item">
-            <div class="value font-bold text-4xl flex text-white">
+            <div class="value flex text-4xl font-bold text-white">
               {devices[DataType.Cadence].value}
-              <div class="icon h-5 w-5 mt-3 ml-1">
+              <div class="icon ml-1 mt-3 h-5 w-5">
                 <CadenceIcon />
               </div>
             </div>
@@ -138,16 +138,16 @@ activityStore.subscribe((value) => (activity = value))
         </div>
       </div>
 
-      <div class="column py-4 px-6 flex flex-col justify-between text-center">
+      <div class="column flex flex-col justify-between px-6 py-4 text-center">
         <div class="item text-white">
           <div class="text-xl font-bold">Elapsed</div>
-          <div class="value font-bold text-4xl">
+          <div class="value text-4xl font-bold">
             {devices[DataType.ElapsedTime].value}
           </div>
         </div>
         <div class="item text-white">
           <div class="text-xl font-bold">Interval</div>
-          <div class="value font-bold text-4xl">
+          <div class="value text-4xl font-bold">
             {devices[DataType.IntervalTime].value}
           </div>
         </div>
@@ -159,21 +159,21 @@ activityStore.subscribe((value) => (activity = value))
     <!-- TODO: Add other data here. -->
   </div>
 
-  <div class="absolute speed bottom-12 right-12 text-right">
-    <div class="bg-secondary-200 rounded-lg px-4 py-2">
-      <div class="font-bold text-white flex space-x-1 justify-end">
+  <div class="speed absolute bottom-12 right-12 text-right">
+    <div class="rounded-lg bg-secondary-200 px-4 py-2">
+      <div class="flex justify-end space-x-1 font-bold text-white">
         <div class="text-6xl">
           {devices[DataType.Speed].value}
         </div>
         <div class="flex flex-col">
-          <div class="icon w-10 h-10">
+          <div class="icon h-10 w-10">
             <SpeedIcon />
           </div>
           <span class="text-md m-0 w-full text-center">kph</span>
         </div>
       </div>
       <div class="text-lg font-bold text-primary-300">
-        {devices[DataType.Distance].value}<span class="text-lg ml-1"
+        {devices[DataType.Distance].value}<span class="ml-1 text-lg"
           >km dist</span
         >
       </div>

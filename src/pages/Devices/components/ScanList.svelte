@@ -11,7 +11,7 @@ export let handleCloseScan: () => {}
 </script>
 
 <div class="scanned-devices-list overflow-hidden" use:clickOutside>
-  <div class="animate-pulse title">Scanning</div>
+  <div class="title animate-pulse">Scanning</div>
   <div class="list-container">
     {#each scannedDevices as device}
       <button
@@ -20,7 +20,7 @@ export let handleCloseScan: () => {}
       >
         {device.name}
         {#if device.isConnecting}
-          <div class="text-sm text-secondary-100 animate-pulse">
+          <div class="animate-pulse text-sm text-secondary-100">
             Connecting...
           </div>
         {/if}
