@@ -14,6 +14,7 @@ import WorkoutsList from './components/WorkoutsList.svelte'
 
 // Types
 import { DataType, DeviceType, type Activity } from '../../types'
+import { convertSecondsToMinutes } from '../../utils/time'
 
 const WORKOUT_START_INDEX = 0
 
@@ -23,7 +24,7 @@ let activeWorkoutIndex = WORKOUT_START_INDEX
 const { elapsedTime, intervalTime, getStatus, start, stop, resetInterval } =
   useTimer()
 
-let devices = {
+$: devices = {
   [DataType.Distance]: {
     value: 0,
     unit: 'km',
@@ -53,11 +54,11 @@ let devices = {
     unit: 'rpm',
   },
   [DataType.IntervalTime]: {
-    value: '05:34',
+    value: getIntervalTime(),
     unit: '',
   },
   [DataType.ElapsedTime]: {
-    value: '45:31',
+    value: convertSecondsToMinutes($elapsedTime).formatted,
     unit: '',
   },
 }
@@ -104,6 +105,22 @@ intervalTime.subscribe((time) => {
 
   resetInterval()
 })
+
+const getIntervalTime = (): string => {
+  if (!activity) {
+    return '--'
+  }
+
+  let activeWorkout = activity.workouts[activeWorkoutIndex]
+
+  if (!activeWorkout) {
+    return '--'
+  }
+
+  const timeRemaining = activeWorkout.duration - $intervalTime
+
+  return convertSecondsToMinutes(timeRemaining).formatted
+}
 
 const handleStartWorkout = () => {
   const status = getStatus()

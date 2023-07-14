@@ -17,9 +17,9 @@ export let activeWorkoutIndex: number
 
 $: activeWorkout = activity && activity.workouts[activeWorkoutIndex]
 
-$: format = (workout: Workout) => {
+const format = (workout: Workout) => {
   const { workoutType, powerSteady, cadence } = workout
-  const { formatted } = convertSecondsToMinutes(workout.duration - $intervalTime)
+  const { formatted } = convertSecondsToMinutes(workout.duration)
 
   if (
     workoutType === WorkoutType.Warmup ||
