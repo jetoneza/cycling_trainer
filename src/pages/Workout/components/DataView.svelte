@@ -21,7 +21,7 @@ export let devices: BasicObject
       </div>
     </div>
 
-    {#if !!devices[DataType.TargetCadence]}
+    {#if !!devices[DataType.TargetCadence] && devices[DataType.TargetCadence].value > 0}
       <div class="text-2xl font-bold text-white">at</div>
 
       <div class="item">

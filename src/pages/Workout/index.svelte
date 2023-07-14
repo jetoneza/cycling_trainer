@@ -51,7 +51,7 @@ $: devices = {
     unit: 'rpm',
   },
   [DataType.TargetCadence]: {
-    value: 0,
+    value: getTargetCadence(),
     unit: 'rpm',
   },
   [DataType.IntervalTime]: {
@@ -143,6 +143,22 @@ const getTargetPower = () => {
   }
 
   return calculateRangePower(ftp, powerLow, powerHigh, duration, $intervalTime)
+}
+
+const getTargetCadence = () => {
+  if (!activity) {
+    return 0
+  }
+
+  const { workouts } = activity
+
+  const workout = workouts[activeWorkoutIndex]
+
+  if (!workout) {
+    return 0
+  }
+
+  return workout.cadence || 0
 }
 
 const handleStartWorkout = () => {
