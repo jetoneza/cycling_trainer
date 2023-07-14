@@ -1,6 +1,7 @@
+.progress-wrapper {
+  line-height: 8px;
 
-.list-wrapper {
-  li.workout.active {
-    @apply text-primary-400;
+  .progress {
+    z-index: -1;
   }
 }

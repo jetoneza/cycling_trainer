@@ -78,7 +78,7 @@ activityStore.subscribe((value) => (activity = value))
 
 <div class="workout-page flex justify-between py-4">
   <div class="basis-3/12">
-    <WorkoutsList activity="{activity}" />
+    <!-- TODO: Add other data here. -->
   </div>
 
   <div class="main-data">
@@ -86,7 +86,7 @@ activityStore.subscribe((value) => (activity = value))
   </div>
 
   <div class="basis-3/12">
-    <!-- TODO: Add other data here. -->
+    <WorkoutsList activity="{activity}" />
   </div>
 
   <Speed devices="{devices}" />
