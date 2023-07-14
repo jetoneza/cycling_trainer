@@ -1,9 +1,8 @@
 <script lang="ts">
-import { DataType, DeviceType, type Activity } from '../../types'
-
 // Stores
 import { devicesStore } from '../../stores/devices'
 import { activityStore } from '../../stores/activities'
+import { TimerStatus, useTimer } from '../../stores/useTimer'
 
 // Styles
 import './styles.css'
@@ -12,6 +11,17 @@ import './styles.css'
 import DataView from './components/DataView.svelte'
 import Speed from './components/Speed.svelte'
 import WorkoutsList from './components/WorkoutsList.svelte'
+
+// Types
+import { DataType, DeviceType, type Activity } from '../../types'
+
+const WORKOUT_START_INDEX = 0
+
+let activity: Activity
+let activeWorkoutIndex = WORKOUT_START_INDEX
+
+const { elapsedTime, intervalTime, getStatus, start, stop, resetInterval } =
+  useTimer()
 
 let devices = {
   [DataType.Distance]: {
@@ -52,8 +62,6 @@ let devices = {
   },
 }
 
-let activity: Activity
-
 devicesStore.subscribe((map) => {
   const hrm = map[DeviceType.HeartRate]
   const smartTrainer = map[DeviceType.SmartTrainer]
@@ -74,6 +82,40 @@ devicesStore.subscribe((map) => {
 })
 
 activityStore.subscribe((value) => (activity = value))
+
+intervalTime.subscribe((time) => {
+  if (!activity) {
+    return
+  }
+
+  let activeWorkout = activity.workouts[activeWorkoutIndex]
+
+  if (time != activeWorkout.duration) {
+    return
+  }
+
+  if (activeWorkoutIndex == activity.workouts.length - 1) {
+    stop()
+
+    return
+  }
+
+  activeWorkoutIndex++
+
+  resetInterval()
+})
+
+const handleStartWorkout = () => {
+  const status = getStatus()
+
+  if (status !== TimerStatus.Stopped) {
+    return
+  }
+
+  activeWorkoutIndex = WORKOUT_START_INDEX
+
+  start()
+}
 </script>
 
 <div class="workout-page flex justify-between py-4">
@@ -86,8 +128,19 @@ activityStore.subscribe((value) => (activity = value))
   </div>
 
   <div class="basis-3/12">
-    <WorkoutsList activity="{activity}" />
+    <WorkoutsList
+      activity="{activity}"
+      elapsedTime="{elapsedTime}"
+      intervalTime="{intervalTime}"
+      activeWorkoutIndex="{activeWorkoutIndex}"
+    />
   </div>
 
   <Speed devices="{devices}" />
+
+  <button
+    on:click="{handleStartWorkout}"
+    class="absolute bottom-8 left-8 rounded-lg border border-primary-400 bg-primary-400 p-4 font-bold text-white"
+    >Start {$elapsedTime}</button
+  >
 </div>

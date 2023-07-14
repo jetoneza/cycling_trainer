@@ -21,8 +21,6 @@ let selectedActivity: Activity
 onMount(async () => {
   activities = await invoke('get_activities')
 
-  console.log(activities)
-
   selectedActivity = activities[0]
 })
 

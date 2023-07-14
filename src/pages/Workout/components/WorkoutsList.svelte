@@ -1,4 +1,6 @@
 <script lang="ts">
+import type { Writable } from 'svelte/store'
+
 // Types
 import { WorkoutType, type Activity, type Workout } from '../../../types'
 
@@ -9,12 +11,15 @@ import {
 } from '../../../utils/time'
 
 export let activity: Activity
+export let elapsedTime: Writable<number>
+export let intervalTime: Writable<number>
+export let activeWorkoutIndex: number
 
-let activeWorkout = activity && activity.workouts[4]
+$: activeWorkout = activity && activity.workouts[activeWorkoutIndex]
 
-const format = (workout: Workout) => {
+$: format = (workout: Workout) => {
   const { workoutType, powerSteady, cadence } = workout
-  const { formatted } = convertSecondsToMinutes(workout.duration)
+  const { formatted } = convertSecondsToMinutes(workout.duration - $intervalTime)
 
   if (
     workoutType === WorkoutType.Warmup ||
@@ -28,26 +33,23 @@ const format = (workout: Workout) => {
   return `${power}w ${!!cadence ? `@ ${cadence}rpm` : ''} for ${formatted}`
 }
 
-const getTimeRemaining = () => {
+$: getTimeRemaining = () => {
   const activityDuration = getActivityDuration(activity)
 
-  // TODO: Calculate time remaining
+  const timeRemaining = activityDuration - $elapsedTime
 
-  const { formatted } = convertSecondsToMinutes(activityDuration)
+  const { formatted } = convertSecondsToMinutes(timeRemaining)
 
   return `${formatted}`
 }
 
-const getWorkoutCompletion = () => {
-  // TODO: Implement workout completion
-
-  return 60
-}
+$: getWorkoutCompletion = () =>
+  Math.floor(($intervalTime / activeWorkout.duration) * 100)
 </script>
 
 <div class="workouts-list">
   <div class="flex flex-col px-4 py-2 text-right text-secondary-200">
-    <span class="font-bold">Workout 1/{activity.workouts.length}</span>
+    <span class="font-bold">Workout {activeWorkoutIndex + 1}/{activity.workouts.length}</span>
     <span class="text-xs">{getTimeRemaining()} remaining</span>
   </div>
   {#if !!activeWorkout}
