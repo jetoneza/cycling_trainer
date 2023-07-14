@@ -13,8 +13,9 @@ import Speed from './components/Speed.svelte'
 import WorkoutsList from './components/WorkoutsList.svelte'
 
 // Types
-import { DataType, DeviceType, type Activity } from '../../types'
+import { DataType, DeviceType, type Activity, WorkoutType } from '../../types'
 import { convertSecondsToMinutes } from '../../utils/time'
+import { calculateRangePower } from './utils/data'
 
 const WORKOUT_START_INDEX = 0
 
@@ -42,7 +43,7 @@ $: devices = {
     unit: 'watt',
   },
   [DataType.TargetPower]: {
-    value: 0,
+    value: getTargetPower(),
     unit: 'watt',
   },
   [DataType.Cadence]: {
@@ -120,6 +121,28 @@ const getIntervalTime = (): string => {
   const timeRemaining = activeWorkout.duration - $intervalTime
 
   return convertSecondsToMinutes(timeRemaining).formatted
+}
+
+const getTargetPower = () => {
+  if (!activity) {
+    return 0
+  }
+
+  const { ftp, workouts } = activity
+
+  const workout = workouts[activeWorkoutIndex]
+
+  if (!workout) {
+    return 0
+  }
+
+  const { workoutType, powerSteady, powerLow, powerHigh, duration } = workout
+
+  if (workoutType === WorkoutType.SteadyState) {
+    return Math.floor(powerSteady * ftp)
+  }
+
+  return calculateRangePower(ftp, powerLow, powerHigh, duration, $intervalTime)
 }
 
 const handleStartWorkout = () => {
