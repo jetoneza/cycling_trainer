@@ -1,4 +1,4 @@
-use btleplug::api::{Central, Peripheral as _, ScanFilter};
+use btleplug::api::{Central, Peripheral as _, ScanFilter, WriteType};
 use btleplug::platform::{Adapter, Manager, Peripheral};
 use log::{info, warn};
 use std::fmt;
@@ -8,12 +8,14 @@ use crate::error::error_generic;
 use crate::prelude::*;
 
 use super::constants::{
-    CYCLING_POWER_SERVICE_UUID, FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_MEASUREMENT_UUID,
-    HEART_RATE_SERVICE_UUID, INDOOR_BIKE_DATA_UUID, SPEED_CADENCE_SERVICE_UUID,
+    CYCLING_POWER_SERVICE_UUID, FITNESS_MACHINE_CONTROL_POINT_UUID, FITNESS_MACHINE_SERVICE_UUID,
+    FTMS_CONTROL_REQUEST_CONTROL_OP_CODE, HEART_RATE_MEASUREMENT_UUID, HEART_RATE_SERVICE_UUID,
+    INDOOR_BIKE_DATA_UUID, SPEED_CADENCE_SERVICE_UUID,
 };
 use super::event_handlers::{
     handle_characteristic_subscription, handle_cycling_device_notifications,
-    handle_heart_rate_notifications, listen_to_events, CharacteristicAction,
+    handle_heart_rate_notifications, listen_to_events, write_to_characteristic,
+    CharacteristicAction,
 };
 use super::utils::{get_central, get_device_type, get_manager};
 
@@ -199,6 +201,8 @@ impl Bluetooth {
                 tokio::spawn(handle_heart_rate_notifications());
             }
             DeviceType::SmartTrainer => {
+                // TODO: Check if the machine supports the supported features needed
+
                 handle_characteristic_subscription(
                     INDOOR_BIKE_DATA_UUID,
                     &peripheral,
@@ -209,8 +213,13 @@ impl Bluetooth {
                 // TODO: Add support for separate device. e.g. cycling power + speed and cadence
                 // TODO: If indoor bike data is unavailable, use cycling power, speed and cadence
 
-                // TODO: Subcribe to Fitness Machine Control indication?
-                // TODO: Request control to Fitness Machine Control
+                write_to_characteristic(
+                    FITNESS_MACHINE_CONTROL_POINT_UUID,
+                    &peripheral,
+                    &[FTMS_CONTROL_REQUEST_CONTROL_OP_CODE],
+                    WriteType::WithoutResponse,
+                )
+                .await?;
 
                 // TODO: Setup user control for Wahoo (custom characteristic), e.g. setting of weight
 

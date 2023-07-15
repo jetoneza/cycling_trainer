@@ -1,7 +1,7 @@
 use crate::error::error_generic;
 use crate::prelude::*;
 
-use btleplug::api::{Central, CentralEvent, Peripheral as _};
+use btleplug::api::{Central, CentralEvent, Peripheral as _, WriteType};
 use btleplug::platform::Peripheral;
 use futures::{Stream, StreamExt};
 use log::{error, info};
@@ -224,6 +224,28 @@ pub async fn handle_characteristic_subscription(
           return Err(error_generic(message.as_str()));
         };
     }
+
+    Ok(())
+}
+
+pub async fn write_to_characteristic(
+    uuid: Uuid,
+    peripheral: &Peripheral,
+    data: &[u8],
+    write_type: WriteType,
+) -> Result<()> {
+    let characteristics = peripheral.characteristics();
+    let Some(characteristic) = characteristics.iter().find(|c| c.uuid == uuid) else {
+        let message = format!("{}::write_to_characterisic: Unable to find characteristic", LOGGER_NAME);
+        return Err(error_generic(message.as_str()))
+    };
+
+    let Ok(_) = peripheral
+        .write(&characteristic, data, write_type)
+        .await else {
+            let message = format!("{}::write_to_characterisic: Unable to write to characteristic", LOGGER_NAME);
+            return Err(error_generic(message.as_str()));
+        };
 
     Ok(())
 }
