@@ -21,6 +21,7 @@ export let devices: BasicObject
       </div>
     </div>
 
+    <!-- TODO: Fix UI if cadence is not visible -->
     {#if !!devices[DataType.TargetCadence] && devices[DataType.TargetCadence].value > 0}
       <div class="text-2xl font-bold text-white">at</div>
 

@@ -31,7 +31,7 @@ const { elapsedTime, intervalTime, getStatus, start, stop, resetInterval } =
 
 $: workoutData = getWorkoutData(activity, activeWorkoutIndex, $intervalTime)
 
-$: devices = {
+let devices = {
   [DataType.Distance]: {
     value: 0,
     unit: 'km',
@@ -49,7 +49,7 @@ $: devices = {
     unit: 'watt',
   },
   [DataType.TargetPower]: {
-    value: workoutData.power,
+    value: 0,
     unit: 'watt',
   },
   [DataType.Cadence]: {
@@ -57,15 +57,15 @@ $: devices = {
     unit: 'rpm',
   },
   [DataType.TargetCadence]: {
-    value: workoutData.cadence,
+    value: 0,
     unit: 'rpm',
   },
   [DataType.IntervalTime]: {
-    value: getIntervalTime(),
+    value: '--',
     unit: '',
   },
   [DataType.ElapsedTime]: {
-    value: convertSecondsToMinutes($elapsedTime).formatted,
+    value: '--',
     unit: '',
   },
 }
@@ -73,6 +73,10 @@ $: devices = {
 devicesStore.subscribe((map) => {
   const hrm = map[DeviceType.HeartRate]
   const smartTrainer = map[DeviceType.SmartTrainer]
+
+  if (!devices) {
+    return
+  }
 
   if (hrm && hrm.bleDevice) {
     const { bpm, is_sensor_in_contact } = hrm.bleDevice.data
@@ -92,9 +96,11 @@ devicesStore.subscribe((map) => {
 activityStore.subscribe((value) => (activity = value))
 
 intervalTime.subscribe(async (time) => {
-  if (!activity) {
+  if (!activity || !workoutData) {
     return
   }
+
+  setTimes()
 
   const activeWorkout = activity.workouts[activeWorkoutIndex]
 
@@ -126,20 +132,23 @@ intervalTime.subscribe(async (time) => {
   await executeWorkout()
 })
 
-const getIntervalTime = (): string => {
+const setTimes = () => {
   if (!activity) {
-    return '--'
+    return
   }
 
   const activeWorkout = activity.workouts[activeWorkoutIndex]
 
   if (!activeWorkout) {
-    return '--'
+    return
   }
 
   const timeRemaining = activeWorkout.duration - $intervalTime
 
-  return convertSecondsToMinutes(timeRemaining).formatted
+  devices[DataType.IntervalTime].value =
+    convertSecondsToMinutes(timeRemaining).formatted
+  devices[DataType.ElapsedTime].value =
+    convertSecondsToMinutes($elapsedTime).formatted
 }
 
 const handleStartWorkout = async () => {
@@ -165,6 +174,9 @@ const executeWorkout = async () => {
 
   // Track change of power for warmup/cooldown
   currentPower = power
+
+  devices[DataType.TargetPower].value = power
+  devices[DataType.TargetCadence].value = cadence
 
   await invoke('execute_workout', {
     cadence,
