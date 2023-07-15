@@ -33,7 +33,6 @@ impl fmt::Display for CharacteristicAction {
     }
 }
 
-#[derive(Debug)]
 pub enum Characteristic {
     CyclingPowerMeasurement,
     HeartRateMeasurement,

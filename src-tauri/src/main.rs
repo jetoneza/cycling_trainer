@@ -110,6 +110,14 @@ async fn get_activities() -> Result<Vec<Activity>> {
 
 #[tauri::command(async)]
 async fn execute_workout(power: usize, cadence: usize) -> Result<()> {
+    let bluetooth_guard = &BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        warn!("main::execute_workout: Bluetooth not found.");
+        return Ok(());
+    };
+
+    bt.set_target_power(power).await?;
+
     Ok(())
 }
 
