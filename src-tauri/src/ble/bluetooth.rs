@@ -202,6 +202,8 @@ impl Bluetooth {
             }
             DeviceType::SmartTrainer => {
                 // TODO: Check if the machine supports the supported features needed
+                // TODO: Add support for separate device. e.g. cycling power + speed and cadence
+                // TODO: If indoor bike data is unavailable, use cycling power, speed and cadence
 
                 handle_characteristic_subscription(
                     INDOOR_BIKE_DATA_UUID,
@@ -210,14 +212,18 @@ impl Bluetooth {
                 )
                 .await?;
 
-                // TODO: Add support for separate device. e.g. cycling power + speed and cadence
-                // TODO: If indoor bike data is unavailable, use cycling power, speed and cadence
+                handle_characteristic_subscription(
+                    FITNESS_MACHINE_CONTROL_POINT_UUID,
+                    &peripheral,
+                    CharacteristicAction::Subscribe,
+                )
+                .await?;
 
                 write_to_characteristic(
                     FITNESS_MACHINE_CONTROL_POINT_UUID,
                     &peripheral,
                     &[FTMS_CONTROL_REQUEST_CONTROL_OP_CODE],
-                    WriteType::WithoutResponse,
+                    WriteType::WithResponse,
                 )
                 .await?;
 
@@ -260,6 +266,13 @@ impl Bluetooth {
 
                 handle_characteristic_subscription(
                     INDOOR_BIKE_DATA_UUID,
+                    &cycling_device,
+                    CharacteristicAction::Unsubscribe,
+                )
+                .await?;
+
+                handle_characteristic_subscription(
+                    FITNESS_MACHINE_CONTROL_POINT_UUID,
                     &cycling_device,
                     CharacteristicAction::Unsubscribe,
                 )

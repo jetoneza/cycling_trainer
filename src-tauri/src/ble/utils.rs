@@ -6,7 +6,7 @@ use uuid::Uuid;
 use super::bluetooth::DeviceType;
 use super::constants::{
     CYCLING_POWER_MEASUREMENT_UUID, FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_MEASUREMENT_UUID,
-    HEART_RATE_SERVICE_UUID, INDOOR_BIKE_DATA_UUID,
+    HEART_RATE_SERVICE_UUID, INDOOR_BIKE_DATA_UUID, FITNESS_MACHINE_CONTROL_POINT_UUID,
 };
 use super::event_handlers::Characteristic;
 
@@ -55,6 +55,7 @@ pub fn get_uuid_characteristic(uuid: Uuid) -> Characteristic {
         CYCLING_POWER_MEASUREMENT_UUID => Characteristic::CyclingPowerMeasurement,
         HEART_RATE_MEASUREMENT_UUID => Characteristic::HeartRateMeasurement,
         INDOOR_BIKE_DATA_UUID => Characteristic::IndoorBikeData,
+        FITNESS_MACHINE_CONTROL_POINT_UUID => Characteristic::FitnessMachineControlPoint,
         _ => Characteristic::Unknown,
     }
 }

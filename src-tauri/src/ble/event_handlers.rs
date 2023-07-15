@@ -33,10 +33,12 @@ impl fmt::Display for CharacteristicAction {
     }
 }
 
+#[derive(Debug)]
 pub enum Characteristic {
     CyclingPowerMeasurement,
     HeartRateMeasurement,
     IndoorBikeData,
+    FitnessMachineControlPoint,
     Unknown,
 }
 
@@ -185,18 +187,21 @@ pub async fn handle_cycling_device_notifications() {
 
     drop(cd_guard);
 
-    while let Some(data) = notification_stream.next().await {
-        let app_handle_guard = TAURI_APP_HANDLE.lock().await;
-        let Some(app_handle) = app_handle_guard.as_ref() else {
-            error!("{}::handle_cycling_device_notifications: Tauri app handle not found", LOGGER_NAME);
-            return;
-        };
+    let app_handle_guard = TAURI_APP_HANDLE.lock().await;
+    let Some(app_handle) = app_handle_guard.as_ref() else {
+        error!("{}::handle_cycling_device_notifications: Tauri app handle not found", LOGGER_NAME);
+        return;
+    };
 
+    while let Some(data) = notification_stream.next().await {
         match get_uuid_characteristic(data.uuid) {
             Characteristic::IndoorBikeData => {
                 let data = parse_indoor_bike_data(&data.value);
 
                 app_handle.emit_all("indoor-bike-notification", data).ok();
+            }
+            Characteristic::FitnessMachineControlPoint => {
+                // TODO: Implement FTMS Control point response
             }
             // TODO: Add support for cycling power
             _ => {}
