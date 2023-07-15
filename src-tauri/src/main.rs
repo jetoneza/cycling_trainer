@@ -108,6 +108,11 @@ async fn get_activities() -> Result<Vec<Activity>> {
     Ok(activities.clone())
 }
 
+#[tauri::command(async)]
+async fn execute_workout(power: usize, cadence: usize) -> Result<()> {
+    Ok(())
+}
+
 async fn initialize_app(app_handle: tauri::AppHandle) {
     *TAURI_APP_HANDLE.lock().await = Some(app_handle.clone());
 
@@ -141,6 +146,7 @@ fn main() {
             disconnect_device,
             get_connected_devices,
             get_activities,
+            execute_workout,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
