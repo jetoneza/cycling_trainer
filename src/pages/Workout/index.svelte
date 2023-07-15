@@ -1,11 +1,11 @@
 <script lang="ts">
+// Libraries
+import { invoke } from '@tauri-apps/api/tauri'
+
 // Stores
 import { devicesStore } from '../../stores/devices'
 import { activityStore } from '../../stores/activities'
 import { TimerStatus, useTimer } from '../../stores/useTimer'
-
-// Styles
-import './styles.css'
 
 // Components
 import DataView from './components/DataView.svelte'
@@ -13,9 +13,12 @@ import Speed from './components/Speed.svelte'
 import WorkoutsList from './components/WorkoutsList.svelte'
 
 // Types
-import { DataType, DeviceType, type Activity, WorkoutType } from '../../types'
+import { DataType, DeviceType, type Activity } from '../../types'
 import { convertSecondsToMinutes } from '../../utils/time'
-import { calculateRangePower } from '../../utils/data'
+import { getWorkoutData } from '../../utils/data'
+
+// Styles
+import './styles.css'
 
 const WORKOUT_START_INDEX = 0
 
@@ -24,6 +27,8 @@ let activeWorkoutIndex = WORKOUT_START_INDEX
 
 const { elapsedTime, intervalTime, getStatus, start, stop, resetInterval } =
   useTimer()
+
+$: workoutData = getWorkoutData(activity, activeWorkoutIndex, $intervalTime)
 
 $: devices = {
   [DataType.Distance]: {
@@ -43,7 +48,7 @@ $: devices = {
     unit: 'watt',
   },
   [DataType.TargetPower]: {
-    value: getTargetPower(),
+    value: workoutData.power,
     unit: 'watt',
   },
   [DataType.Cadence]: {
@@ -51,7 +56,7 @@ $: devices = {
     unit: 'rpm',
   },
   [DataType.TargetCadence]: {
-    value: getTargetCadence(),
+    value: workoutData.cadence,
     unit: 'rpm',
   },
   [DataType.IntervalTime]: {
@@ -85,7 +90,7 @@ devicesStore.subscribe((map) => {
 
 activityStore.subscribe((value) => (activity = value))
 
-intervalTime.subscribe((time) => {
+intervalTime.subscribe(async (time) => {
   if (!activity) {
     return
   }
@@ -105,6 +110,8 @@ intervalTime.subscribe((time) => {
   activeWorkoutIndex++
 
   resetInterval()
+
+  await executeWorkout()
 })
 
 const getIntervalTime = (): string => {
@@ -123,45 +130,7 @@ const getIntervalTime = (): string => {
   return convertSecondsToMinutes(timeRemaining).formatted
 }
 
-const getTargetPower = () => {
-  if (!activity) {
-    return 0
-  }
-
-  const { ftp, workouts } = activity
-
-  const workout = workouts[activeWorkoutIndex]
-
-  if (!workout) {
-    return 0
-  }
-
-  const { workoutType, powerSteady, powerLow, powerHigh, duration } = workout
-
-  if (workoutType === WorkoutType.SteadyState) {
-    return Math.floor(powerSteady * ftp)
-  }
-
-  return calculateRangePower(ftp, powerLow, powerHigh, duration, $intervalTime)
-}
-
-const getTargetCadence = () => {
-  if (!activity) {
-    return 0
-  }
-
-  const { workouts } = activity
-
-  const workout = workouts[activeWorkoutIndex]
-
-  if (!workout) {
-    return 0
-  }
-
-  return workout.cadence || 0
-}
-
-const handleStartWorkout = () => {
+const handleStartWorkout = async () => {
   const status = getStatus()
 
   if (status !== TimerStatus.Stopped) {
@@ -170,7 +139,18 @@ const handleStartWorkout = () => {
 
   activeWorkoutIndex = WORKOUT_START_INDEX
 
+  await executeWorkout()
+
   start()
+}
+
+const executeWorkout = async () => {
+  const { power, cadence } = getWorkoutData(activity, activeWorkoutIndex, $intervalTime)
+
+  await invoke('execute_workout', {
+    cadence,
+    power,
+  })
 }
 </script>
 
