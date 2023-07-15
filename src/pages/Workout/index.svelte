@@ -13,7 +13,7 @@ import Speed from './components/Speed.svelte'
 import WorkoutsList from './components/WorkoutsList.svelte'
 
 // Types
-import { DataType, DeviceType, type Activity } from '../../types'
+import { DataType, DeviceType, type Activity, WorkoutType } from '../../types'
 import { convertSecondsToMinutes } from '../../utils/time'
 import { getWorkoutData } from '../../utils/data'
 
@@ -24,6 +24,7 @@ const WORKOUT_START_INDEX = 0
 
 let activity: Activity
 let activeWorkoutIndex = WORKOUT_START_INDEX
+let currentPower: number
 
 const { elapsedTime, intervalTime, getStatus, start, stop, resetInterval } =
   useTimer()
@@ -95,9 +96,20 @@ intervalTime.subscribe(async (time) => {
     return
   }
 
-  let activeWorkout = activity.workouts[activeWorkoutIndex]
+  const activeWorkout = activity.workouts[activeWorkoutIndex]
 
   if (time != activeWorkout.duration) {
+    // TODO: Add restriction for warmup/cooldown if the duration is too short
+    // This handles the change of power in a warmup/cooldown workout
+    if (
+      activeWorkout.workoutType !== WorkoutType.SteadyState &&
+      currentPower !== workoutData.power
+    ) {
+      await executeWorkout()
+
+      return
+    }
+
     return
   }
 
@@ -119,7 +131,7 @@ const getIntervalTime = (): string => {
     return '--'
   }
 
-  let activeWorkout = activity.workouts[activeWorkoutIndex]
+  const activeWorkout = activity.workouts[activeWorkoutIndex]
 
   if (!activeWorkout) {
     return '--'
@@ -145,7 +157,14 @@ const handleStartWorkout = async () => {
 }
 
 const executeWorkout = async () => {
-  const { power, cadence } = getWorkoutData(activity, activeWorkoutIndex, $intervalTime)
+  const { power, cadence } = getWorkoutData(
+    activity,
+    activeWorkoutIndex,
+    $intervalTime
+  )
+
+  // Track change of power for warmup/cooldown
+  currentPower = power
 
   await invoke('execute_workout', {
     cadence,
