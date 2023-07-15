@@ -17,6 +17,7 @@ pub const INDOOR_BIKE_DATA_UUID: Uuid = uuid_from_u32(0x2AD2);
 pub const FITNESS_MACHINE_CONTROL_POINT_UUID: Uuid = uuid_from_u32(0x2AD9);
 pub const FTMS_CONTROL_REQUEST_CONTROL_OP_CODE: u8 = 0x00;
 pub const FTMS_CONTROL_TARGET_POWER_OP_CODE: u8 = 0x05;
+pub const FTMS_CONTROL_TARGET_CADENCE_OP_CODE: u8 = 0x14;
 
 // Cycling Power
 pub const CYCLING_POWER_SERVICE_UUID: Uuid = uuid_from_u32(0x1818);

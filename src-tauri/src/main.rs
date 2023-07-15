@@ -117,6 +117,7 @@ async fn execute_workout(power: usize, cadence: usize) -> Result<()> {
     };
 
     bt.set_target_power(power).await?;
+    bt.set_target_cadence(cadence).await?;
 
     Ok(())
 }
