@@ -15,7 +15,7 @@ import WorkoutsList from './components/WorkoutsList.svelte'
 // Types
 import { DataType, DeviceType, type Activity, WorkoutType } from '../../types'
 import { convertSecondsToMinutes } from '../../utils/time'
-import { calculateRangePower } from './utils/data'
+import { calculateRangePower } from '../../utils/data'
 
 const WORKOUT_START_INDEX = 0
 
