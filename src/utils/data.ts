@@ -42,7 +42,9 @@ const calculatePower = (
 ): number => {
   const { workoutType, powerSteady, powerLow, powerHigh, duration } = workout
   if (workoutType === WorkoutType.SteadyState) {
-    return Math.floor(powerSteady * ftp)
+    const power = Math.floor(powerSteady * ftp)
+
+    return setToNearestPowerJump(power)
   }
 
   return calculateRangePower(ftp, powerLow, powerHigh, duration, intervalTime)
@@ -68,5 +70,8 @@ const calculateRangePower = (
     power = lowPower - accumulator
   }
 
-  return Math.round(power / POWER_JUMP) * POWER_JUMP
+  return setToNearestPowerJump(power)
 }
+
+const setToNearestPowerJump = (power: number): number =>
+  Math.round(power / POWER_JUMP) * POWER_JUMP
