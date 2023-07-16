@@ -9,11 +9,22 @@ import { DataType, type BasicObject } from '../../../types'
 
 // Props
 export let devices: BasicObject
+
+$: hasTargetCadence =
+  !!devices[DataType.TargetPower] && devices[DataType.TargetCadence].value > 0
 </script>
 
-<div class="data-view flex space-x-4 rounded-lg bg-secondary-200">
-  <div class="column flex flex-col justify-between px-6 py-4 text-center">
-    <div class="text-2xl font-bold text-white">Target</div>
+<div class="data-view flex justify-between rounded-lg bg-secondary-200">
+  <div
+    class="column flex flex-col px-6 py-4 text-center {hasTargetCadence
+      ? 'justify-between'
+      : ''} "
+  >
+    <div
+      class="font-bold text-white {hasTargetCadence ? 'text-2xl' : 'text-xl'}"
+    >
+      Target
+    </div>
 
     <div class="item">
       <div class="value text-4xl font-bold text-primary-300">
@@ -21,8 +32,7 @@ export let devices: BasicObject
       </div>
     </div>
 
-    <!-- TODO: Fix UI if cadence is not visible -->
-    {#if !!devices[DataType.TargetCadence] && devices[DataType.TargetCadence].value > 0}
+    {#if hasTargetCadence}
       <div class="text-2xl font-bold text-white">at</div>
 
       <div class="item">

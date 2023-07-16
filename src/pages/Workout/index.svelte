@@ -190,11 +190,11 @@ const executeWorkout = async () => {
     <!-- TODO: Add other data here. -->
   </div>
 
-  <div class="main-data">
+  <div class="basis-1/2">
     <DataView devices="{devices}" />
   </div>
 
-  <div class="basis-3/12">
+  <div class="basis-3/12 pl-4">
     <WorkoutsList
       activity="{activity}"
       elapsedTime="{elapsedTime}"
