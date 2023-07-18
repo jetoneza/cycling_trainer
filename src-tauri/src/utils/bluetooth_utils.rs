@@ -3,13 +3,13 @@ use btleplug::platform::{Adapter, Manager};
 use log::{error, warn};
 use uuid::Uuid;
 
-use super::bluetooth::DeviceType;
-use super::constants::{
+use crate::ble::bluetooth::DeviceType;
+use crate::ble::constants::{
     CYCLING_POWER_MEASUREMENT_UUID, FITNESS_MACHINE_CONTROL_POINT_UUID,
     FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_MEASUREMENT_UUID, HEART_RATE_SERVICE_UUID,
     INDOOR_BIKE_DATA_UUID,
 };
-use super::event_handlers::Characteristic;
+use crate::ble::event_handlers::Characteristic;
 
 const LOGGER_NAME: &str = "ble::utils";
 
@@ -59,10 +59,4 @@ pub fn get_uuid_characteristic(uuid: Uuid) -> Characteristic {
         FITNESS_MACHINE_CONTROL_POINT_UUID => Characteristic::FitnessMachineControlPoint,
         _ => Characteristic::Unknown,
     }
-}
-
-pub fn convert_i16_to_u8(num: i16) -> [u8; 2] {
-    let i16_num = num as i16;
-
-    [(i16_num & 0xFF) as u8, ((i16_num >> 8) & 0xFF) as u8]
 }

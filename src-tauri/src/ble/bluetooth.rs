@@ -6,6 +6,8 @@ use tokio::sync::{Mutex, RwLock};
 
 use crate::error::error_generic;
 use crate::prelude::*;
+use crate::utils::bluetooth_utils::{get_central, get_device_type, get_manager};
+use crate::utils::byte::convert_i16_to_u8;
 
 use super::constants::{
     CYCLING_POWER_SERVICE_UUID, FITNESS_MACHINE_CONTROL_POINT_UUID, FITNESS_MACHINE_SERVICE_UUID,
@@ -18,7 +20,6 @@ use super::event_handlers::{
     handle_heart_rate_notifications, listen_to_events, write_to_characteristic,
     CharacteristicAction,
 };
-use super::utils::{convert_i16_to_u8, get_central, get_device_type, get_manager};
 
 lazy_static! {
     pub static ref BLUETOOTH: RwLock<Option<Bluetooth>> = Default::default();
