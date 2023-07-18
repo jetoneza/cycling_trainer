@@ -1,21 +1,26 @@
-use crate::error::error_generic;
-use crate::prelude::*;
-
 use btleplug::api::{Central, CentralEvent, Peripheral as _, WriteType};
 use btleplug::platform::Peripheral;
 use futures::{Stream, StreamExt};
 use log::{error, info};
 use std::fmt;
 use std::pin::Pin;
-use tauri::Manager as _;
+use tauri::{AppHandle, Manager as _};
 use uuid::Uuid;
 
 use crate::data::heart_rate_measurement::parse_hrm_data;
 use crate::data::indoor_bike_data::parse_indoor_bike_data;
+use crate::error::error_generic;
+use crate::prelude::*;
 use crate::utils::bluetooth_utils::get_uuid_characteristic;
+use crate::utils::byte::combine_u8_to_u16;
+use crate::utils::code_values::{
+    convert_u8_to_ftms_control_op_code_enum, convert_u8_to_ftms_status_code_enum,
+    convert_u8_to_spin_down_status_code_enum,
+};
 use crate::TAURI_APP_HANDLE;
 
 use super::bluetooth::{BTDevice, BluetoothStatus, BLUETOOTH};
+use super::constants::{FTMSControlOpCode, FTMSControlResultCode, FTMSStatusCode, SpinDownStatus};
 
 const LOGGER_NAME: &str = "ble::event_handlers";
 
@@ -38,6 +43,7 @@ pub enum Characteristic {
     HeartRateMeasurement,
     IndoorBikeData,
     FitnessMachineControlPoint,
+    FitnessmachineStatus,
     Unknown,
 }
 
@@ -200,8 +206,15 @@ pub async fn handle_cycling_device_notifications() {
                 app_handle.emit_all("indoor-bike-notification", data).ok();
             }
             Characteristic::FitnessMachineControlPoint => {
-                // TODO: Implement FTMS Control point response
+                let status = data.value[0];
+
+                if status != FTMSControlOpCode::Sucess as u8 {
+                    return;
+                }
+
+                handle_control_point_response(&data.value, &app_handle);
             }
+            Characteristic::FitnessmachineStatus => handle_ftms_status(&data.value, &app_handle),
             // TODO: Add support for cycling power
             _ => {}
         };
@@ -252,4 +265,54 @@ pub async fn write_to_characteristic(
         };
 
     Ok(())
+}
+
+pub fn handle_control_point_response(data: &Vec<u8>, app_handle: &AppHandle) {
+    let request_op_code = data[1];
+    let result_code = data[2];
+
+    // TODO: Handle failure
+
+    match convert_u8_to_ftms_control_op_code_enum(request_op_code) {
+        FTMSControlOpCode::SpinDownControl => {
+            if result_code != FTMSControlResultCode::Success as u8 {
+                return;
+            }
+
+            let low_speed = combine_u8_to_u16(data[3], data[4]);
+            let high_speed = combine_u8_to_u16(data[5], data[6]);
+
+            let target_speed = (low_speed + high_speed) / 2;
+
+            app_handle.emit_all("spin_down_start", target_speed).ok();
+        }
+        _ => {}
+    };
+}
+
+pub fn handle_ftms_status(data: &Vec<u8>, app_handle: &AppHandle) {
+    let status_code = data[0];
+
+    // TODO: Handle failure
+
+    match convert_u8_to_ftms_status_code_enum(status_code) {
+        FTMSStatusCode::SpinDownStatus => {
+            let spin_down_status = data[1];
+
+            match convert_u8_to_spin_down_status_code_enum(spin_down_status) {
+                SpinDownStatus::StopPedaling => {
+                    app_handle.emit_all("spin_down_stop_pedaling", true).ok();
+                }
+                SpinDownStatus::Success => {
+                    let spin_down_time = combine_u8_to_u16(data[2], data[3]);
+
+                    app_handle
+                        .emit_all("spin_down_success", spin_down_time)
+                        .ok();
+                }
+                _ => {}
+            }
+        }
+        _ => {}
+    }
 }

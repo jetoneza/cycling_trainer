@@ -123,6 +123,19 @@ async fn execute_workout(power: usize, cadence: usize) -> Result<()> {
     Ok(())
 }
 
+#[tauri::command(async)]
+async fn request_spin_down() -> Result<()> {
+    let bluetooth_guard = &BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        warn!("main::execute_workout: Bluetooth not found.");
+        return Ok(());
+    };
+
+    bt.request_spin_down().await?;
+
+    Ok(())
+}
+
 async fn initialize_app(app_handle: tauri::AppHandle) {
     *TAURI_APP_HANDLE.lock().await = Some(app_handle.clone());
 
@@ -157,6 +170,7 @@ fn main() {
             get_connected_devices,
             get_activities,
             execute_workout,
+            request_spin_down,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

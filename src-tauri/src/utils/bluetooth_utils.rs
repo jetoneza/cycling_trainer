@@ -6,8 +6,8 @@ use uuid::Uuid;
 use crate::ble::bluetooth::DeviceType;
 use crate::ble::constants::{
     CYCLING_POWER_MEASUREMENT_UUID, FITNESS_MACHINE_CONTROL_POINT_UUID,
-    FITNESS_MACHINE_SERVICE_UUID, HEART_RATE_MEASUREMENT_UUID, HEART_RATE_SERVICE_UUID,
-    INDOOR_BIKE_DATA_UUID,
+    FITNESS_MACHINE_SERVICE_UUID, FITNESS_MACHINE_STATUS_UUID, HEART_RATE_MEASUREMENT_UUID,
+    HEART_RATE_SERVICE_UUID, INDOOR_BIKE_DATA_UUID,
 };
 use crate::ble::event_handlers::Characteristic;
 
@@ -57,6 +57,7 @@ pub fn get_uuid_characteristic(uuid: Uuid) -> Characteristic {
         HEART_RATE_MEASUREMENT_UUID => Characteristic::HeartRateMeasurement,
         INDOOR_BIKE_DATA_UUID => Characteristic::IndoorBikeData,
         FITNESS_MACHINE_CONTROL_POINT_UUID => Characteristic::FitnessMachineControlPoint,
+        FITNESS_MACHINE_STATUS_UUID => Characteristic::FitnessmachineStatus,
         _ => Characteristic::Unknown,
     }
 }

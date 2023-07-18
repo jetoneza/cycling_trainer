@@ -10,10 +10,10 @@ use crate::utils::bluetooth_utils::{get_central, get_device_type, get_manager};
 use crate::utils::byte::convert_i16_to_u8;
 
 use super::constants::{
-    CYCLING_POWER_SERVICE_UUID, FITNESS_MACHINE_CONTROL_POINT_UUID, FITNESS_MACHINE_SERVICE_UUID,
-    FTMS_CONTROL_REQUEST_CONTROL_OP_CODE, FTMS_CONTROL_TARGET_CADENCE_OP_CODE,
-    FTMS_CONTROL_TARGET_POWER_OP_CODE, HEART_RATE_MEASUREMENT_UUID, HEART_RATE_SERVICE_UUID,
-    INDOOR_BIKE_DATA_UUID, SPEED_CADENCE_SERVICE_UUID,
+    FTMSControlOpCode, SpinDownControl, CYCLING_POWER_SERVICE_UUID,
+    FITNESS_MACHINE_CONTROL_POINT_UUID, FITNESS_MACHINE_SERVICE_UUID, FITNESS_MACHINE_STATUS_UUID,
+    HEART_RATE_MEASUREMENT_UUID, HEART_RATE_SERVICE_UUID, INDOOR_BIKE_DATA_UUID,
+    SPEED_CADENCE_SERVICE_UUID,
 };
 use super::event_handlers::{
     handle_characteristic_subscription, handle_cycling_device_notifications,
@@ -208,6 +208,13 @@ impl Bluetooth {
                 // TODO: If indoor bike data is unavailable, use cycling power, speed and cadence
 
                 handle_characteristic_subscription(
+                    FITNESS_MACHINE_STATUS_UUID,
+                    &peripheral,
+                    CharacteristicAction::Subscribe,
+                )
+                .await?;
+
+                handle_characteristic_subscription(
                     INDOOR_BIKE_DATA_UUID,
                     &peripheral,
                     CharacteristicAction::Subscribe,
@@ -224,7 +231,7 @@ impl Bluetooth {
                 write_to_characteristic(
                     FITNESS_MACHINE_CONTROL_POINT_UUID,
                     &peripheral,
-                    &[FTMS_CONTROL_REQUEST_CONTROL_OP_CODE],
+                    &[FTMSControlOpCode::RequestControl as u8],
                     WriteType::WithResponse,
                 )
                 .await?;
@@ -348,7 +355,7 @@ impl Bluetooth {
         write_to_characteristic(
             FITNESS_MACHINE_CONTROL_POINT_UUID,
             &cycling_device,
-            &[FTMS_CONTROL_TARGET_POWER_OP_CODE, data[0], data[1]],
+            &[FTMSControlOpCode::TargetPower as u8, data[0], data[1]],
             WriteType::WithResponse,
         )
         .await?;
@@ -367,7 +374,27 @@ impl Bluetooth {
         write_to_characteristic(
             FITNESS_MACHINE_CONTROL_POINT_UUID,
             &cycling_device,
-            &[FTMS_CONTROL_TARGET_CADENCE_OP_CODE, data[0], data[1]],
+            &[FTMSControlOpCode::TargetCadence as u8, data[0], data[1]],
+            WriteType::WithResponse,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn request_spin_down(&self) -> Result<()> {
+        let cd_guard = self.cycling_device.read().await;
+        let Some(cycling_device) = cd_guard.as_ref() else {
+            return Err(error_generic("Unable to read cycling device"))
+        };
+
+        write_to_characteristic(
+            FITNESS_MACHINE_CONTROL_POINT_UUID,
+            &cycling_device,
+            &[
+                FTMSControlOpCode::SpinDownControl as u8,
+                SpinDownControl::Start as u8,
+            ],
             WriteType::WithResponse,
         )
         .await?;
