@@ -9,6 +9,7 @@ mod data;
 mod error;
 mod prelude;
 mod workouts;
+mod utils;
 
 use crate::prelude::*;
 

@@ -1,3 +1,5 @@
+use crate::utils::byte::{combine_u8_to_u16, combine_u8_to_u32};
+
 #[derive(PartialEq, Clone, serde::Serialize)]
 pub struct IndoorBikeData {
     pub cadence: Option<u16>,
@@ -200,12 +202,4 @@ fn is_power_present(data: &Vec<u8>) -> bool {
 // 2 - Instantaneous cadence present
 fn get_flags(data: &Vec<u8>) -> u16 {
     combine_u8_to_u16(data[0], data[1])
-}
-
-fn combine_u8_to_u16(first: u8, second: u8) -> u16 {
-    (first as u16) | (second as u16) << 8
-}
-
-fn combine_u8_to_u32(first: u8, second: u8, third: u8) -> u32 {
-    (first as u32) | (second as u32) << 8 | (third as u32) << 16
 }
