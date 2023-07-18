@@ -12,10 +12,10 @@ use uuid::Uuid;
 
 use crate::data::heart_rate_measurement::parse_hrm_data;
 use crate::data::indoor_bike_data::parse_indoor_bike_data;
+use crate::utils::bluetooth_utils::get_uuid_characteristic;
 use crate::TAURI_APP_HANDLE;
 
 use super::bluetooth::{BTDevice, BluetoothStatus, BLUETOOTH};
-use super::utils::get_uuid_characteristic;
 
 const LOGGER_NAME: &str = "ble::event_handlers";
 
