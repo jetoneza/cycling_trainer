@@ -1,11 +1,11 @@
-.device {
+.device-action {
   height: 14rem;
   width: 14rem;
 
   @apply bg-white;
 }
 
-.device.is-connected {
+.device-action.is-connected {
   @apply bg-secondary-200;
 
   .name {
@@ -23,7 +23,8 @@
   }
 }
 
-.scanned-devices-list {
+.scanned-devices-list,
+.spindown {
   @apply py-6 rounded-2xl;
   @apply absolute left-0 top-0 right-0 bottom-0;
   @apply w-1/2;

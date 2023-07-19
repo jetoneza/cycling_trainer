@@ -6,6 +6,7 @@ import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 // Components
 import ScanList from './components/ScanList.svelte'
 import DeviceCard from './components/DeviceCard.svelte'
+import Spindown from './components/Spindown.svelte'
 
 // Stores
 import { devicesStore, updateDevices } from '../../stores/devices'
@@ -19,6 +20,7 @@ import './styles.css'
 // States
 let isScanning = false
 let isConnecting = false
+let isSpindownOpen = false
 let scannedDevices = []
 
 listen('device_discovered', (event: TauriEvent<any>) => {
@@ -136,11 +138,13 @@ const cleanStates = async () => {
   isConnecting = false
   scannedDevices = []
 }
+
+const handleToggleSpindown = async (action: boolean) => {
+  isSpindownOpen = action
+}
 </script>
 
 <div class="devices-page p-10">
-  <div class="page-title text-center text-2xl font-bold">Devices</div>
-
   <div class="devices-list m-10 flex justify-center space-x-6">
     <DeviceCard
       device="{$devicesStore[DeviceType.HeartRate]}"
@@ -149,6 +153,7 @@ const cleanStates = async () => {
     <DeviceCard
       device="{$devicesStore[DeviceType.SmartTrainer]}"
       handleAction="{handleAction}"
+      handleToggleSpindown="{handleToggleSpindown}"
     />
   </div>
 
@@ -157,6 +162,13 @@ const cleanStates = async () => {
       scannedDevices="{scannedDevices}"
       handleConnect="{handleConnect}"
       handleCloseScan="{handleCloseScan}"
+    />
+  {/if}
+
+  {#if isSpindownOpen}
+    <Spindown
+      device="{$devicesStore[DeviceType.SmartTrainer]}"
+      handleToggleSpindown="{handleToggleSpindown}"
     />
   {/if}
 </div>
