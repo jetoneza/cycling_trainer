@@ -279,10 +279,7 @@ pub fn handle_control_point_response(data: &Vec<u8>, app_handle: &AppHandle) {
                 return;
             }
 
-            let low_speed = combine_u8_to_u16(data[3], data[4]);
-            let high_speed = combine_u8_to_u16(data[5], data[6]);
-
-            let target_speed = (low_speed + high_speed) / 2;
+            let target_speed = combine_u8_to_u16(data[5], data[6]);
 
             app_handle.emit_all("spin_down_start", target_speed).ok();
         }
