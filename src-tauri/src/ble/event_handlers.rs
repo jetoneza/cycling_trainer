@@ -89,7 +89,7 @@ pub async fn handle_events(mut events: Pin<Box<dyn Stream<Item = CentralEvent> +
                 if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
                     app_handle
                         .emit_all(
-                            "device-discovered",
+                            "device_discovered",
                             BTDevice {
                                 id: id.to_string(),
                                 local_name: local_name.to_string(),
@@ -167,7 +167,7 @@ pub async fn handle_heart_rate_notifications() {
         let data = parse_hrm_data(&data.value);
 
         if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
-            app_handle.emit_all("hrm-notification", data).ok();
+            app_handle.emit_all("hrm_notification", data).ok();
         }
     }
 }
@@ -203,7 +203,7 @@ pub async fn handle_cycling_device_notifications() {
             Characteristic::IndoorBikeData => {
                 let data = parse_indoor_bike_data(&data.value);
 
-                app_handle.emit_all("indoor-bike-notification", data).ok();
+                app_handle.emit_all("indoor_bike_notification", data).ok();
             }
             Characteristic::FitnessMachineControlPoint => {
                 let status = data.value[0];

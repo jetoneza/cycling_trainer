@@ -21,7 +21,7 @@ let isScanning = false
 let isConnecting = false
 let scannedDevices = []
 
-listen('device-discovered', (event: TauriEvent<any>) => {
+listen('device_discovered', (event: TauriEvent<any>) => {
   const { payload } = event
 
   const { id, local_name: name } = payload

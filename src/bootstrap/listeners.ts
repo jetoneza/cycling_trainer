@@ -3,13 +3,13 @@ import { devicesStore } from '../stores/devices'
 import { DeviceType, type BasicObject } from '../types'
 
 const setup = () => {
-  listen('hrm-notification', (event: TauriEvent<any>) => {
+  listen('hrm_notification', (event: TauriEvent<any>) => {
     const { payload } = event
 
     notifyDevice(payload, DeviceType.HeartRate)
   })
 
-  listen('indoor-bike-notification', (event: TauriEvent<any>) => {
+  listen('indoor_bike_notification', (event: TauriEvent<any>) => {
     const { payload } = event
 
     notifyDevice(payload, DeviceType.SmartTrainer)
