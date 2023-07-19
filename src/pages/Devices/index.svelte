@@ -41,7 +41,7 @@ listen('device_discovered', (event: TauriEvent<any>) => {
   ]
 })
 
-async function handleAction(device: Device) {
+const handleAction = async (device: Device) => {
   if (isScanning) {
     return
   }
@@ -57,7 +57,7 @@ async function handleAction(device: Device) {
   isScanning = true
 }
 
-async function handleConnect(device: { id: string }) {
+const handleConnect = async (device: { id: string }) => {
   if (isConnecting) {
     return
   }
@@ -102,13 +102,16 @@ async function handleConnect(device: { id: string }) {
   handleCloseScan()
 }
 
-async function disconnectDevice(device: Device) {
+const disconnectDevice = async (device: Device) => {
   await invoke('disconnect_device', { deviceId: device.bleDevice.id })
 
   changeConnectionState(device.type, false)
 }
 
-async function changeConnectionState(type: DeviceType, isConnected: boolean) {
+const changeConnectionState = async (
+  type: DeviceType,
+  isConnected: boolean
+) => {
   updateDevices((map) => {
     const device = map[type]
 
@@ -122,13 +125,13 @@ async function changeConnectionState(type: DeviceType, isConnected: boolean) {
   })
 }
 
-async function handleCloseScan() {
+const handleCloseScan = async () => {
   await invoke('stop_scan')
 
   cleanStates()
 }
 
-async function cleanStates() {
+const cleanStates = async () => {
   isScanning = false
   isConnecting = false
   scannedDevices = []
