@@ -20,11 +20,22 @@ import { getWorkoutData } from '../../utils/data'
 // Styles
 import './styles.css'
 
+enum SessionStatus {
+  Started = 'started',
+  Stopped = 'stopped',
+  Paused = 'paused',
+}
+
 const WORKOUT_START_INDEX = 0
+const MAX_IDLE_TIME = 3
 
 let activity: Activity
 let activeWorkoutIndex = WORKOUT_START_INDEX
 let currentPower: number
+let session = {
+  status: SessionStatus.Stopped,
+  idleTime: 0,
+}
 
 const { elapsedTime, intervalTime, getStatus, start, stop, resetInterval } =
   useTimer()
@@ -70,6 +81,52 @@ let devices = {
   },
 }
 
+const trackSessionState = () => {
+  const speed = devices[DataType.Speed].value
+  const power = devices[DataType.Power].value
+
+  const hasActivity = !!speed && !!power
+  const isIdle = !speed && !power
+
+  const { status, idleTime } = session
+
+  if (
+    (status === SessionStatus.Stopped || status === SessionStatus.Paused) &&
+    hasActivity
+  ) {
+    session = {
+      ...session,
+      status: SessionStatus.Started,
+    }
+
+    startWorkout()
+    // TODO: Start FTMS workout
+
+    return
+  }
+
+  if (status === SessionStatus.Started && isIdle) {
+    if (idleTime === MAX_IDLE_TIME) {
+      session = {
+        status: SessionStatus.Paused,
+        idleTime: 0,
+      }
+
+      return
+    }
+
+    // TODO: Pause timer
+    // TODO: Pause workout
+
+    session = {
+      ...session,
+      idleTime: idleTime + 1,
+    }
+
+    return
+  }
+}
+
 devicesStore.subscribe((map) => {
   const hrm = map[DeviceType.HeartRate]
   const smartTrainer = map[DeviceType.SmartTrainer]
@@ -90,6 +147,8 @@ devicesStore.subscribe((map) => {
     devices[DataType.Speed].value = speed || 0
     devices[DataType.Power].value = power || 0
     devices[DataType.Cadence].value = cadence || 0
+
+    trackSessionState()
   }
 })
 
@@ -151,7 +210,7 @@ const setTimes = () => {
     convertSecondsToMinutes($elapsedTime).formatted
 }
 
-const handleStartWorkout = async () => {
+const startWorkout = async () => {
   const status = getStatus()
 
   if (status !== TimerStatus.Stopped) {
@@ -204,10 +263,4 @@ const executeWorkout = async () => {
   </div>
 
   <Speed devices="{devices}" />
-
-  <button
-    on:click="{handleStartWorkout}"
-    class="absolute bottom-8 left-8 rounded-lg border border-primary-400 bg-primary-400 p-4 font-bold text-white"
-    >Start {$elapsedTime}</button
-  >
 </div>
