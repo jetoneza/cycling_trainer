@@ -22,7 +22,11 @@ export const useTimer = () => {
     }, 1000)
   }
 
-  // TODO: Implement pause
+  const pause = () => {
+    clearInterval(timer)
+
+    status.set(TimerStatus.Paused)
+  }
 
   const stop = () => {
     clearInterval(timer)
@@ -40,6 +44,7 @@ export const useTimer = () => {
     intervalTime,
     getStatus,
     start,
+    pause,
     stop,
     resetInterval,
   }
