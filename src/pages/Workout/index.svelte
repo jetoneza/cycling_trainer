@@ -37,8 +37,15 @@ let session = {
   idleTime: 0,
 }
 
-const { elapsedTime, intervalTime, getStatus, start, stop, resetInterval } =
-  useTimer()
+const {
+  elapsedTime,
+  intervalTime,
+  getStatus,
+  start,
+  stop,
+  pause,
+  resetInterval,
+} = useTimer()
 
 $: workoutData = getWorkoutData(activity, activeWorkoutIndex, $intervalTime)
 
@@ -112,11 +119,11 @@ const trackSessionState = () => {
         idleTime: 0,
       }
 
+      pause()
+      // TODO: Pause workout
+
       return
     }
-
-    // TODO: Pause timer
-    // TODO: Pause workout
 
     session = {
       ...session,
@@ -213,7 +220,7 @@ const setTimes = () => {
 const startWorkout = async () => {
   const status = getStatus()
 
-  if (status !== TimerStatus.Stopped) {
+  if (status === TimerStatus.Started) {
     return
   }
 
