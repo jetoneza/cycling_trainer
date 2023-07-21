@@ -106,7 +106,7 @@ const trackSessionState = () => {
       status: SessionStatus.Started,
     }
 
-    startWorkout()
+    startSession()
     // TODO: Start FTMS workout
 
     return
@@ -217,7 +217,7 @@ const setTimes = () => {
     convertSecondsToMinutes($elapsedTime).formatted
 }
 
-const startWorkout = async () => {
+const startSession = async () => {
   const status = getStatus()
 
   if (status === TimerStatus.Started) {
