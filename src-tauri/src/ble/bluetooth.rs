@@ -10,7 +10,7 @@ use crate::utils::bluetooth_utils::{get_central, get_device_type, get_manager};
 use crate::utils::byte::convert_i16_to_u8;
 
 use super::constants::{
-    FTMSControlOpCode, SpinDownControl, CYCLING_POWER_SERVICE_UUID,
+    FTMSControlOpCode, SpinDownControl, StopControl, CYCLING_POWER_SERVICE_UUID,
     FITNESS_MACHINE_CONTROL_POINT_UUID, FITNESS_MACHINE_SERVICE_UUID, FITNESS_MACHINE_STATUS_UUID,
     HEART_RATE_MEASUREMENT_UUID, HEART_RATE_SERVICE_UUID, INDOOR_BIKE_DATA_UUID,
     SPEED_CADENCE_SERVICE_UUID,
@@ -395,6 +395,48 @@ impl Bluetooth {
                 FTMSControlOpCode::SpinDownControl as u8,
                 SpinDownControl::Start as u8,
             ],
+            WriteType::WithResponse,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn start_session(&self) -> Result<()> {
+        let cd_guard = self.cycling_device.read().await;
+        let Some(cycling_device) = cd_guard.as_ref() else {
+            return Err(error_generic("Unable to read cycling device"))
+        };
+
+        write_to_characteristic(
+            FITNESS_MACHINE_CONTROL_POINT_UUID,
+            &cycling_device,
+            &[FTMSControlOpCode::Start as u8],
+            WriteType::WithResponse,
+        )
+        .await?;
+
+        Ok(())
+    }
+
+    pub async fn stop_session(&self, action: &str) -> Result<()> {
+        let cd_guard = self.cycling_device.read().await;
+        let Some(cycling_device) = cd_guard.as_ref() else {
+            return Err(error_generic("Unable to read cycling device"))
+        };
+
+        let action_code = match action {
+            "stop" => StopControl::Stop,
+            "pause" => StopControl::Pause,
+            _ => {
+                return Err(error_generic("Action not supported for stopping the session."))
+            }
+        };
+
+        write_to_characteristic(
+            FITNESS_MACHINE_CONTROL_POINT_UUID,
+            &cycling_device,
+            &[FTMSControlOpCode::Stop as u8, action_code as u8],
             WriteType::WithResponse,
         )
         .await?;

@@ -24,6 +24,8 @@ pub const CYCLING_POWER_MEASUREMENT_UUID: Uuid = uuid_from_u32(0x2A63);
 pub enum FTMSControlOpCode {
     RequestControl = 0x00,
     TargetPower = 0x05,
+    Start = 0x07, // Start/Resume
+    Stop = 0x08,  // Stop/Pause
     SpinDownControl = 0x13,
     TargetCadence = 0x14,
     Sucess = 0x80,
@@ -40,6 +42,11 @@ pub enum FTMSControlResultCode {
 pub enum SpinDownControl {
     Start = 0x01,
     Ignore = 0x02,
+}
+
+pub enum StopControl {
+    Stop = 0x01,
+    Pause = 0x02,
 }
 
 pub enum SpinDownStatus {

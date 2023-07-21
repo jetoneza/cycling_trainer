@@ -8,8 +8,8 @@ mod ble;
 mod data;
 mod error;
 mod prelude;
-mod workouts;
 mod utils;
+mod workouts;
 
 use crate::prelude::*;
 
@@ -127,11 +127,37 @@ async fn execute_workout(power: usize, cadence: usize) -> Result<()> {
 async fn request_spin_down() -> Result<()> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
-        warn!("main::execute_workout: Bluetooth not found.");
+        warn!("main::request_spin_down: Bluetooth not found.");
         return Ok(());
     };
 
     bt.request_spin_down().await?;
+
+    Ok(())
+}
+
+#[tauri::command(async)]
+async fn start_session() -> Result<()> {
+    let bluetooth_guard = &BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        warn!("main::start_session: Bluetooth not found.");
+        return Ok(());
+    };
+
+    bt.start_session().await?;
+
+    Ok(())
+}
+
+#[tauri::command(async)]
+async fn stop_session(action: &str) -> Result<()> {
+    let bluetooth_guard = &BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        warn!("main::start_session: Bluetooth not found.");
+        return Ok(());
+    };
+
+    bt.stop_session(action).await?;
 
     Ok(())
 }
@@ -171,6 +197,8 @@ fn main() {
             get_activities,
             execute_workout,
             request_spin_down,
+            start_session,
+            stop_session,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
