@@ -26,6 +26,11 @@ enum SessionStatus {
   Paused = 'paused',
 }
 
+enum StopAction {
+  Stop = 'stop',
+  Pause = 'pause',
+}
+
 const WORKOUT_START_INDEX = 0
 const MAX_IDLE_TIME = 3
 
@@ -88,7 +93,7 @@ let devices = {
   },
 }
 
-const trackSessionState = () => {
+const trackSessionState = async () => {
   const speed = devices[DataType.Speed].value
   const power = devices[DataType.Power].value
 
@@ -107,7 +112,6 @@ const trackSessionState = () => {
     }
 
     startSession()
-    // TODO: Start FTMS workout
 
     return
   }
@@ -120,7 +124,7 @@ const trackSessionState = () => {
       }
 
       pause()
-      // TODO: Pause workout
+      await invoke('stop_session', { action: StopAction.Pause })
 
       return
     }
@@ -187,6 +191,7 @@ intervalTime.subscribe(async (time) => {
 
   if (activeWorkoutIndex == activity.workouts.length - 1) {
     stop()
+    await invoke('stop_session', { action: StopAction.Stop })
 
     return
   }
@@ -226,6 +231,7 @@ const startSession = async () => {
 
   activeWorkoutIndex = WORKOUT_START_INDEX
 
+  await invoke('start_session')
   await executeWorkout()
 
   start()
