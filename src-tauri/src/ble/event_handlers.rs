@@ -15,12 +15,14 @@ use crate::utils::bluetooth_utils::get_uuid_characteristic;
 use crate::utils::byte::combine_u8_to_u16;
 use crate::utils::code_values::{
     convert_u8_to_ftms_control_op_code_enum, convert_u8_to_ftms_status_code_enum,
-    convert_u8_to_spin_down_status_code_enum,
+    convert_u8_to_spin_down_status_code_enum, convert_u8_to_stop_control_code_enum,
 };
 use crate::TAURI_APP_HANDLE;
 
 use super::bluetooth::{BTDevice, BluetoothStatus, BLUETOOTH};
-use super::constants::{FTMSControlOpCode, FTMSControlResultCode, FTMSStatusCode, SpinDownStatus};
+use super::constants::{
+    FTMSControlOpCode, FTMSControlResultCode, FTMSStatusCode, SpinDownStatus, StopControl,
+};
 
 const LOGGER_NAME: &str = "ble::event_handlers";
 
@@ -309,6 +311,19 @@ pub fn handle_ftms_status(data: &Vec<u8>, app_handle: &AppHandle) {
                 }
                 _ => {}
             }
+        }
+        FTMSStatusCode::StartedOrResumed => {
+            app_handle.emit_all("session_started", true).ok();
+        }
+        FTMSStatusCode::StoppedOrPaused => {
+            let stop_control_code = data[1];
+
+            let action = match convert_u8_to_stop_control_code_enum(stop_control_code) {
+                StopControl::Stop => "stop",
+                StopControl::Pause => "pause",
+            };
+
+            app_handle.emit_all("session_stopped", action).ok();
         }
         _ => {}
     }

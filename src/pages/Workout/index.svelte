@@ -1,6 +1,7 @@
 <script lang="ts">
 // Libraries
 import { invoke } from '@tauri-apps/api/tauri'
+import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
 // Stores
 import { devicesStore } from '../../stores/devices'
@@ -34,14 +35,6 @@ enum StopAction {
 const WORKOUT_START_INDEX = 0
 const MAX_IDLE_TIME = 3
 
-let activity: Activity
-let activeWorkoutIndex = WORKOUT_START_INDEX
-let currentPower: number
-let session = {
-  status: SessionStatus.Stopped,
-  idleTime: 0,
-}
-
 const {
   elapsedTime,
   intervalTime,
@@ -52,8 +45,13 @@ const {
   resetInterval,
 } = useTimer()
 
-$: workoutData = getWorkoutData(activity, activeWorkoutIndex, $intervalTime)
-
+let activity: Activity
+let activeWorkoutIndex = WORKOUT_START_INDEX
+let currentPower: number
+let session = {
+  status: SessionStatus.Stopped,
+  idleTime: 0,
+}
 let devices = {
   [DataType.Distance]: {
     value: 0,
@@ -92,6 +90,18 @@ let devices = {
     unit: '',
   },
 }
+
+$: workoutData = getWorkoutData(activity, activeWorkoutIndex, $intervalTime)
+
+listen('session_started', () => {
+  // TODO: Handle session started
+})
+
+listen('session_stopped', (event: TauriEvent<any>) => {
+  const { payload } = event
+
+  // TODO: Handle session stopped/paused
+})
 
 const trackSessionState = async () => {
   const speed = devices[DataType.Speed].value

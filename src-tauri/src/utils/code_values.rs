@@ -1,4 +1,4 @@
-use crate::ble::constants::{FTMSControlOpCode, FTMSStatusCode, SpinDownStatus};
+use crate::ble::constants::{FTMSControlOpCode, FTMSStatusCode, SpinDownStatus, StopControl};
 
 // TODO: improve the following functions
 
@@ -16,6 +16,13 @@ pub fn convert_u8_to_ftms_status_code_enum(number: u8) -> FTMSStatusCode {
 pub fn convert_u8_to_spin_down_status_code_enum(number: u8) -> SpinDownStatus {
     match number {
         0x00..=0x04 => unsafe { std::mem::transmute::<u8, SpinDownStatus>(number) },
+        _ => panic!("Invalid value"),
+    }
+}
+
+pub fn convert_u8_to_stop_control_code_enum(number: u8) -> StopControl {
+    match number {
+        0x01..=0x02 => unsafe { std::mem::transmute::<u8, StopControl>(number) },
         _ => panic!("Invalid value"),
     }
 }
