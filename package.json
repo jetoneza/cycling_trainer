@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^1.4.0",
+    "chart.js": "^4.3.0",
     "svelte-icons": "^2.1.0"
   },
   "devDependencies": {
