@@ -12,6 +12,7 @@ import { TimerStatus, useTimer } from '../../stores/useTimer'
 import DataView from './components/DataView.svelte'
 import Speed from './components/Speed.svelte'
 import WorkoutsList from './components/WorkoutsList.svelte'
+import PowerChart from './components/PowerChart.svelte'
 
 // Types
 import { DataType, DeviceType, type Activity, WorkoutType } from '../../types'
@@ -282,6 +283,14 @@ const executeWorkout = async () => {
       elapsedTime="{elapsedTime}"
       intervalTime="{intervalTime}"
       activeWorkoutIndex="{activeWorkoutIndex}"
+    />
+  </div>
+
+  <div class="charts absolute bottom-0 left-0 right-0 h-60">
+    <PowerChart
+      activity="{activity}"
+      elapsedTime="{elapsedTime}"
+      devices="{devices}"
     />
   </div>
 
