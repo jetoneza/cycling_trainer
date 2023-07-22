@@ -1,42 +1,82 @@
+import type { ScriptableChartContext } from 'chart.js'
 import type { BasicObject } from '../types'
 
-const COLORS = {
+export const ZONE_COLORS = {
   red: 'rgb(255, 99, 132)',
   orange: 'rgb(255, 159, 64)',
   yellow: 'rgb(255, 205, 86)',
   green: 'rgb(75, 192, 192)',
   blue: 'rgb(54, 162, 235)',
-  purple: 'rgb(153, 102, 255)',
   grey: 'rgb(201, 203, 207)',
 }
 
 export const ZONES: BasicObject = {
   Z1: {
     threshold: 0,
-    color: COLORS.grey,
+    color: ZONE_COLORS.grey,
   },
   Z2: {
     threshold: 0.6,
-    color: COLORS.blue,
+    color: ZONE_COLORS.blue,
   },
   Z3: {
     threshold: 0.76,
-    color: COLORS.green,
+    color: ZONE_COLORS.green,
   },
   Z4: {
     threshold: 0.9,
-    color: COLORS.yellow,
+    color: ZONE_COLORS.yellow,
   },
   Z5: {
     name: 'z5',
     threshold: 1.05,
-    color: COLORS.orange,
+    color: ZONE_COLORS.orange,
   },
   Z6: {
     threshold: 1.18,
-    color: COLORS.red,
+    color: ZONE_COLORS.red,
   },
 }
+
+export const getDefaultChartOptions = (
+  labels: Array<any>,
+  color: ((context: ScriptableChartContext) => CanvasGradient) | string,
+  height: number
+) => ({
+  type: 'line',
+  data: {
+    labels,
+    datasets: [
+      {
+        data: [],
+        borderColor: color,
+        pointRadius: 0,
+        borderWidth: 2,
+      },
+    ],
+  },
+  options: {
+    animation: {
+      duration: 0,
+    },
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+    },
+    scales: {
+      x: {
+        display: false,
+      },
+      y: {
+        display: false,
+        max: height,
+        min: 0,
+      },
+    },
+  },
+})
 
 export const getZones = (ftp: number, maxPower: number) =>
   Object.keys(ZONES).map((key) => {

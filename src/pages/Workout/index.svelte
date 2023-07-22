@@ -286,12 +286,17 @@ const executeWorkout = async () => {
     />
   </div>
 
-  <div class="charts absolute bottom-0 left-0 right-0 h-60">
-    <PowerChart
-      activity="{activity}"
-      elapsedTime="{elapsedTime}"
-      devices="{devices}"
-    />
+  <div
+    class="charts absolute bottom-12 left-12 right-60 flex flex-col space-y-4"
+  >
+    <div class="relative h-48 rounded-lg bg-gray-100 p-4">
+      <div class="chart-name absolute left-4 top-4 font-bold">Power</div>
+      <PowerChart
+        activity="{activity}"
+        elapsedTime="{elapsedTime}"
+        devices="{devices}"
+      />
+    </div>
   </div>
 
   <Speed devices="{devices}" />

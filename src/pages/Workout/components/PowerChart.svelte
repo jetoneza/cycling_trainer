@@ -1,6 +1,10 @@
 <script lang="ts">
 import { onMount } from 'svelte'
-import Chart, { type ScriptableChartContext } from 'chart.js/auto'
+import Chart, {
+  type ChartConfiguration,
+  type ChartTypeRegistry,
+  type ScriptableChartContext,
+} from 'chart.js/auto'
 
 // Types
 import { DataType, type Activity, type BasicObject } from '../../../types'
@@ -8,9 +12,10 @@ import type { Writable } from 'svelte/store'
 
 // Utils
 import { getActivityDuration } from '../../../utils/time'
-import { getZones } from '../../../utils/zones'
+import { getDefaultChartOptions, getZones } from '../../../utils/zones'
 
 const CHART_MAX_THRESHOLD = 1.2
+const CHART_PADDING = 5
 
 // Props
 export let activity: Activity
@@ -18,7 +23,7 @@ export let elapsedTime: Writable<number>
 export let devices: BasicObject
 
 let chartCanvas: HTMLCanvasElement
-let chart: Chart<'line', any[], any>
+let chart: Chart<keyof ChartTypeRegistry, any[], any>
 let chartMax = activity.ftp * CHART_MAX_THRESHOLD
 
 const activityDuration = getActivityDuration(activity)
@@ -29,44 +34,14 @@ onMount(() => {
   const initialData = Array(activityDuration).fill(0)
 
   const labels = initialData
-  const data = initialData
 
-  chart = new Chart(chartContext, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          data,
-          label: 'Power',
-          borderColor: color,
-          pointRadius: 0,
-          borderWidth: 5,
-        },
-      ],
-    },
-    options: {
-      animation: {
-        duration: 300,
-      },
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-      scales: {
-        x: {
-          display: false,
-        },
-        y: {
-          display: false,
-          max: chartMax,
-          min: 0,
-        },
-      },
-    },
-  })
+  const options = getDefaultChartOptions(
+    labels,
+    color,
+    chartMax
+  ) as ChartConfiguration<keyof ChartTypeRegistry, any[], any>
+
+  chart = new Chart(chartContext, options)
 })
 
 const color = (context: ScriptableChartContext) => {
@@ -93,21 +68,21 @@ const color = (context: ScriptableChartContext) => {
   return gradient
 }
 
-const addData = (index: number) => {
+const addData = () => {
   const power = devices[DataType.Power].value
 
   if (power > chartMax) {
     chartMax = power
-    chart.options.scales.y.max = power
+    chart.options.scales.y.max = power + CHART_PADDING
   }
 
-  chart.data.datasets[0].data[index] = power
+  chart.data.datasets[0].data.push(power)
   chart.update()
 }
 
 $: {
   if ($elapsedTime > 0) {
-    addData($elapsedTime - 1)
+    addData()
   }
 }
 </script>
