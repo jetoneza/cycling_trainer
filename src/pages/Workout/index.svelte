@@ -13,6 +13,7 @@ import DataView from './components/DataView.svelte'
 import Speed from './components/Speed.svelte'
 import WorkoutsList from './components/WorkoutsList.svelte'
 import PowerChart from './components/PowerChart.svelte'
+import HeartRateChart from './components/HeartRateChart.svelte'
 
 // Types
 import { DataType, DeviceType, type Activity, WorkoutType } from '../../types'
@@ -289,6 +290,14 @@ const executeWorkout = async () => {
   <div
     class="charts absolute bottom-12 left-12 right-60 flex flex-col space-y-4"
   >
+    <div class="relative h-48 rounded-lg bg-gray-100 p-4">
+      <div class="chart-name absolute left-4 top-4 font-bold">Heart Rate</div>
+      <HeartRateChart
+        activity="{activity}"
+        elapsedTime="{elapsedTime}"
+        devices="{devices}"
+      />
+    </div>
     <div class="relative h-48 rounded-lg bg-gray-100 p-4">
       <div class="chart-name absolute left-4 top-4 font-bold">Power</div>
       <PowerChart
