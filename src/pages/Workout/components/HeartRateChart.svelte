@@ -13,8 +13,7 @@ import type { Writable } from 'svelte/store'
 import { getActivityDuration } from '../../../utils/time'
 import { ZONE_COLORS, getDefaultChartOptions } from '../../../utils/zones'
 
-const CHART_MAX_THRESHOLD = 1.2
-const CHART_PADDING = 5
+const CHART_MAX = 210
 
 // Props
 export let activity: Activity
@@ -23,7 +22,6 @@ export let devices: BasicObject
 
 let chartCanvas: HTMLCanvasElement
 let chart: Chart<keyof ChartTypeRegistry, any[], any>
-let chartMax = activity.ftp * CHART_MAX_THRESHOLD
 
 const activityDuration = getActivityDuration(activity)
 
@@ -35,9 +33,10 @@ onMount(() => {
   const labels = initialData
 
   const options = getDefaultChartOptions(
+    'line',
     labels,
     ZONE_COLORS.red,
-    chartMax
+    CHART_MAX
   ) as ChartConfiguration<keyof ChartTypeRegistry, any[], any>
 
   chart = new Chart(chartContext, options)
@@ -45,11 +44,6 @@ onMount(() => {
 
 const addData = () => {
   const heartRate = devices[DataType.HeartRate].value
-
-  if (heartRate > chartMax) {
-    chartMax = heartRate
-    chart.options.scales.y.max = heartRate + CHART_PADDING
-  }
 
   chart.data.datasets[0].data.push(heartRate)
   chart.update()
