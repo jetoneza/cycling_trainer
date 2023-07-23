@@ -3,7 +3,7 @@ import { onMount } from 'svelte'
 import Chart, {
   type ChartConfiguration,
   type ChartTypeRegistry,
-  type ScriptableChartContext,
+  type ScriptableContext,
 } from 'chart.js/auto'
 
 // Types
@@ -36,6 +36,7 @@ onMount(() => {
   const labels = initialData
 
   const options = getDefaultChartOptions(
+    'bar',
     labels,
     color,
     chartMax
@@ -44,28 +45,27 @@ onMount(() => {
   chart = new Chart(chartContext, options)
 })
 
-const color = (context: ScriptableChartContext) => {
-  const chart = context.chart
-  const { ctx, chartArea } = chart
-
-  if (!chartArea) {
+const color = (context: ScriptableContext<'bar'>) => {
+  if (!context.chart.chartArea) {
     return
   }
 
-  const gradient = ctx.createLinearGradient(
-    0,
-    chartArea.bottom,
-    0,
-    chartArea.top
-  )
+  const index = context.dataIndex
+  const value = context.dataset.data[index] as number
 
   const zones = getZones(activity.ftp, chartMax)
 
+  let color = zones[0].color
+
   zones.forEach((zone) => {
-    gradient.addColorStop(zone.threshold, zone.color)
+    let powerThreshold = value / chartMax
+
+    if (powerThreshold >= zone.threshold) {
+      color = zone.color
+    }
   })
 
-  return gradient
+  return color
 }
 
 const addData = () => {
