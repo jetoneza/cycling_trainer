@@ -158,12 +158,12 @@ devicesStore.subscribe((map) => {
     return
   }
 
-  if (hrm && hrm.bleDevice) {
+  if (hrm && hrm.bleDevice && hrm.bleDevice.data) {
     const { bpm, is_sensor_in_contact } = hrm.bleDevice.data
     devices[DataType.HeartRate].value = is_sensor_in_contact ? bpm : '--'
   }
 
-  if (smartTrainer && smartTrainer.bleDevice) {
+  if (smartTrainer && smartTrainer.bleDevice && hrm.bleDevice.data) {
     const { cadence, distance, power, speed } = smartTrainer.bleDevice.data
 
     devices[DataType.Distance].value = distance || 0
