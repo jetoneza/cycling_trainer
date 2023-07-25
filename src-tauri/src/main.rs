@@ -153,7 +153,7 @@ async fn start_session() -> Result<()> {
 async fn stop_session(action: &str) -> Result<()> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
-        warn!("main::start_session: Bluetooth not found.");
+        warn!("main::stop_session: Bluetooth not found.");
         return Ok(());
     };
 
