@@ -274,6 +274,13 @@ impl Bluetooth {
                 };
 
                 handle_characteristic_subscription(
+                    FITNESS_MACHINE_STATUS_UUID,
+                    &peripheral,
+                    CharacteristicAction::Unsubscribe,
+                )
+                .await?;
+
+                handle_characteristic_subscription(
                     INDOOR_BIKE_DATA_UUID,
                     &cycling_device,
                     CharacteristicAction::Unsubscribe,
@@ -429,7 +436,9 @@ impl Bluetooth {
             "stop" => StopControl::Stop,
             "pause" => StopControl::Pause,
             _ => {
-                return Err(error_generic("Action not supported for stopping the session."))
+                return Err(error_generic(
+                    "Action not supported for stopping the session.",
+                ))
             }
         };
 
