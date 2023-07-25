@@ -57,7 +57,7 @@ pub fn get_uuid_characteristic(uuid: Uuid) -> Characteristic {
         HEART_RATE_MEASUREMENT_UUID => Characteristic::HeartRateMeasurement,
         INDOOR_BIKE_DATA_UUID => Characteristic::IndoorBikeData,
         FITNESS_MACHINE_CONTROL_POINT_UUID => Characteristic::FitnessMachineControlPoint,
-        FITNESS_MACHINE_STATUS_UUID => Characteristic::FitnessmachineStatus,
+        FITNESS_MACHINE_STATUS_UUID => Characteristic::FitnessMachineStatus,
         _ => Characteristic::Unknown,
     }
 }

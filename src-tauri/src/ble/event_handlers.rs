@@ -45,7 +45,7 @@ pub enum Characteristic {
     HeartRateMeasurement,
     IndoorBikeData,
     FitnessMachineControlPoint,
-    FitnessmachineStatus,
+    FitnessMachineStatus,
     Unknown,
 }
 
@@ -210,13 +210,13 @@ pub async fn handle_cycling_device_notifications() {
             Characteristic::FitnessMachineControlPoint => {
                 let status = data.value[0];
 
-                if status != FTMSControlOpCode::Sucess as u8 {
+                if status != FTMSControlOpCode::Success as u8 {
                     return;
                 }
 
                 handle_control_point_response(&data.value, &app_handle);
             }
-            Characteristic::FitnessmachineStatus => handle_ftms_status(&data.value, &app_handle),
+            Characteristic::FitnessMachineStatus => handle_ftms_status(&data.value, &app_handle),
             // TODO: Add support for cycling power
             _ => {}
         };

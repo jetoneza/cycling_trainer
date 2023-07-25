@@ -28,7 +28,7 @@ pub enum FTMSControlOpCode {
     Stop = 0x08,  // Stop/Pause
     SpinDownControl = 0x13,
     TargetCadence = 0x14,
-    Sucess = 0x80,
+    Success = 0x80,
 }
 
 pub enum FTMSControlResultCode {
