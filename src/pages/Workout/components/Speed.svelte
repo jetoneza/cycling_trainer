@@ -7,6 +7,13 @@ import { DataType, type BasicObject } from '../../../types'
 
 // Props
 export let devices: BasicObject
+
+const formatDistance = (distance: number): number | string =>
+  distance < 1000 ? distance : (distance / 1000).toFixed(1)
+
+const formatDistanceUnit = (distance: number): string => {
+  return `${distance < 1000 ? 'm' : 'km'} dist`
+}
 </script>
 
 <div class="speed absolute bottom-12 right-12 text-right">
@@ -23,8 +30,10 @@ export let devices: BasicObject
       </div>
     </div>
     <div class="text-lg font-bold text-primary-300">
-      {devices[DataType.Distance].value}
-      <span class="ml-1 text-lg">km dist</span>
+      {formatDistance(devices[DataType.Distance].value)}
+      <span class="ml-1 text-lg">
+        {formatDistanceUnit(devices[DataType.Distance].value)}
+      </span>
     </div>
   </div>
 </div>
