@@ -51,6 +51,11 @@ impl Session {
         self.heart_rate_data.push(bpm);
     }
 
+    /// This is used for when FTMS supports total distance
+    pub fn set_total_distance(&mut self, distance: u32) {
+        self.total_distance = distance
+    }
+
     pub fn calculate_total_distance(&mut self, speed: u16) -> u32 {
         let elapsed_time = get_time_change();
 
