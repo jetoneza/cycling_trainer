@@ -9,6 +9,7 @@ use uuid::Uuid;
 
 use crate::data::heart_rate_measurement::parse_hrm_data;
 use crate::data::indoor_bike_data::parse_indoor_bike_data;
+use crate::data::session;
 use crate::error::error_generic;
 use crate::prelude::*;
 use crate::utils::bluetooth_utils::get_uuid_characteristic;
@@ -158,6 +159,12 @@ pub async fn handle_heart_rate_notifications() {
         return;
     };
 
+    let mut session_guard = bt.session.write().await;
+    let Some(session) = session_guard.as_mut() else {
+        error!("{}::handle_heart_rate_notifications: Session not found", LOGGER_NAME);
+        return;
+    };
+
     let Ok(mut notification_stream) = hrm.notifications().await else {
         error!("{}::handle_heart_rate_notifications: Notifications for heart rate measurement not found", LOGGER_NAME);
         return;
@@ -169,6 +176,8 @@ pub async fn handle_heart_rate_notifications() {
         let data = parse_hrm_data(&data.value);
 
         if let Some(app_handle) = TAURI_APP_HANDLE.lock().await.as_ref() {
+            session.add_heart_rate_data(data.bpm);
+
             app_handle.emit_all("hrm_notification", data).ok();
         }
     }
@@ -184,6 +193,12 @@ pub async fn handle_cycling_device_notifications() {
     let cd_guard = bt.cycling_device.read().await;
     let Some(cycling_device) = cd_guard.as_ref() else {
         error!("{}::handle_cycling_device_notifications: Cycling device not found", LOGGER_NAME);
+        return;
+    };
+
+    let mut session_guard = bt.session.write().await;
+    let Some(session) = session_guard.as_mut() else {
+        error!("{}::handle_cycling_device_notifications: Session not found", LOGGER_NAME);
         return;
     };
 
@@ -204,6 +219,19 @@ pub async fn handle_cycling_device_notifications() {
         match get_uuid_characteristic(data.uuid) {
             Characteristic::IndoorBikeData => {
                 let data = parse_indoor_bike_data(&data.value);
+
+                // TODO: Check if total distance is supported in indoor bike data
+
+                match (data.cadence, data.speed, data.power) {
+                    (Some(cadence), Some(speed), Some(power)) => {
+                        session.add_indoor_bike_data(session::IndoorBikeData {
+                            cadence,
+                            speed,
+                            power,
+                        });
+                    }
+                    _ => {}
+                }
 
                 app_handle.emit_all("indoor_bike_notification", data).ok();
             }

@@ -4,6 +4,7 @@ use log::{info, warn};
 use std::fmt;
 use tokio::sync::{Mutex, RwLock};
 
+use crate::data::session::Session;
 use crate::error::error_generic;
 use crate::prelude::*;
 use crate::utils::bluetooth_utils::{get_central, get_device_type, get_manager};
@@ -68,6 +69,7 @@ pub struct Bluetooth {
 
     pub heart_rate_device: RwLock<Option<Peripheral>>,
     pub cycling_device: RwLock<Option<Peripheral>>,
+    pub session: RwLock<Option<Session>>,
 }
 
 impl Bluetooth {
@@ -87,6 +89,7 @@ impl Bluetooth {
             status: Mutex::new(status),
             heart_rate_device: RwLock::new(None),
             cycling_device: RwLock::new(None),
+            session: RwLock::new(None),
         };
 
         *BLUETOOTH.write().await = Some(bluetooth);
@@ -423,6 +426,11 @@ impl Bluetooth {
         )
         .await?;
 
+        let mut session = Session::new();
+        session.start_session();
+
+        *self.session.write().await = Some(session);
+
         Ok(())
     }
 
@@ -449,6 +457,20 @@ impl Bluetooth {
             WriteType::WithResponse,
         )
         .await?;
+
+        let mut session_guard = self.session.write().await;
+        let Some(session) = session_guard.as_mut() else {
+            return Err(error_generic("Unable to read session"))
+        };
+
+        match action {
+            "stop" => session.stop_session(),
+            "pause" => session.pause_session(),
+            _ => {}
+        }
+
+        // TODO: Persist session data
+        // TODO: Reset session data
 
         Ok(())
     }
