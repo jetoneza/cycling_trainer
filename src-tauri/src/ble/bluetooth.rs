@@ -426,10 +426,17 @@ impl Bluetooth {
         )
         .await?;
 
-        let mut session = Session::new();
-        session.start_session();
+        let mut session_guard = self.session.write().await;
+        let Some(session) = session_guard.as_mut() else {
+            let mut session = Session::new();
+            session.start_session();
 
-        *self.session.write().await = Some(session);
+            *session_guard = Some(session);
+
+            return Ok(());
+        };
+
+        session.start_session();
 
         Ok(())
     }
