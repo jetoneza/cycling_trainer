@@ -1,5 +1,3 @@
-use std::time::{Duration, Instant};
-
 use crate::utils::byte::{combine_u8_to_u16, combine_u8_to_u32};
 
 #[derive(PartialEq, Clone, serde::Serialize)]
@@ -17,8 +15,6 @@ enum IndoorBikeDataType {
     Power,
 }
 
-const KPH_TO_KPS: f64 = 1.0 / 3600.0;
-
 // Size in octets
 const FLAGS_SIZE: usize = 2;
 const INSTANTANEOUS_SPEED_SIZE: usize = 2;
@@ -32,11 +28,9 @@ const RESISTANCE_LEVEL_SIZE: usize = 1;
 // https://www.bluetooth.com/specifications/specs/gatt-specification-supplement/
 // Check for Indoor Bike Data
 pub fn parse_indoor_bike_data(data: &Vec<u8>) -> IndoorBikeData {
-    let elapsed_time = get_time_change();
-
     let speed = get_speed(data);
     let cadence = get_cadence(data);
-    let distance = get_distance(data, speed, elapsed_time);
+    let distance = get_distance(data);
     let power = get_power(data);
 
     IndoorBikeData {
@@ -84,25 +78,10 @@ fn get_cadence(data: &Vec<u8>) -> Option<u16> {
 // Total Distance since the beginning of the training session
 // Data type: u24
 // Size (octets): 0 or 3
-fn get_distance(data: &Vec<u8>, speed: Option<u16>, elapsed_time: Duration) -> Option<u32> {
-    // TODO: Only calculate distance if the session has started
-    static mut TOTAL_DISTANCE: Option<u32> = None;
-
+fn get_distance(data: &Vec<u8>) -> Option<u32> {
     // Present if bit 4 of Flags field is set to 1
     if !is_distance_present(data) {
-        // TODO: Calculate speed with other parameters, e.g. (Wind, Drafting, etc.)
-        let distance = get_distance_from_speed(speed, elapsed_time)?;
-
-        let total_distance = unsafe {
-            TOTAL_DISTANCE = TOTAL_DISTANCE
-                .map(|total| total + distance)
-                .or(Some(distance));
-
-            TOTAL_DISTANCE
-        };
-
-        // Calculated distance from speed in meters
-        return total_distance;
+        return None;
     }
 
     let data_index = get_data_index(data, IndoorBikeDataType::Distance);
@@ -128,14 +107,6 @@ fn get_power(data: &Vec<u8>) -> Option<u16> {
 
     // Watts
     Some(power)
-}
-
-fn get_distance_from_speed(speed: Option<u16>, elapsed_time: Duration) -> Option<u32> {
-    let speed_kps = (speed? as f64) * KPH_TO_KPS;
-    let distance = (speed_kps * elapsed_time.as_secs_f64()) * 1000.0;
-
-    // Distance is in meters
-    Some(distance as u32)
 }
 
 fn get_data_index(data: &Vec<u8>, data_type: IndoorBikeDataType) -> usize {
@@ -231,14 +202,4 @@ fn is_power_present(data: &Vec<u8>) -> bool {
 // 2 - Instantaneous cadence present
 fn get_flags(data: &Vec<u8>) -> u16 {
     combine_u8_to_u16(data[0], data[1])
-}
-
-fn get_time_change() -> Duration {
-    static mut LAST_CALL: Option<Instant> = None;
-
-    let now = Instant::now();
-
-    let last_time = unsafe { LAST_CALL.replace(now).unwrap_or(now) };
-
-    now - last_time
 }
