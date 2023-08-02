@@ -7,11 +7,19 @@ import CadenceIcon from 'svelte-icons/go/GoSync.svelte'
 // Types
 import { DataType, type BasicObject } from '../../../types'
 
+const CADENCE_TARGET_MARGIN = 5
+const POWER_TARGET_MARGIN = 10
+
 // Props
 export let devices: BasicObject
 
 $: hasTargetCadence =
   !!devices[DataType.TargetPower] && devices[DataType.TargetCadence].value > 0
+
+const getColorClass = (target: number, value: number, margin: number): string =>
+  value >= target - margin && value <= target + margin
+    ? 'text-white'
+    : 'text-red-500'
 </script>
 
 <div class="data-view flex justify-between rounded-lg bg-secondary-200">
@@ -48,7 +56,11 @@ $: hasTargetCadence =
   <div class="column px-6 pb-4 pt-2">
     <div class="row item text-center">
       <div
-        class="value flex w-full justify-center text-9xl font-bold text-white"
+        class="value flex w-full justify-center text-9xl font-bold {getColorClass(
+          devices[DataType.TargetCadence].value,
+          devices[DataType.Cadence].value,
+          POWER_TARGET_MARGIN
+        )}"
       >
         {devices[DataType.Power].value}
         <div class="icon ml-2 mt-11 w-10">
@@ -68,7 +80,13 @@ $: hasTargetCadence =
       </div>
 
       <div class="item">
-        <div class="value flex text-4xl font-bold text-white">
+        <div
+          class="value flex text-4xl font-bold {getColorClass(
+            devices[DataType.TargetCadence].value,
+            devices[DataType.Cadence].value,
+            CADENCE_TARGET_MARGIN
+          )}"
+        >
           {devices[DataType.Cadence].value}
           <div class="icon ml-1 mt-3 h-5 w-5">
             <CadenceIcon />
