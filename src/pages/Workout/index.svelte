@@ -1,5 +1,6 @@
 <script lang="ts">
 // Libraries
+import { onMount } from 'svelte'
 import { invoke } from '@tauri-apps/api/tauri'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
@@ -95,6 +96,14 @@ let devices = {
 
 $: workoutData = getWorkoutData(activity, activeWorkoutIndex, $intervalTime)
 
+onMount(() => {
+  window.addEventListener('keydown', handleKeyPress)
+
+  return () => {
+    window.removeEventListener('keydown', handleKeyPress)
+  }
+})
+
 listen('session_started', () => {
   // TODO: Handle session started
 })
@@ -104,6 +113,17 @@ listen('session_stopped', (event: TauriEvent<any>) => {
 
   // TODO: Handle session stopped/paused
 })
+
+const handleKeyPress = (event: KeyboardEvent) => {
+  const { key } = event
+
+  // TODO: Add keys to constants
+  if (key === 'Escape') {
+    pauseSession()
+
+    // TODO: Display pause menu
+  }
+}
 
 const trackSessionState = async () => {
   const speed = devices[DataType.Speed].value
@@ -118,29 +138,18 @@ const trackSessionState = async () => {
     (status === SessionStatus.Stopped || status === SessionStatus.Paused) &&
     hasActivity
   ) {
-    session = {
-      ...session,
-      status: SessionStatus.Started,
-    }
-
     startSession()
 
     return
   }
 
+  if (idleTime === MAX_IDLE_TIME) {
+    pauseSession()
+
+    return
+  }
+
   if (status === SessionStatus.Started && isIdle) {
-    if (idleTime === MAX_IDLE_TIME) {
-      session = {
-        status: SessionStatus.Paused,
-        idleTime: 0,
-      }
-
-      pause()
-      await invoke('stop_session', { action: StopAction.Pause })
-
-      return
-    }
-
     session = {
       ...session,
       idleTime: idleTime + 1,
@@ -235,6 +244,11 @@ const setTimes = () => {
 }
 
 const startSession = async () => {
+  session = {
+    ...session,
+    status: SessionStatus.Started,
+  }
+
   const status = getStatus()
 
   if (status === TimerStatus.Started) {
@@ -247,6 +261,16 @@ const startSession = async () => {
   await executeWorkout()
 
   start()
+}
+
+const pauseSession = async () => {
+  session = {
+    status: SessionStatus.Paused,
+    idleTime: 0,
+  }
+
+  pause()
+  await invoke('stop_session', { action: StopAction.Pause })
 }
 
 const executeWorkout = async () => {
