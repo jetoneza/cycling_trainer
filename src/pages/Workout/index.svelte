@@ -15,6 +15,7 @@ import Speed from './components/Speed.svelte'
 import WorkoutsList from './components/WorkoutsList.svelte'
 import PowerChart from './components/PowerChart.svelte'
 import HeartRateChart from './components/HeartRateChart.svelte'
+import Menu from './components/Menu.svelte'
 
 // Types
 import { DataType, DeviceType, type Activity, WorkoutType } from '../../types'
@@ -52,7 +53,7 @@ let activity: Activity
 let activeWorkoutIndex = WORKOUT_START_INDEX
 let currentPower: number
 let session = {
-  status: SessionStatus.Stopped,
+  status: SessionStatus.Paused,
   idleTime: 0,
 }
 let devices = {
@@ -211,8 +212,7 @@ intervalTime.subscribe(async (time) => {
   }
 
   if (activeWorkoutIndex == activity.workouts.length - 1) {
-    stop()
-    await invoke('stop_session', { action: StopAction.Stop })
+    stopSession()
 
     return
   }
@@ -271,6 +271,19 @@ const pauseSession = async () => {
 
   pause()
   await invoke('stop_session', { action: StopAction.Pause })
+}
+
+const stopSession = async () => {
+  session = {
+    ...session,
+    status: SessionStatus.Stopped,
+  }
+
+  // TODO: Save session here.
+
+  stop()
+
+  await invoke('stop_session', { action: StopAction.Stop })
 }
 
 const executeWorkout = async () => {
@@ -333,4 +346,8 @@ const executeWorkout = async () => {
   </div>
 
   <Speed devices="{devices}" />
+
+  {#if session.status === SessionStatus.Paused}
+    <Menu onSessionStop={stopSession}/>
+  {/if}
 </div>
