@@ -1,6 +1,6 @@
 <script lang="ts">
 // Libraries
-import { onMount } from 'svelte'
+import { createEventDispatcher, onMount } from 'svelte'
 import { invoke } from '@tauri-apps/api/tauri'
 import { listen, type Event as TauriEvent } from '@tauri-apps/api/event'
 
@@ -19,7 +19,14 @@ import Menu from './components/Menu.svelte'
 import Summary from './components/Summary.svelte'
 
 // Types
-import { DataType, DeviceType, type Activity, WorkoutType } from '../../types'
+import {
+  DataType,
+  DeviceType,
+  type Activity,
+  WorkoutType,
+  DispatchMessage,
+  Page,
+} from '../../types'
 import { convertSecondsToMinutes } from '../../utils/time'
 import { getWorkoutData } from '../../utils/data'
 
@@ -39,6 +46,8 @@ enum StopAction {
 
 const WORKOUT_START_INDEX = 0
 const MAX_IDLE_TIME = 3
+
+const dispatch = createEventDispatcher()
 
 const {
   elapsedTime,
@@ -317,6 +326,12 @@ const handleSaveSession = async () => {
   await stopSession()
 
   displaySummary = false
+
+  // TODO: Add option for user to not save the session
+
+  dispatch(DispatchMessage.PageChange, {
+    page: Page.Activities,
+  })
 }
 </script>
 
