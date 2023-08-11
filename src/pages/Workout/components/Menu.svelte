@@ -2,8 +2,7 @@
 import PlayIcon from 'svelte-icons/fa/FaPlay.svelte'
 import StopIcon from 'svelte-icons/fa/FaStop.svelte'
 
-// export const onSessionStop = () => {}
-export let onSessionStop: () => void
+export let onSessionEnd: () => void
 </script>
 
 <div class="menu flex justify-center overflow-hidden">
@@ -12,7 +11,7 @@ export let onSessionStop: () => void
       <PlayIcon />
     </div>
   </button>
-  <button class="px-6" on:click="{onSessionStop}">
+  <button class="px-6" on:click="{onSessionEnd}">
     <div class="icon w-10">
       <StopIcon />
     </div>

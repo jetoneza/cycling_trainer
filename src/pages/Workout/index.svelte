@@ -16,6 +16,7 @@ import WorkoutsList from './components/WorkoutsList.svelte'
 import PowerChart from './components/PowerChart.svelte'
 import HeartRateChart from './components/HeartRateChart.svelte'
 import Menu from './components/Menu.svelte'
+import Summary from './components/Summary.svelte'
 
 // Types
 import { DataType, DeviceType, type Activity, WorkoutType } from '../../types'
@@ -52,8 +53,9 @@ const {
 let activity: Activity
 let activeWorkoutIndex = WORKOUT_START_INDEX
 let currentPower: number
+let displaySummary = false
 let session = {
-  status: SessionStatus.Paused,
+  status: SessionStatus.Stopped,
   idleTime: 0,
 }
 let devices = {
@@ -212,7 +214,7 @@ intervalTime.subscribe(async (time) => {
   }
 
   if (activeWorkoutIndex == activity.workouts.length - 1) {
-    stopSession()
+    handleEndSession()
 
     return
   }
@@ -275,14 +277,11 @@ const pauseSession = async () => {
 
 const stopSession = async () => {
   session = {
-    ...session,
     status: SessionStatus.Stopped,
+    idleTime: 0,
   }
 
-  // TODO: Save session here.
-
   stop()
-
   await invoke('stop_session', { action: StopAction.Stop })
 }
 
@@ -303,6 +302,21 @@ const executeWorkout = async () => {
     cadence,
     power,
   })
+}
+
+const handleEndSession = async () => {
+  await pauseSession()
+
+  displaySummary = true
+}
+
+const handleSaveSession = async () => {
+  // TODO: Save summary details
+  // TODO: Get session data from backend
+
+  await stopSession()
+
+  displaySummary = false
 }
 </script>
 
@@ -347,7 +361,14 @@ const executeWorkout = async () => {
 
   <Speed devices="{devices}" />
 
-  {#if session.status === SessionStatus.Paused}
-    <Menu onSessionStop={stopSession}/>
+  {#if session.status === SessionStatus.Paused && !displaySummary}
+    <Menu onSessionEnd="{handleEndSession}" />
+  {/if}
+
+  {#if displaySummary}
+    <Summary
+      onBackClick="{() => (displaySummary = false)}"
+      onSaveClick="{handleSaveSession}"
+    />
   {/if}
 </div>
