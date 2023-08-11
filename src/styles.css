@@ -9,11 +9,20 @@
 } 
 
 .btn {
-  @apply bg-primary-400  px-4 py-2 rounded-md;
+  @apply bg-primary-400  px-4 py-2 rounded-md border-2 border-primary-400;
   @apply text-white font-bold;
 
   &:hover {
     @apply bg-primary-500;
+  }
+
+  &.secondary {
+    @apply bg-white; 
+    @apply text-primary-400;
+
+    &:hover {
+      @apply bg-primary-100;
+    }
   }
 }
 
