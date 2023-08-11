@@ -5,3 +5,12 @@
     z-index: -1;
   }
 }
+
+.menu {
+  @apply p-6 rounded-2xl shadow-md;
+  @apply absolute left-0 right-0 bottom-0;
+  @apply my-14 mx-auto;
+  @apply bg-white;
+
+  max-width: 250px;
+}
