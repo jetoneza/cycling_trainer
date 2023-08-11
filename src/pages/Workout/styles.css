@@ -14,3 +14,12 @@
 
   max-width: 250px;
 }
+
+.summary {
+  @apply p-6 rounded-2xl;
+  @apply absolute left-0 top-0 right-0 bottom-0;
+  @apply w-11/12 my-12 mx-auto;
+  @apply bg-white;
+
+  box-shadow: 0 0 0 50vmax rgba(0, 0, 0, 0.5);
+}
