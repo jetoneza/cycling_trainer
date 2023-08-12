@@ -481,4 +481,13 @@ impl Bluetooth {
 
         Ok(())
     }
+
+    pub async fn get_session_data(&self) -> Result<Session> {
+        let session_guard = self.session.read().await;
+        let Some(session) = session_guard.as_ref() else {
+            return Err(error_generic("Unable to read session"));
+        };
+
+        Ok(session.get_session_data())
+    }
 }

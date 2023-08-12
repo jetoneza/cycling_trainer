@@ -1,19 +1,23 @@
 use std::time::{Duration, Instant};
+use serde::Serialize;
 
 const KPH_TO_KPS: f64 = 1.0 / 3600.0;
 
+#[derive(Clone, Serialize)]
 pub enum SessionStatus {
     Started,
     Paused,
     Stopped,
 }
 
+#[derive(Clone, Serialize)]
 pub struct IndoorBikeData {
     pub cadence: u16,
     pub speed: u16,
     pub power: u16,
 }
 
+#[derive(Clone, Serialize)]
 pub struct Session {
     pub status: SessionStatus,
     pub indoor_bike_data: Vec<IndoorBikeData>,
@@ -65,6 +69,10 @@ impl Session {
         self.total_distance += distance;
 
         self.total_distance
+    }
+
+    pub fn get_session_data(&self) -> Session {
+        self.to_owned()
     }
 }
 

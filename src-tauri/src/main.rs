@@ -14,6 +14,7 @@ mod workouts;
 use crate::prelude::*;
 
 use ble::bluetooth::{Bluetooth, Connection, DeviceType, BLUETOOTH};
+use data::session::Session;
 use error::error_generic;
 use log::{error, warn};
 use tauri::Manager;
@@ -162,6 +163,19 @@ async fn stop_session(action: &str) -> Result<()> {
     Ok(())
 }
 
+#[tauri::command(async)]
+async fn get_session_data() -> Result<Option<Session>> {
+    let bluetooth_guard = &BLUETOOTH.read().await;
+    let Some(bt) = bluetooth_guard.as_ref() else {
+        warn!("main::get_session_data: Bluetooth not found.");
+        return Ok(None);
+    };
+
+    let session_data = bt.get_session_data().await?;
+
+    Ok(Some(session_data))
+}
+
 async fn initialize_app(app_handle: tauri::AppHandle) {
     *TAURI_APP_HANDLE.lock().await = Some(app_handle.clone());
 
@@ -199,6 +213,7 @@ fn main() {
             request_spin_down,
             start_session,
             stop_session,
+            get_session_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

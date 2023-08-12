@@ -320,10 +320,11 @@ const handleEndSession = async () => {
 }
 
 const handleSaveSession = async () => {
-  // TODO: Save summary details
-  // TODO: Get session data from backend
 
   await stopSession()
+  const data = await invoke('get_session_data')
+
+  // TODO: Save summary details
 
   displaySummary = false
 
