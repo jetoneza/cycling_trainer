@@ -184,7 +184,7 @@ devicesStore.subscribe((map) => {
     devices[DataType.HeartRate].value = is_sensor_in_contact ? bpm : '--'
   }
 
-  if (smartTrainer && smartTrainer.bleDevice && hrm.bleDevice.data) {
+  if (smartTrainer && smartTrainer.bleDevice && smartTrainer.bleDevice.data) {
     const { cadence, distance, power, speed } = smartTrainer.bleDevice.data
 
     devices[DataType.Distance].value = distance || 0
@@ -316,13 +316,14 @@ const executeWorkout = async () => {
 const handleEndSession = async () => {
   await pauseSession()
 
+  const data = await invoke('get_session_data')
+  // TODO: Display data in summary
+
   displaySummary = true
 }
 
 const handleSaveSession = async () => {
-
   await stopSession()
-  const data = await invoke('get_session_data')
 
   // TODO: Save summary details
 
