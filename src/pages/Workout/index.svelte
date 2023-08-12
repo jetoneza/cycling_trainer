@@ -132,8 +132,6 @@ const handleKeyPress = (event: KeyboardEvent) => {
   // TODO: Add keys to constants
   if (key === 'Escape') {
     pauseSession()
-
-    // TODO: Display pause menu
   }
 }
 
@@ -281,7 +279,16 @@ const pauseSession = async () => {
   }
 
   pause()
-  await invoke('stop_session', { action: StopAction.Pause })
+
+  try {
+    await invoke('stop_session', { action: StopAction.Pause })
+  } catch (error) {
+    // TODO: Render an exit dialog
+    // Redirect to activities
+    dispatch(DispatchMessage.PageChange, {
+      page: Page.Activities,
+    })
+  }
 }
 
 const stopSession = async () => {
@@ -291,7 +298,12 @@ const stopSession = async () => {
   }
 
   stop()
-  await invoke('stop_session', { action: StopAction.Stop })
+
+  try {
+    await invoke('stop_session', { action: StopAction.Stop })
+  } catch (error) {
+    // TODO: Handle if error
+  }
 }
 
 const executeWorkout = async () => {
