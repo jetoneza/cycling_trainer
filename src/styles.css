@@ -48,3 +48,13 @@
 .scrollable::-webkit-scrollbar-thumb:hover {
   background-color: rgba(0, 0, 0, 0.5);
 }
+
+.modal {
+  @apply p-6 rounded-2xl;
+  @apply absolute left-0 top-0 right-0 bottom-0;
+  @apply my-12 mx-auto;
+  @apply bg-white;
+  @apply w-1/2;
+
+  box-shadow: 0 0 0 50vmax rgba(0, 0, 0, 0.5);
+}
