@@ -71,3 +71,18 @@ export enum WorkoutStatus {
   Active = 'active',
   Done = 'done',
 }
+
+export enum SessionStatus {
+  Started = 'started',
+  Paused = 'paused',
+  Stopped = 'stopped',
+}
+
+export interface SessionData {
+  status: SessionStatus
+  cadenceData: Array<number>
+  powerData: Array<number>
+  speedData: Array<number>
+  heartRateData: Array<number>
+  totalDistance: number
+}
