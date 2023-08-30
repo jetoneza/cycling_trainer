@@ -26,7 +26,7 @@ let chart: Chart<keyof ChartTypeRegistry, any[], any>
 const activityDuration = getActivityDuration(activity)
 
 onMount(() => {
-  const chartContext: CanvasRenderingContext2D = chartCanvas.getContext('2d')
+  const chartContext = chartCanvas.getContext('2d') as CanvasRenderingContext2D
 
   const initialData = Array(activityDuration).fill(0)
 

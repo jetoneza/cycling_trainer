@@ -15,9 +15,9 @@ import {
 import { average } from '../../../utils/common'
 
 // Types
-import type { SessionData } from '../../../types'
+import type { BasicObject, SessionData } from '../../../types'
 
-export let sessionData: SessionData
+export let sessionData: SessionData | null
 export let onBackClick: () => void
 export let onSaveClick: () => void
 
@@ -26,7 +26,7 @@ let hrmChartCanvas: HTMLCanvasElement
 let powerChartCanvas: HTMLCanvasElement
 let speedChartCanvas: HTMLCanvasElement
 
-const limits = {
+const limits: BasicObject = {
   hrm: {
     max: 0,
     ave: 0,
@@ -53,26 +53,31 @@ onMount(() => {
 })
 
 const generateLineChart = (dataName: string, color: string) => {
-  const LINE_CHART_CANVAS = {
+  if (!sessionData) {
+    return
+  }
+
+  const LINE_CHART_CANVAS: BasicObject = {
     heartRateData: {
       key: 'hrm',
       canvas: hrmChartCanvas,
+      data: sessionData.heartRateData,
     },
     cadenceData: {
       key: 'cadence',
       canvas: cadenceChartCanvas,
+      data: sessionData.cadenceData,
     },
     speedData: {
       key: 'speed',
       canvas: speedChartCanvas,
+      data: sessionData.speedData,
     },
   }
 
-  const { key, canvas } = LINE_CHART_CANVAS[dataName]
+  const { key, canvas, data } = LINE_CHART_CANVAS[dataName]
 
   const context: CanvasRenderingContext2D = canvas.getContext('2d')
-
-  const data = sessionData[dataName]
 
   const max = Math.max(...data)
   const min = Math.min(...data)
@@ -95,13 +100,15 @@ const generateLineChart = (dataName: string, color: string) => {
     min,
   }
 
-  options.options.scales.y = yAxis
+  if (options.options && options.options.scales) {
+    options.options.scales.y = yAxis
+  }
 
   new Chart(context, options)
 }
 
 const generatePowerChart = () => {
-  const context: CanvasRenderingContext2D = powerChartCanvas.getContext('2d')
+  const context = powerChartCanvas.getContext('2d') as CanvasRenderingContext2D
 
   const { powerData } = sessionData as SessionData
 
@@ -128,7 +135,9 @@ const generatePowerChart = () => {
     min,
   }
 
-  options.options.scales.y = yAxis
+  if (options.options && options.options.scales) {
+    options.options.scales.y = yAxis
+  }
 
   new Chart(context, options)
 }
@@ -136,7 +145,7 @@ const generatePowerChart = () => {
 const getColor =
   (chartMax: number, ftp: number) => (context: ScriptableContext<'bar'>) => {
     if (!context.chart.chartArea) {
-      return
+      return ZONE_COLORS.grey
     }
 
     const index = context.dataIndex

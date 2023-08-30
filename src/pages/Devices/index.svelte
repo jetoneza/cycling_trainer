@@ -12,7 +12,7 @@ import Spindown from './components/Spindown.svelte'
 import { devicesStore, updateDevices } from '../../stores/devices'
 
 // Types
-import { DeviceType, type Device } from '../../types'
+import { DeviceType, type Device, type BasicObject } from '../../types'
 
 // Styles
 import './styles.css'
@@ -21,7 +21,7 @@ import './styles.css'
 let isScanning = false
 let isConnecting = false
 let isSpindownOpen = false
-let scannedDevices = []
+let scannedDevices: BasicObject[] = []
 
 listen('device_discovered', (event: TauriEvent<any>) => {
   const { payload } = event
@@ -59,7 +59,7 @@ const handleAction = async (device: Device) => {
   isScanning = true
 }
 
-const handleConnect = async (device: { id: string }) => {
+const handleConnect = async (device: BasicObject) => {
   if (isConnecting) {
     return
   }
@@ -86,9 +86,10 @@ const handleConnect = async (device: { id: string }) => {
     const [id, name, type] = connectedDevice
 
     updateDevices((map) => {
-      const device = map[type]
+      const deviceType = type as DeviceType
+      const device = map[deviceType]
 
-      map[type] = {
+      map[deviceType] = {
         ...device,
         bleDevice: {
           id,
@@ -105,7 +106,7 @@ const handleConnect = async (device: { id: string }) => {
 }
 
 const disconnectDevice = async (device: Device) => {
-  await invoke('disconnect_device', { deviceId: device.bleDevice.id })
+  await invoke('disconnect_device', { deviceId: device.bleDevice?.id })
 
   changeConnectionState(device.type, false)
 }
@@ -120,7 +121,7 @@ const changeConnectionState = async (
     map[type] = {
       ...device,
       isConnected,
-      bleDevice: isConnected ? device.bleDevice : null,
+      bleDevice: isConnected ? device.bleDevice : undefined,
     }
 
     return map

@@ -24,7 +24,9 @@ const notifyDevice = (data: BasicObject, type: DeviceType) => {
       ...device,
     }
 
-    updatedDevice.bleDevice.data = data
+    if (updatedDevice.bleDevice) {
+      updatedDevice.bleDevice.data = data
+    }
 
     map[type] = updatedDevice
 

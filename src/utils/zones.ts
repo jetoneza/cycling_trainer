@@ -1,4 +1,4 @@
-import type { ScriptableChartContext } from 'chart.js'
+import type { ScriptableContext } from 'chart.js'
 import type { BasicObject } from '../types'
 
 export const ZONE_COLORS = {
@@ -41,7 +41,7 @@ export const ZONES: BasicObject = {
 export const getDefaultChartOptions = (
   type: string,
   labels: Array<any>,
-  color: ((context: ScriptableChartContext) => CanvasGradient) | string,
+  color: ((context: ScriptableContext<'bar'>) => string) | string,
   height: number
 ) => ({
   type,
@@ -91,6 +91,6 @@ export const getZones = (ftp: number, maxPower: number) =>
 
     return {
       threshold,
-      color: ZONES[key].color,
+      color: ZONES[key].color as string,
     }
   })

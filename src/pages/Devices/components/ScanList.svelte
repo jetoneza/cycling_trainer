@@ -6,7 +6,7 @@ import type { BasicObject } from 'src/types'
 import clickOutside from '../../../utils/clickOutside'
 
 export let scannedDevices: Array<BasicObject>
-export let handleConnect: (device: BasicObject) => {}
+export let handleConnect: (device: BasicObject) => Promise<void>
 export let handleCloseScan: () => {}
 </script>
 

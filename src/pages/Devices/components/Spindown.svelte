@@ -47,7 +47,7 @@ let calibrationStatus = Status.Pending
 let targetSpeed = 0
 let displaySpeed = false
 
-$: speed = device.bleDevice.data.speed
+$: speed = device.bleDevice?.data?.speed
 
 listen('spin_down_start', (event: TauriEvent<any>) => {
   const { payload } = event

@@ -12,7 +12,11 @@ import type { Writable } from 'svelte/store'
 
 // Utils
 import { getActivityDuration } from '../../../utils/time'
-import { getDefaultChartOptions, getZones } from '../../../utils/zones'
+import {
+  ZONE_COLORS,
+  getDefaultChartOptions,
+  getZones,
+} from '../../../utils/zones'
 
 const CHART_MAX_THRESHOLD = 1.2
 const CHART_PADDING = 5
@@ -29,7 +33,7 @@ let chartMax = activity.ftp * CHART_MAX_THRESHOLD
 const activityDuration = getActivityDuration(activity)
 
 onMount(() => {
-  const chartContext: CanvasRenderingContext2D = chartCanvas.getContext('2d')
+  const chartContext = chartCanvas.getContext('2d') as CanvasRenderingContext2D
 
   const initialData = Array(activityDuration).fill(0)
 
@@ -47,7 +51,7 @@ onMount(() => {
 
 const color = (context: ScriptableContext<'bar'>) => {
   if (!context.chart.chartArea) {
-    return
+    return ZONE_COLORS.grey
   }
 
   const index = context.dataIndex
@@ -73,7 +77,10 @@ const addData = () => {
 
   if (power > chartMax) {
     chartMax = power
-    chart.options.scales.y.max = power + CHART_PADDING
+
+    if (chart.options.scales && chart.options.scales.y) {
+      chart.options.scales.y.max = power + CHART_PADDING
+    }
   }
 
   chart.data.datasets[0].data.push(power)

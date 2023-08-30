@@ -26,6 +26,7 @@ import {
   WorkoutType,
   DispatchMessage,
   Page,
+  type SessionData,
 } from '../../types'
 import { convertSecondsToMinutes } from '../../utils/time'
 import { getWorkoutData } from '../../utils/data'
@@ -106,7 +107,7 @@ let devices = {
   },
 }
 
-let sessionData = null
+let sessionData: SessionData | null = null
 
 $: workoutData = getWorkoutData(activity, activeWorkoutIndex, $intervalTime)
 
