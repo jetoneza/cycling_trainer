@@ -1,6 +1,6 @@
 import { WorkoutType, type Activity, type Workout } from '../types'
 
-interface Data {
+type Data = {
   power: number
   cadence: number
 }

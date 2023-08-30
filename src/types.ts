@@ -1,8 +1,8 @@
-export interface BasicObject {
+export type BasicObject = {
   [key: string]: any
 }
 
-export interface Device {
+export type Device = {
   type: DeviceType
   title: string
   name?: string
@@ -43,7 +43,7 @@ export enum DataType {
   IntervalTime = 'invertal-time',
 }
 
-export interface Activity {
+export type Activity = {
   id: string
   name: string
   description: string
@@ -51,7 +51,7 @@ export interface Activity {
   workouts: Array<Workout>
 }
 
-export interface Workout {
+export type Workout = {
   workoutType: WorkoutType
   status: WorkoutStatus
   duration: number
@@ -78,7 +78,7 @@ export enum SessionStatus {
   Stopped = 'stopped',
 }
 
-export interface SessionData {
+export type SessionData = {
   status: SessionStatus
   cadenceData: Array<number>
   powerData: Array<number>

@@ -3,7 +3,7 @@ import { DeviceType, type Device } from '../types'
 
 type UpdateFn = (map: DevicesMap) => DevicesMap
 
-interface DevicesMap {
+type DevicesMap = {
   [DeviceType.HeartRate]: Device
   [DeviceType.SmartTrainer]: Device
 }
