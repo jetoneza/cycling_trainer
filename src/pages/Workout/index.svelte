@@ -106,6 +106,8 @@ let devices = {
   },
 }
 
+let sessionData = null
+
 $: workoutData = getWorkoutData(activity, activeWorkoutIndex, $intervalTime)
 
 onMount(() => {
@@ -328,8 +330,7 @@ const executeWorkout = async () => {
 const handleEndSession = async () => {
   await pauseSession()
 
-  const data = await invoke('get_session_data')
-  // TODO: Display data in summary
+  sessionData = await invoke('get_session_data')
 
   displaySummary = true
 }
@@ -396,6 +397,7 @@ const handleSaveSession = async () => {
 
   {#if displaySummary}
     <Summary
+      sessionData="{sessionData}"
       onBackClick="{() => (displaySummary = false)}"
       onSaveClick="{handleSaveSession}"
     />
