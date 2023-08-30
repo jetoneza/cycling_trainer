@@ -14,16 +14,28 @@ export const devicesStore = writable<DevicesMap>({
     type: DeviceType.HeartRate,
     title: 'Heart Rate',
     isConnected: false,
+    bleDevice: {
+      id: 'hrm',
+      name: 'Generic Heart Rate',
+    },
   },
   [DeviceType.SmartTrainer]: {
     type: DeviceType.SmartTrainer,
     title: 'Smart trainer',
     isConnected: false,
+    bleDevice: {
+      id: 'bike',
+      name: 'Generic Trainer',
+    },
   },
   [DeviceType.Generic]: {
     type: DeviceType.Generic,
     title: 'Generic',
     isConnected: false,
+    bleDevice: {
+      id: 'generic',
+      name: 'Generic Device',
+    },
   },
 })
 

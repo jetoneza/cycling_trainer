@@ -14,7 +14,7 @@ mod workouts;
 use crate::prelude::*;
 
 use ble::bluetooth::{Bluetooth, Connection, DeviceType, BLUETOOTH};
-use data::session::Session;
+use data::{session::Session, simulation::{Simulation, SIMULATION, self}};
 use error::error_generic;
 use log::{error, warn};
 use tauri::Manager;
@@ -176,6 +176,32 @@ async fn get_session_data() -> Result<Option<Session>> {
     Ok(Some(session_data))
 }
 
+#[tauri::command(async)]
+async fn start_simulated_session() -> Result<()> {
+    SIMULATION.set(Simulation::new()).ok();
+
+    let Some(simulation) = SIMULATION.get() else {
+        return Ok(())
+    };
+
+    simulation.start().await;
+
+    Ok(())
+}
+
+#[tauri::command(async)]
+async fn stop_simulated_session() -> Result<()> {
+    SIMULATION.set(Simulation::new()).ok();
+
+    let Some(simulation) = SIMULATION.get() else {
+        return Ok(())
+    };
+
+    simulation.stop().await;
+
+    Ok(())
+}
+
 async fn initialize_app(app_handle: tauri::AppHandle) {
     *TAURI_APP_HANDLE.lock().await = Some(app_handle.clone());
 
@@ -214,6 +240,8 @@ fn main() {
             start_session,
             stop_session,
             get_session_data,
+            start_simulated_session,
+            stop_simulated_session,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

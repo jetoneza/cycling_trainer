@@ -10,6 +10,8 @@ import { activityStore } from '../../stores/activities'
 import { TimerStatus, useTimer } from '../../stores/useTimer'
 
 // Components
+import PlayIcon from 'svelte-icons/fa/FaPlay.svelte'
+import StopIcon from 'svelte-icons/fa/FaStop.svelte'
 import DataView from './components/DataView.svelte'
 import Speed from './components/Speed.svelte'
 import WorkoutsList from './components/WorkoutsList.svelte'
@@ -47,6 +49,7 @@ enum StopAction {
 
 const WORKOUT_START_INDEX = 0
 const MAX_IDLE_TIME = 3
+const IS_SIMULATED = import.meta.env.MODE === 'development'
 
 const dispatch = createEventDispatcher()
 
@@ -336,6 +339,14 @@ const handleEndSession = async () => {
   displaySummary = true
 }
 
+// This is only used for development simulation
+const handleStartSimulatedSession = async () => {
+  await invoke('start_simulated_session')
+}
+const handleStopSimulatedSession = async () => {
+  await invoke('stop_simulated_session')
+}
+
 const handleSaveSession = async () => {
   await stopSession()
 
@@ -391,6 +402,27 @@ const handleSaveSession = async () => {
   </div>
 
   <Speed devices="{devices}" />
+
+  {#if IS_SIMULATED}
+    <div class="absolute left-10 top-10">
+      <button
+        class="rounded border-2 border-primary-500 p-3 text-primary-500"
+        on:click="{handleStartSimulatedSession}"
+      >
+        <div class="icon w-5">
+          <PlayIcon />
+        </div>
+      </button>
+      <button
+        class="rounded border-2 border-primary-500 p-3 text-red-500"
+        on:click="{handleStopSimulatedSession}"
+      >
+        <div class="icon w-5">
+          <StopIcon />
+        </div>
+      </button>
+    </div>
+  {/if}
 
   {#if session.status === SessionStatus.Paused && !displaySummary}
     <Menu onSessionEnd="{handleEndSession}" />
