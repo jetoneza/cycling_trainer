@@ -1,7 +1,7 @@
 use std::sync::OnceLock;
 
 use tauri::Manager;
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, RwLock};
 use tokio::time::{sleep, Duration};
 
 use crate::TAURI_APP_HANDLE;
@@ -15,35 +15,61 @@ use super::{
 
 pub static SIMULATION: OnceLock<Simulation> = OnceLock::new();
 
+pub enum SimulationStatus {
+    Started,
+    Paused,
+    Stopped,
+}
+
 pub struct Simulation {
+    status: Mutex<SimulationStatus>,
     session: RwLock<Option<Session>>,
 }
 
 impl Simulation {
     pub fn new() -> Self {
+        tokio::spawn(handle_notifications());
+
         Self {
+            status: Mutex::new(SimulationStatus::Paused),
             session: RwLock::new(None),
         }
     }
 
     pub async fn start(&self) {
+        *self.status.lock().await = SimulationStatus::Started;
+    }
+
+    pub async fn stop(&self, action: &str) {
+        let status = match action {
+            "stop" => SimulationStatus::Stopped,
+            "pause" => SimulationStatus::Paused,
+            _ => SimulationStatus::Started,
+        };
+
+        *self.status.lock().await = status;
+    }
+
+    pub async fn start_session(&self) {
         let mut session_guard = self.session.write().await;
         let mut session = Session::new();
 
         session.start_session();
 
         *session_guard = Some(session);
-
-        tokio::spawn(handle_notifications());
     }
 
-    pub async fn stop(&self) {
+    pub async fn stop_session(&self, action: &str) {
         let mut session_guard = self.session.write().await;
         let Some(session) = session_guard.as_mut() else {
             return;
         };
 
-        session.stop_session();
+        match action {
+            "stop" => session.stop_session(),
+            "pause" => session.pause_session(),
+            _ => {}
+        }
     }
 
     pub async fn get_session_data(&self) -> Session {
@@ -58,40 +84,52 @@ impl Simulation {
 
 async fn handle_notifications() {
     loop {
-        match (SIMULATION.get(), TAURI_APP_HANDLE.lock().await.as_ref()) {
-            (Some(sim), Some(app)) => {
-                let mut session_guard = sim.session.write().await;
-                let Some(session) = session_guard.as_mut() else {
-                    continue;
-                };
+        let Some(sim) = SIMULATION.get() else {
+            break;
+        };
 
-                if let SessionStatus::Stopped = session.status {
-                    break;
-                }
+        let app_guard = TAURI_APP_HANDLE.lock().await;
+        let Some(app) = app_guard.as_ref() else {
+            break;
+        };
 
-                // TODO: Simulate values
-                let hr_data = HeartRateMeasurement {
-                    bpm: 85,
-                    is_sensor_in_contact: true,
-                    is_sensor_contact_supported: true,
-                };
+        let mut bpm = 0;
+        let mut cadence = None;
+        let mut speed = None;
+        let mut power = None;
 
-                let mut bike_data = IndoorBikeData {
-                    cadence: Some(100),
-                    speed: Some(30),
-                    distance: Some(0),
-                    power: Some(100),
-                };
+        if let SimulationStatus::Started = *sim.status.lock().await {
+            // TODO: Calculate simulated values
+            bpm = 100;
+            cadence = Some(100);
+            speed = Some(30);
+            power = Some(120);
+        }
 
+        if let SimulationStatus::Stopped = *sim.status.lock().await {
+            break;
+        }
+
+        let hr_data = HeartRateMeasurement {
+            bpm,
+            is_sensor_in_contact: true,
+            is_sensor_contact_supported: true,
+        };
+
+        let mut bike_data = IndoorBikeData {
+            cadence,
+            speed,
+            distance: None,
+            power,
+        };
+
+        let mut session_guard = sim.session.write().await;
+        if let Some(session) = session_guard.as_mut() {
+            if let SessionStatus::Started = session.status {
                 session.add_heart_rate_data(hr_data.bpm);
 
-                match (
-                    bike_data.cadence,
-                    bike_data.speed,
-                    bike_data.power,
-                    bike_data.distance,
-                ) {
-                    (Some(cadence), Some(speed), Some(power), _) => {
+                match (bike_data.cadence, bike_data.speed, bike_data.power) {
+                    (Some(cadence), Some(speed), Some(power)) => {
                         session.add_indoor_bike_data(session::IndoorBikeData {
                             cadence,
                             speed,
@@ -112,12 +150,12 @@ async fn handle_notifications() {
                     }
                     _ => {}
                 }
-
-                app.emit_all("hrm_notification", hr_data).ok();
-                app.emit_all("indoor_bike_notification", bike_data).ok();
             }
-            _ => {}
         }
+
+        app.emit_all("hrm_notification", hr_data.to_owned()).ok();
+        app.emit_all("indoor_bike_notification", bike_data.to_owned())
+            .ok();
 
         sleep(Duration::from_millis(1000)).await;
     }

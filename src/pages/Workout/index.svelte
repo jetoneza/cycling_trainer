@@ -110,6 +110,7 @@ let devices = {
 }
 
 let sessionData: SessionData | null = null
+let sessionDistance = 0
 
 $: workoutData = getWorkoutData(activity, activeWorkoutIndex, $intervalTime)
 
@@ -190,7 +191,11 @@ devicesStore.subscribe((map) => {
   if (smartTrainer && smartTrainer.bleDevice && smartTrainer.bleDevice.data) {
     const { cadence, distance, power, speed } = smartTrainer.bleDevice.data
 
-    devices[DataType.Distance].value = distance || 0
+    if (sessionDistance < distance) {
+      sessionDistance = distance
+    }
+
+    devices[DataType.Distance].value = sessionDistance
     devices[DataType.Speed].value = speed || 0
     devices[DataType.Power].value = power || 0
     devices[DataType.Cadence].value = cadence || 0
@@ -271,7 +276,9 @@ const startSession = async () => {
 
   activeWorkoutIndex = WORKOUT_START_INDEX
 
-  await invoke('start_session')
+  const action = IS_SIMULATED ? 'start_simulated_session' : 'start_session'
+
+  await invoke(action)
   await executeWorkout()
 
   start()
@@ -286,7 +293,9 @@ const pauseSession = async () => {
   pause()
 
   try {
-    await invoke('stop_session', { action: StopAction.Pause })
+    const action = IS_SIMULATED ? 'stop_simulated_session' : 'stop_session'
+
+    await invoke(action, { action: StopAction.Pause })
   } catch (error) {
     // TODO: Render an exit dialog
     // Redirect to activities
@@ -305,7 +314,9 @@ const stopSession = async () => {
   stop()
 
   try {
-    await invoke('stop_session', { action: StopAction.Stop })
+    const action = IS_SIMULATED ? 'stop_simulated_session' : 'stop_session'
+
+    await invoke(action, { action: StopAction.Stop })
   } catch (error) {
     // TODO: Handle if error
   }
@@ -324,6 +335,10 @@ const executeWorkout = async () => {
   devices[DataType.TargetPower].value = power
   devices[DataType.TargetCadence].value = cadence
 
+  if (IS_SIMULATED) {
+    return
+  }
+
   await invoke('execute_workout', {
     cadence,
     power,
@@ -333,17 +348,23 @@ const executeWorkout = async () => {
 const handleEndSession = async () => {
   await pauseSession()
 
-  sessionData = await invoke('get_session_data')
+  const action = IS_SIMULATED
+    ? 'get_simulated_session_data'
+    : 'get_session_data'
+
+  sessionData = await invoke(action)
 
   displaySummary = true
 }
 
 // This is only used for development simulation
 const handleStartSimulatedSession = async () => {
-  await invoke('start_simulated_session')
+  await invoke('start_simulation')
 }
-const handleStopSimulatedSession = async () => {
-  await invoke('stop_simulated_session')
+const handleStopSimulatedSession = async (action = 'pause') => {
+  await invoke('stop_simulation', { action })
+
+  // TODO: If action is `stop`, stop the session, simulate ending of workout
 }
 
 const handleSaveSession = async () => {
@@ -404,6 +425,7 @@ const handleSaveSession = async () => {
 
   {#if IS_SIMULATED}
     <SimulationActions
+      started="{session.status == SessionStatus.Started}"
       onStart="{handleStartSimulatedSession}"
       onStop="{handleStopSimulatedSession}"
     />

@@ -14,7 +14,10 @@ mod workouts;
 use crate::prelude::*;
 
 use ble::bluetooth::{Bluetooth, Connection, DeviceType, BLUETOOTH};
-use data::{session::Session, simulation::{Simulation, SIMULATION, self}};
+use data::{
+    session::Session,
+    simulation::{Simulation, SIMULATION},
+};
 use error::error_generic;
 use log::{error, warn};
 use tauri::Manager;
@@ -177,7 +180,7 @@ async fn get_session_data() -> Result<Option<Session>> {
 }
 
 #[tauri::command(async)]
-async fn start_simulated_session() -> Result<()> {
+async fn start_simulation() -> Result<()> {
     SIMULATION.set(Simulation::new()).ok();
 
     let Some(simulation) = SIMULATION.get() else {
@@ -190,16 +193,55 @@ async fn start_simulated_session() -> Result<()> {
 }
 
 #[tauri::command(async)]
-async fn stop_simulated_session() -> Result<()> {
+async fn start_simulated_session() -> Result<()> {
     SIMULATION.set(Simulation::new()).ok();
 
     let Some(simulation) = SIMULATION.get() else {
         return Ok(())
     };
 
-    simulation.stop().await;
+    simulation.start_session().await;
 
     Ok(())
+}
+
+#[tauri::command(async)]
+async fn stop_simulation(action: &str) -> Result<()> {
+    SIMULATION.set(Simulation::new()).ok();
+
+    let Some(simulation) = SIMULATION.get() else {
+        return Ok(())
+    };
+
+    simulation.stop(action).await;
+
+    Ok(())
+}
+
+#[tauri::command(async)]
+async fn stop_simulated_session(action: &str) -> Result<()> {
+    SIMULATION.set(Simulation::new()).ok();
+
+    let Some(simulation) = SIMULATION.get() else {
+        return Ok(())
+    };
+
+    simulation.stop_session(action).await;
+
+    Ok(())
+}
+
+#[tauri::command(async)]
+async fn get_simulated_session_data() -> Result<Option<Session>> {
+    SIMULATION.set(Simulation::new()).ok();
+
+    let Some(simulation) = SIMULATION.get() else {
+        return Ok(None);
+    };
+
+    let session_data = simulation.get_session_data().await;
+
+    Ok(Some(session_data))
 }
 
 async fn initialize_app(app_handle: tauri::AppHandle) {
@@ -229,19 +271,27 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            // Bluetooth commands
             start_scan,
             stop_scan,
             connect_device,
             disconnect_device,
             get_connected_devices,
+            // Activity files command
             get_activities,
+            // Indoor bike machine control commands
             execute_workout,
             request_spin_down,
+            // Session Commands
             start_session,
             stop_session,
             get_session_data,
+            // Simulation commands
+            start_simulation,
             start_simulated_session,
+            stop_simulation,
             stop_simulated_session,
+            get_simulated_session_data,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
