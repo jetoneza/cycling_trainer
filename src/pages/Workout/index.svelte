@@ -10,8 +10,6 @@ import { activityStore } from '../../stores/activities'
 import { TimerStatus, useTimer } from '../../stores/useTimer'
 
 // Components
-import PlayIcon from 'svelte-icons/fa/FaPlay.svelte'
-import StopIcon from 'svelte-icons/fa/FaStop.svelte'
 import DataView from './components/DataView.svelte'
 import Speed from './components/Speed.svelte'
 import WorkoutsList from './components/WorkoutsList.svelte'
@@ -19,6 +17,7 @@ import PowerChart from './components/PowerChart.svelte'
 import HeartRateChart from './components/HeartRateChart.svelte'
 import Menu from './components/Menu.svelte'
 import Summary from './components/Summary.svelte'
+import SimulationActions from './components/SimulationActions.svelte'
 
 // Types
 import {
@@ -404,24 +403,10 @@ const handleSaveSession = async () => {
   <Speed devices="{devices}" />
 
   {#if IS_SIMULATED}
-    <div class="absolute left-10 top-10">
-      <button
-        class="rounded border-2 border-primary-500 p-3 text-primary-500"
-        on:click="{handleStartSimulatedSession}"
-      >
-        <div class="icon w-5">
-          <PlayIcon />
-        </div>
-      </button>
-      <button
-        class="rounded border-2 border-primary-500 p-3 text-red-500"
-        on:click="{handleStopSimulatedSession}"
-      >
-        <div class="icon w-5">
-          <StopIcon />
-        </div>
-      </button>
-    </div>
+    <SimulationActions
+      onStart="{handleStartSimulatedSession}"
+      onStop="{handleStopSimulatedSession}"
+    />
   {/if}
 
   {#if session.status === SessionStatus.Paused && !displaySummary}
