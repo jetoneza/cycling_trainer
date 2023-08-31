@@ -4,6 +4,7 @@ import sveltePreprocess from 'svelte-preprocess'
 import postcss from './postcss.config.js'
 
 // https://vitejs.dev/config/
+// @ts-ignore
 export default defineConfig(async () => ({
   plugins: [
     svelte({
