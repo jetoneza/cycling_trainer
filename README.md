@@ -27,11 +27,11 @@ I've completed the major functionalities of the app, making it usable for cyclin
 * Spin Down Calibration.
 * Power and heart rate graphs.
 
-![Cycling Trainer Workout](https://res.cloudinary.com/dj0l6hcwu/image/upload/c_scale,w_700/v1696052264/personal_website/cycling_trainer_workout_qo1rlq.png "Cycling Trainer Workout")
+![Cycling Trainer Workout](https://res.cloudinary.com/dj0l6hcwu/image/upload/v1696052264/personal_website/cycling_trainer_workout_qo1rlq.png "Cycling Trainer Workout")
 
-![Cycling Trainer Activities](https://res.cloudinary.com/dj0l6hcwu/image/upload/c_scale,w_700/v1696052244/personal_website/cycling_trainer_activities_yxhbio.png "Cycling Trainer Activities")
+![Cycling Trainer Activities](https://res.cloudinary.com/dj0l6hcwu/image/upload/v1696052244/personal_website/cycling_trainer_activities_yxhbio.png "Cycling Trainer Activities")
 
-![Cycling Trainer Bluetooth](https://res.cloudinary.com/dj0l6hcwu/image/upload/c_scale,w_700/v1696052265/personal_website/cycling_trainer_bluetooth_jeej3k.png "Cycling Trainer Bluetooth")
+![Cycling Trainer Bluetooth](https://res.cloudinary.com/dj0l6hcwu/image/upload/v1696052265/personal_website/cycling_trainer_bluetooth_jeej3k.png "Cycling Trainer Bluetooth")
 
 ## Future Plans
 
