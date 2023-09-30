@@ -336,6 +336,11 @@ const executeWorkout = async () => {
   devices[DataType.TargetCadence].value = cadence
 
   if (IS_SIMULATED) {
+    await invoke('set_simulation_targets', {
+      cadence,
+      power,
+    })
+
     return
   }
 

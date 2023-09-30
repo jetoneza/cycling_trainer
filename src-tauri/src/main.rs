@@ -33,7 +33,9 @@ lazy_static! {
 async fn get_connected_devices() -> Result<Vec<(String, String, String)>> {
     let bluetooth_guard = &BLUETOOTH.read().await;
     let Some(bt) = bluetooth_guard.as_ref() else {
-        return Err(error_generic("Bluetooth not found when getting connected devices"));
+        return Err(error_generic(
+            "Bluetooth not found when getting connected devices",
+        ));
     };
 
     let devices = bt.get_connected_devices().await;
@@ -104,7 +106,9 @@ async fn disconnect_device(device_id: &str) -> Result<()> {
 #[tauri::command(async)]
 async fn get_activities() -> Result<Vec<Activity>> {
     let Some(lock) = ACTIVITIES.get() else {
-        return Err(error_generic("main::get_activities: Unable to get ACTIVITIES."));
+        return Err(error_generic(
+            "main::get_activities: Unable to get ACTIVITIES.",
+        ));
     };
 
     let guard = lock.read().await;
@@ -184,7 +188,7 @@ async fn start_simulation() -> Result<()> {
     SIMULATION.set(Simulation::new()).ok();
 
     let Some(simulation) = SIMULATION.get() else {
-        return Ok(())
+        return Ok(());
     };
 
     simulation.start().await;
@@ -197,7 +201,7 @@ async fn start_simulated_session() -> Result<()> {
     SIMULATION.set(Simulation::new()).ok();
 
     let Some(simulation) = SIMULATION.get() else {
-        return Ok(())
+        return Ok(());
     };
 
     simulation.start_session().await;
@@ -210,7 +214,7 @@ async fn stop_simulation(action: &str) -> Result<()> {
     SIMULATION.set(Simulation::new()).ok();
 
     let Some(simulation) = SIMULATION.get() else {
-        return Ok(())
+        return Ok(());
     };
 
     simulation.stop(action).await;
@@ -223,7 +227,7 @@ async fn stop_simulated_session(action: &str) -> Result<()> {
     SIMULATION.set(Simulation::new()).ok();
 
     let Some(simulation) = SIMULATION.get() else {
-        return Ok(())
+        return Ok(());
     };
 
     simulation.stop_session(action).await;
@@ -242,6 +246,19 @@ async fn get_simulated_session_data() -> Result<Option<Session>> {
     let session_data = simulation.get_session_data().await;
 
     Ok(Some(session_data))
+}
+
+#[tauri::command(async)]
+async fn set_simulation_targets(power: usize, cadence: usize) -> Result<()> {
+    SIMULATION.set(Simulation::new()).ok();
+
+    let Some(simulation) = SIMULATION.get() else {
+        return Ok(());
+    };
+
+    simulation.set_targets(power as u16, cadence as u16).await;
+
+    Ok(())
 }
 
 async fn initialize_app(app_handle: tauri::AppHandle) {
@@ -292,6 +309,7 @@ fn main() {
             stop_simulation,
             stop_simulated_session,
             get_simulated_session_data,
+            set_simulation_targets,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

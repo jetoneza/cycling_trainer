@@ -1,5 +1,6 @@
 use std::sync::OnceLock;
 
+use rand::Rng;
 use tauri::Manager;
 use tokio::sync::{Mutex, RwLock};
 use tokio::time::{sleep, Duration};
@@ -24,6 +25,8 @@ pub enum SimulationStatus {
 pub struct Simulation {
     status: Mutex<SimulationStatus>,
     session: RwLock<Option<Session>>,
+    target_cadence: Mutex<Option<u16>>,
+    target_power: Mutex<Option<u16>>,
 }
 
 impl Simulation {
@@ -33,6 +36,8 @@ impl Simulation {
         Self {
             status: Mutex::new(SimulationStatus::Paused),
             session: RwLock::new(None),
+            target_cadence: Mutex::new(Some(0)),
+            target_power: Mutex::new(Some(0)),
         }
     }
 
@@ -80,6 +85,11 @@ impl Simulation {
 
         session.get_session_data()
     }
+
+    pub async fn set_targets(&self, power: u16, cadence: u16) {
+        *self.target_power.lock().await = Some(power);
+        *self.target_cadence.lock().await = Some(cadence);
+    }
 }
 
 async fn handle_notifications() {
@@ -93,21 +103,49 @@ async fn handle_notifications() {
             break;
         };
 
+        if let SimulationStatus::Stopped = *sim.status.lock().await {
+            break;
+        }
+
+        if let SimulationStatus::Paused = *sim.status.lock().await {
+            continue;
+        }
+
+        let Some(target_power) = *sim.target_power.lock().await else {
+            continue;
+        };
+
+        let Some(target_cadence) = *sim.target_cadence.lock().await else {
+            continue;
+        };
+
         let mut bpm = 0;
         let mut cadence = None;
         let mut speed = None;
         let mut power = None;
 
-        if let SimulationStatus::Started = *sim.status.lock().await {
-            // TODO: Calculate simulated values
-            bpm = 100;
-            cadence = Some(100);
-            speed = Some(30);
-            power = Some(120);
-        }
+        {
+            let mut rng = rand::thread_rng();
 
-        if let SimulationStatus::Stopped = *sim.status.lock().await {
-            break;
+            let mut hr: u16 = 70;
+
+            match (target_power, target_cadence) {
+                (p, c) if p < 100 && c < 100 => hr = 80,
+                (p, c) if p < 110 && c > 80 && c < 100 => hr = 100,
+                (p, c) if p > 100 && p < 150 && c > 80 && c < 100 => hr = 120,
+                (p, c) if p > 100 && p < 110 && c > 90 && c < 100 => hr = 150,
+                (p, _) if p > 120 => hr = 160,
+                _ => {}
+            }
+
+            let min_hr = hr.checked_sub(5).unwrap_or(0);
+            let min_cadence = target_cadence.checked_sub(5).unwrap_or(0);
+            let min_power = target_power.checked_sub(3).unwrap_or(0);
+
+            bpm = rng.gen_range(min_hr..(hr + 5));
+            cadence = Some(rng.gen_range(min_cadence..(target_cadence + 5)));
+            speed = Some(rng.gen_range(27..30));
+            power = Some(rng.gen_range(min_power..(target_power + 3)));
         }
 
         let hr_data = HeartRateMeasurement {
