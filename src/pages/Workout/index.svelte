@@ -48,7 +48,7 @@ enum StopAction {
 
 const WORKOUT_START_INDEX = 0
 const MAX_IDLE_TIME = 3
-const IS_SIMULATED = import.meta.env.MODE === 'development'
+const IS_SIMULATED = import.meta.env.IS_SIMULATED
 
 const dispatch = createEventDispatcher()
 
