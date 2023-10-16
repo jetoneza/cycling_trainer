@@ -274,7 +274,9 @@ const startSession = async () => {
     return
   }
 
-  activeWorkoutIndex = WORKOUT_START_INDEX
+  if (status === TimerStatus.Stopped) {
+    activeWorkoutIndex = WORKOUT_START_INDEX
+  }
 
   const action = IS_SIMULATED ? 'start_simulated_session' : 'start_session'
 
