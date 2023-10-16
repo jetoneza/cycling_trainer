@@ -18,6 +18,7 @@ pub struct IndoorBikeData {
 }
 
 #[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Session {
     pub status: SessionStatus,
     pub indoor_bike_data: Vec<IndoorBikeData>,

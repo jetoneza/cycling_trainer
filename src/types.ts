@@ -84,5 +84,6 @@ export type SessionData = {
   powerData: Array<number>
   speedData: Array<number>
   heartRateData: Array<number>
+  indoorBikeData: Array<{ cadence: number; power: number; speed: number }>
   totalDistance: number
 }

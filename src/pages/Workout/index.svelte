@@ -30,7 +30,7 @@ import {
   type SessionData,
 } from '../../types'
 import { convertSecondsToMinutes } from '../../utils/time'
-import { getWorkoutData } from '../../utils/data'
+import { formatIndoorBikeData, getWorkoutData } from '../../utils/data'
 
 // Styles
 import './styles.css'
@@ -360,6 +360,18 @@ const handleEndSession = async () => {
     : 'get_session_data'
 
   sessionData = await invoke(action)
+
+  if (!sessionData) {
+    // TODO: Handle if data is empty
+    return
+  }
+
+  const indoorBikeData = formatIndoorBikeData(sessionData.indoorBikeData)
+
+  sessionData = {
+    ...sessionData,
+    ...indoorBikeData,
+  }
 
   displaySummary = true
 }

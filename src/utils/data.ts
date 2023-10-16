@@ -75,3 +75,25 @@ const calculateRangePower = (
 
 const setToNearestPowerJump = (power: number): number =>
   Math.round(power / POWER_JUMP) * POWER_JUMP
+
+export const formatIndoorBikeData = (
+  data: Array<{ cadence: number; power: number; speed: number }>
+) => {
+  const formattedData: {
+    cadenceData: number[]
+    powerData: number[]
+    speedData: number[]
+  } = {
+    cadenceData: [],
+    powerData: [],
+    speedData: [],
+  }
+
+  data.forEach(({ cadence, power, speed }) => {
+    formattedData.cadenceData.push(cadence)
+    formattedData.powerData.push(power)
+    formattedData.speedData.push(speed)
+  })
+
+  return formattedData
+}
