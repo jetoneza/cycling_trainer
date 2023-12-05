@@ -1,5 +1,6 @@
-use std::fs;
+use std::{fs, path::PathBuf};
 
+use crate::{error::error_generic, prelude::*};
 use log::{error, info};
 
 const LOGGER_NAME: &str = "system::directory";
@@ -11,31 +12,14 @@ const LOGGER_NAME: &str = "system::directory";
 pub fn initialize() {
     match dirs::document_dir() {
         Some(dir) => {
-            let app_folder = dir.join("Cycling Trainer");
+            // App folder
+            let app_dir = get_or_create_directory("Cycling Trainer", dir);
+            let Ok(app_folder) = app_dir else {
+                return;
+            };
 
-            if !app_folder.exists() {
-                info!("{}: Creating Cycling Trainer folder...", LOGGER_NAME);
-
-                if let Err(err) = fs::create_dir(&app_folder) {
-                    error!(
-                        "{}:get_workouts: Unable to create directory. {}",
-                        LOGGER_NAME, err
-                    );
-                }
-            }
-
-            let workouts_dir = app_folder.join("workouts");
-
-            if !workouts_dir.exists() {
-                info!("{}: Creating workouts folder...", LOGGER_NAME);
-
-                if let Err(err) = fs::create_dir(&workouts_dir) {
-                    error!(
-                        "{}:get_workouts: Unable to create directory. {}",
-                        LOGGER_NAME, err
-                    );
-                }
-            }
+            // Workouts directory
+            let _ = get_or_create_directory("workouts", app_folder);
         }
         None => {
             error!(
@@ -44,4 +28,23 @@ pub fn initialize() {
             );
         }
     };
+}
+
+fn get_or_create_directory(folder_name: &str, dir: PathBuf) -> Result<PathBuf> {
+    let folder = dir.join(folder_name);
+
+    if !folder.exists() {
+        info!("{}: Creating {} directory.", folder_name, LOGGER_NAME);
+
+        if let Err(err) = fs::create_dir(&folder) {
+            error!(
+                "{}:get_workouts: Unable to create directory. {}",
+                LOGGER_NAME, err
+            );
+
+            return Err(error_generic("Unable to create directory"));
+        }
+    }
+
+    Ok(folder)
 }
