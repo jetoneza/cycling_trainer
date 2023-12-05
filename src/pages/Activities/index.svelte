@@ -40,9 +40,28 @@ const handleStartActivity = () => {
     page: Page.Workout,
   })
 }
+
+const handleCreateWorkout = () => {
+  // TODO: Toggle create workout
+}
 </script>
 
 <div class="activities mt-4 flex">
+  {#if activities.length == 0}
+    <div class="activity-viewer flex flex-1 flex-col space-y-4 p-6">
+      <div class="title-wrapper">
+        <div class="title text-2xl font-bold">No Workouts</div>
+        <div class="decription">Create your very first workout!</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn text-md" on:click="{handleCreateWorkout}">
+          Create Workout
+        </button>
+      </div>
+    </div>
+  {/if}
+
   <ActivityComponent
     selectedActivity="{selectedActivity}"
     handleStartActivity="{handleStartActivity}"
