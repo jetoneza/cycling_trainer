@@ -21,6 +21,7 @@ use data::{
 };
 use error::error_generic;
 use log::{error, warn};
+use system::user::{User, APP_USER};
 use tauri::Manager;
 use tauri_plugin_log::{self, LogTarget};
 use tokio::sync::Mutex;
@@ -116,6 +117,17 @@ async fn get_activities() -> Result<Vec<Activity>> {
     let activities: &Vec<Activity> = guard.as_ref();
 
     Ok(activities.clone())
+}
+
+#[tauri::command(async)]
+async fn get_app_user() -> Result<User> {
+    let Some(lock) = APP_USER.get() else {
+        return Err(error_generic("main::get_app_user: Unable to get APP_USER."));
+    };
+
+    let user = lock.read().await;
+
+    Ok(user.clone())
 }
 
 #[tauri::command(async)]
@@ -266,6 +278,7 @@ async fn initialize_app(app_handle: tauri::AppHandle) {
     *TAURI_APP_HANDLE.lock().await = Some(app_handle.clone());
 
     system::directory::initialize();
+    system::user::load_app_user();
     activities::load_activities();
 
     Bluetooth::init().await;
@@ -296,8 +309,9 @@ fn main() {
             connect_device,
             disconnect_device,
             get_connected_devices,
-            // Activity files command
+            // Files command
             get_activities,
+            get_app_user,
             // Indoor bike machine control commands
             execute_workout,
             request_spin_down,
