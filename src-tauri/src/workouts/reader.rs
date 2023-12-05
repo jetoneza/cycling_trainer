@@ -1,6 +1,6 @@
-use log::error;
+use log::{error, info};
 use serde::Serialize;
-use std::{env, fs, path::Path};
+use std::fs;
 
 use super::zwo::{zwo_to_workout, WorkoutFile};
 
@@ -10,14 +10,45 @@ const LOGGER_NAME: &str = "workouts::reader";
 pub struct WorkoutItem {
     pub id: usize,
     pub name: String,
-    pub description: String
-} 
+    pub description: String,
+}
 
 pub fn get_workouts_from_file() -> Vec<WorkoutFile> {
     // TODO: Use event based reading for large XML files
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-    let root_dir = match Path::new(manifest_dir).parent() {
-        Some(dir) => dir,
+    let path = match dirs::document_dir() {
+        Some(dir) => {
+            let app_folder = dir.join("Cycling Trainer");
+
+            if !app_folder.exists() {
+                info!("{}: Creating Cycling Trainer folder...", LOGGER_NAME);
+
+                if let Err(err) = fs::create_dir(&app_folder) {
+                    error!(
+                        "{}:get_workouts: Unable to create directory. {}",
+                        LOGGER_NAME, err
+                    );
+
+                    return Vec::new();
+                }
+            }
+
+            let workouts_dir = app_folder.join("workouts");
+
+            if !workouts_dir.exists() {
+                info!("{}: Creating workouts folder...", LOGGER_NAME);
+
+                if let Err(err) = fs::create_dir(&workouts_dir) {
+                    error!(
+                        "{}:get_workouts: Unable to create directory. {}",
+                        LOGGER_NAME, err
+                    );
+
+                    return Vec::new();
+                }
+            }
+
+            workouts_dir
+        }
         None => {
             error!(
                 "{}:get_workouts: Unable to retrieve root directory.",
@@ -27,8 +58,6 @@ pub fn get_workouts_from_file() -> Vec<WorkoutFile> {
             return Vec::new();
         }
     };
-
-    let path = root_dir.join("workouts");
 
     let workout_files: Vec<WorkoutFile> = match fs::read_dir(path) {
         Ok(files) => files
