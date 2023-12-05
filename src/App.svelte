@@ -25,8 +25,8 @@ const pages = {
 
 let page = Page.Main
 
-onMount(() => {
-  bootstrap.init()
+onMount(async () => {
+  await bootstrap.init()
 })
 
 $: getActivePage = () => pages[page]

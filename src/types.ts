@@ -87,3 +87,12 @@ export type SessionData = {
   indoorBikeData: Array<{ cadence: number; power: number; speed: number }>
   totalDistance: number
 }
+
+export type AppUser = {
+  username: string
+  settings: UserSettings
+}
+
+export type UserSettings = {
+  ftp: number
+}
