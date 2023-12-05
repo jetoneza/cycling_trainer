@@ -8,6 +8,7 @@ mod ble;
 mod data;
 mod error;
 mod prelude;
+mod system;
 mod utils;
 mod workouts;
 
@@ -264,6 +265,7 @@ async fn set_simulation_targets(power: usize, cadence: usize) -> Result<()> {
 async fn initialize_app(app_handle: tauri::AppHandle) {
     *TAURI_APP_HANDLE.lock().await = Some(app_handle.clone());
 
+    system::directory::initialize();
     activities::load_activities();
 
     Bluetooth::init().await;

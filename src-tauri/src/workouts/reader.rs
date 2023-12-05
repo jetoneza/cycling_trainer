@@ -1,4 +1,4 @@
-use log::{error, info};
+use log::error;
 use serde::Serialize;
 use std::fs;
 
@@ -16,39 +16,7 @@ pub struct WorkoutItem {
 pub fn get_workouts_from_file() -> Vec<WorkoutFile> {
     // TODO: Use event based reading for large XML files
     let path = match dirs::document_dir() {
-        Some(dir) => {
-            let app_folder = dir.join("Cycling Trainer");
-
-            if !app_folder.exists() {
-                info!("{}: Creating Cycling Trainer folder...", LOGGER_NAME);
-
-                if let Err(err) = fs::create_dir(&app_folder) {
-                    error!(
-                        "{}:get_workouts: Unable to create directory. {}",
-                        LOGGER_NAME, err
-                    );
-
-                    return Vec::new();
-                }
-            }
-
-            let workouts_dir = app_folder.join("workouts");
-
-            if !workouts_dir.exists() {
-                info!("{}: Creating workouts folder...", LOGGER_NAME);
-
-                if let Err(err) = fs::create_dir(&workouts_dir) {
-                    error!(
-                        "{}:get_workouts: Unable to create directory. {}",
-                        LOGGER_NAME, err
-                    );
-
-                    return Vec::new();
-                }
-            }
-
-            workouts_dir
-        }
+        Some(dir) => dir.join("Cycling Trainer").join("workouts"),
         None => {
             error!(
                 "{}:get_workouts: Unable to retrieve root directory.",
