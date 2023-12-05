@@ -1,7 +1,10 @@
 use std::{fs, path::PathBuf};
 
 use crate::{error::error_generic, prelude::*};
+
 use log::{error, info};
+
+use super::user::User;
 
 const LOGGER_NAME: &str = "system::directory";
 
@@ -13,24 +16,27 @@ pub fn initialize() {
     match dirs::document_dir() {
         Some(dir) => {
             // App folder
-            let app_dir = get_or_create_directory("Cycling Trainer", dir);
+            let app_dir = get_or_create_directory("Cycling Trainer", &dir);
             let Ok(app_folder) = app_dir else {
                 return;
             };
 
             // Workouts directory
-            let _ = get_or_create_directory("workouts", app_folder);
+            let _ = get_or_create_directory("workouts", &app_folder);
+
+            // User settings
+            let _ = get_or_create_file("user_settings.json", &app_folder);
         }
         None => {
             error!(
-                "{}:get_workouts: Unable to retrieve root directory.",
+                "{}:initialize: Unable to retrieve root directory.",
                 LOGGER_NAME
             );
         }
     };
 }
 
-fn get_or_create_directory(folder_name: &str, dir: PathBuf) -> Result<PathBuf> {
+fn get_or_create_directory(folder_name: &str, dir: &PathBuf) -> Result<PathBuf> {
     let folder = dir.join(folder_name);
 
     if !folder.exists() {
@@ -38,7 +44,7 @@ fn get_or_create_directory(folder_name: &str, dir: PathBuf) -> Result<PathBuf> {
 
         if let Err(err) = fs::create_dir(&folder) {
             error!(
-                "{}:get_workouts: Unable to create directory. {}",
+                "{}:get_or_create_directory: Unable to create directory. {}",
                 LOGGER_NAME, err
             );
 
@@ -47,4 +53,28 @@ fn get_or_create_directory(folder_name: &str, dir: PathBuf) -> Result<PathBuf> {
     }
 
     Ok(folder)
+}
+
+fn get_or_create_file(filename: &str, dir: &PathBuf) -> Result<()> {
+    let file = dir.join(filename);
+
+    if !file.exists() {
+        let default_user = User {
+            username: "".to_string(),
+        };
+
+        if let Err(err) = serde_json::to_writer_pretty(
+            fs::File::create(&file).expect("Error creating user settings file."),
+            &default_user,
+        ) {
+            error!(
+                "{}:get_or_create_file: Error writing user settings file: {}",
+                LOGGER_NAME, err
+            );
+
+            return Err(error_generic("Error writing user settings file"));
+        }
+    }
+
+    Ok(())
 }
