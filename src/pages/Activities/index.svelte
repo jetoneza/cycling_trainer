@@ -7,16 +7,22 @@ import List from './components/List.svelte'
 import ActivityComponent from './components/Activity.svelte'
 
 // Types
-import { DispatchMessage, type Activity, Page } from '../../types'
+import { DispatchMessage, type Activity, Page, type AppUser } from '../../types'
 
 // Styles
 import './styles.css'
+
+// Stores
 import { activityStore } from '../../stores/activities'
+import { appUserStore } from '../../stores/appUser'
 
 const dispatch = createEventDispatcher()
 
 let activities: Array<Activity> = []
 let selectedActivity: Activity
+let appUser: AppUser
+
+appUserStore.subscribe((value) => (appUser = value))
 
 onMount(async () => {
   activities = await invoke('get_activities')
@@ -28,12 +34,13 @@ const handleSelectActivity = (activity: Activity) =>
   (selectedActivity = activity)
 
 const handleStartActivity = () => {
+  if (!appUser) {
+    return
+  }
+
   activityStore.set({
     ...selectedActivity,
-
-    // TODO: Use dynamic fpt value
-    // TODO: Remove static ftp value
-    ftp: 200,
+    ftp: appUser.settings.ftp,
   })
 
   dispatch(DispatchMessage.PageChange, {
