@@ -12,13 +12,13 @@
     "format": "prettier --write --plugin-search-dir=. ./**/*.html"
   },
   "dependencies": {
-    "@tauri-apps/api": "^1.4.0",
+    "@tauri-apps/api": "^1.5.1",
     "chart.js": "^4.3.0",
     "svelte-icons": "^2.1.0"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^2.4.1",
-    "@tauri-apps/cli": "^1.4.0",
+    "@tauri-apps/cli": "^1.5.7",
     "@tsconfig/svelte": "^5.0.0",
     "@types/node": "^18.7.10",
     "autoprefixer": "^10.4.14",
