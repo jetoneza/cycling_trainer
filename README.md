@@ -11,7 +11,7 @@ Follow Tauri prerequisites [here.](https://tauri.app/v1/guides/getting-started/p
 Start the dev server:
 
 ```bash
-$ npm run tauri dev
+$ pnpm run tauri dev
 ```
 
 Follow Tauri's build step [here](https://tauri.app/v1/guides/building/)
