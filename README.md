@@ -26,6 +26,7 @@ I've completed the major functionalities of the app, making it usable for cyclin
 * Displaying live data during workout sessions.
 * Spin Down Calibration.
 * Power and heart rate graphs.
+* Save session summary.
 
 ![Cycling Trainer Workout](https://res.cloudinary.com/dj0l6hcwu/image/upload/v1696052264/personal_website/cycling_trainer_workout_qo1rlq.png "Cycling Trainer Workout")
 
@@ -39,7 +40,7 @@ I've completed the major functionalities of the app, making it usable for cyclin
 
 The app is now usable for workouts, but I plan to add more features to make it fully fleshed out. Here's the checklist for what's next:
 
-* Save session summary.
 * Workout interval graph.
 * Custom workout creator.
 * Strava and Garmin integration.
+* Convert session summary to common file types
