@@ -15,13 +15,17 @@ mod workouts;
 use crate::prelude::*;
 
 use ble::bluetooth::{Bluetooth, Connection, DeviceType, BLUETOOTH};
+use chrono::Local;
 use data::{
     session::Session,
     simulation::{Simulation, SIMULATION},
 };
 use error::error_generic;
 use log::{error, warn};
-use system::user::{User, APP_USER};
+use system::{
+    directory,
+    user::{User, APP_USER},
+};
 use tauri::Manager;
 use tauri_plugin_log::{self, LogTarget};
 use tokio::sync::Mutex;
@@ -262,6 +266,24 @@ async fn get_simulated_session_data() -> Result<Option<Session>> {
 }
 
 #[tauri::command(async)]
+async fn save_current_session(simulation: bool) -> Result<()> {
+    let session = if simulation {
+        get_simulated_session_data().await?
+    } else {
+        get_session_data().await?
+    };
+
+    if let Some(session) = session {
+        let now = Local::now();
+        let filename = now.format("%Y%m%d%H%M%S.json").to_string();
+
+        let _ = directory::save_session(&session, filename);
+    }
+
+    Ok(())
+}
+
+#[tauri::command(async)]
 async fn set_simulation_targets(power: usize, cadence: usize) -> Result<()> {
     SIMULATION.set(Simulation::new()).ok();
 
@@ -319,6 +341,7 @@ fn main() {
             start_session,
             stop_session,
             get_session_data,
+            save_current_session,
             // Simulation commands
             start_simulation,
             start_simulated_session,

@@ -29,7 +29,9 @@ export const getWorkoutData = (
     return data
   }
 
-  data.power = calculatePower(workout, ftp, intervalTime)
+  const power = calculatePower(workout, ftp, intervalTime);
+
+  data.power = (power === -Infinity) ? 0 : power || 0;
   data.cadence = workout.cadence || 0
 
   return data

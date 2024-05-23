@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use crate::{error::error_generic, prelude::*};
+use crate::{data::session::Session, error::error_generic, prelude::*};
 
 use log::{error, info};
 
@@ -23,6 +23,9 @@ pub fn initialize() {
 
             // Workouts directory
             let _ = get_or_create_directory("workouts", &app_folder);
+            
+            // Sessions directory
+            let _ = get_or_create_directory("sessions", &app_folder);
 
             // User settings
             let _ = get_or_create_file("user_settings.json", &app_folder);
@@ -98,6 +101,40 @@ fn get_or_create_file(filename: &str, dir: &PathBuf) -> Result<PathBuf> {
 
             return Err(error_generic("Error writing user settings file"));
         }
+    }
+
+    Ok(file)
+}
+
+pub fn save_session(session: &Session, filename: String) -> Result<PathBuf> {
+    let path = match dirs::document_dir() {
+        Some(dir) => dir.join("Cycling Trainer").join("sessions"),
+        None => {
+            error!(
+                "{}:save_sessions: Unable to retrieve sessions directory.",
+                LOGGER_NAME
+            );
+
+            return Err(error_generic("Error retrieving session directory"));
+        }
+    };
+
+    let file = path.join(filename);
+
+    if file.exists() {
+        return Ok(file);
+    }
+
+    if let Err(err) = serde_json::to_writer_pretty(
+        fs::File::create(&file).expect("Error creating session file."),
+        session,
+    ) {
+        error!(
+            "{}:save_session: Error writing session file: {}",
+            LOGGER_NAME, err
+        );
+
+        return Err(error_generic("Error writing session file"));
     }
 
     Ok(file)

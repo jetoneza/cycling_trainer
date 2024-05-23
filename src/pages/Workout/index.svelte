@@ -48,7 +48,7 @@ enum StopAction {
 
 const WORKOUT_START_INDEX = 0
 const MAX_IDLE_TIME = 3
-const IS_SIMULATED = import.meta.env.MODE === "development"
+const IS_SIMULATED = import.meta.env.MODE === 'development'
 
 const dispatch = createEventDispatcher()
 
@@ -199,6 +199,12 @@ devicesStore.subscribe((map) => {
     devices[DataType.Speed].value = speed || 0
     devices[DataType.Power].value = power || 0
     devices[DataType.Cadence].value = cadence || 0
+
+    const isEnd = activeWorkoutIndex == activity.workouts.length - 1
+
+    if (isEnd) {
+      return
+    }
 
     trackSessionState()
   }
@@ -389,7 +395,9 @@ const handleStopSimulatedSession = async (action = 'pause') => {
 const handleSaveSession = async () => {
   await stopSession()
 
-  // TODO: Save summary details
+  await invoke('save_current_session', {
+    simulation: IS_SIMULATED,
+  })
 
   displaySummary = false
 
